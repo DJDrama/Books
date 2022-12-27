@@ -1,0 +1,69 @@
+[1. Kotlin: what and why]
+- Statically Typed Programming Language
+	- Type of every expression in a program is known at compile time.
+	
+	* Dynamically typed Programming
+		-> allows shorter code and greater flexibility in creating data structures
+		-> Problems like misspelled names can't be detected during compilation and can lead to runtime errors.
+
+	- In many cases, the type of variable can automatically be determined from the context, allowing you to omit the type declaration.
+		ex) val x = 10 (val x: Int = 10) // Kotlin determines its type is Int.
+
+		* Type inference: ability of the compiler to determine types from context
+
+	(Benefits)
+	1) Performance
+		- Calling methods is faster, no need to figure out at runtime which method needs to be called
+	2) Reliability
+		- Compiler verifies the corectness of the program, fewer chances for crashes at runtime
+	3) Maintainability
+		- Working with unfamiliar code is easer because you can see what kind of objects the code is working with.
+	4) Tool support
+		- Static typing enables reliable refactorings, precise code completion, and other IDE features.
+
+	- Kotlin supports nullable types.
+		-> write more reliable code by detecting possible null pointer exceptions at compile time.
+
+- Functional and object-oriented
+	(Key concepts of functional programming)
+	1) First-class Functions
+		- work with functions as values.
+		- can store them in variables
+		- pass them as parameters
+		- return them from other functions.
+	2) Immutability
+		- work with immutable objects, which guarantees that their state can't change after their creation
+	3) No side effects
+		- use pure functions that return the same result given the same inputs and don't modify the state of other objects or interact with the outside world.(No side-effect)
+	
+	- Conciseness: functional code can be more elegant and succint compared to its imperative counterpart.
+
+	- Working with functions gives you much more power of abstraction, avoid duplication in code.
+
+	- Safe multithreading
+		- When using immutable data structures and pure functions, can be sure that such unsafe modifications won't happen, and don't need to come up with complicated synchronization schemes.
+
+	- Easier testing
+		- Functions without side effects can be tested in isolation without requiring a lot of setup code to construct the entire environment that they depend on.
+
+	(Features of Kotlin functional programming)
+	1) Function types
+		- allow functions to receive other functions as parameters or return other functions
+	2) Lambda Expressions
+		- let you pass around blocks of code with minimum boilerplate
+	3) Data classes
+		- providing a concise syntax for creating immutable value objects
+	4) Rich set of APIS in the stdlib for working with objects and collections in the functional style.
+
+- Kotlin is Pragmatic
+- Kotlin is Concise
+- Kotlin is Safe
+- Kotlin is Interopoerable
+
+- Compiling Kotlin code
+	- Kotlin source code is normally stored in files with the extension.kt
+	- Kotlin compiler analyzes the source code and generates .class files, just like the Java compiler does.
+	- Generated .class files are then packaged and executed using the standard procedure for the type of application you're working on.
+	- Can use 'kotlinc' command to compile your code from the command line and use the 'java' command to execute your code.
+
+

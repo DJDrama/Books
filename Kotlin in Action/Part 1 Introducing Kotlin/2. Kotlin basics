@@ -1,0 +1,65 @@
+[2. Kotlin basics]
+- In Kotlin, 'if' is an expression, not a statement.
+	- Expression: has a value, which can be used as part of another expression
+	- Statement: always a top-level element in its enclosing block and doesn't have its own value.
+
+- Block body vs Expression Body
+	- Block body : function with curly braces
+		ex) fun hello() { ... }
+	- Expression body : function returning expression directly
+		ex) fun hello() = if ... else ...
+		-> type inference(compiler can analyze the expression and use its type as the function return type)
+
+- Variables
+	- if you don't specify the type, compiler analyzes the intializer expression and use its type as the variable type.
+	
+	- val : immutable reference
+		- must be initialized exactly once during the execution of the block where it's defined.
+	- var : mutable reference
+
+- String templates
+	- ex) println("Hello $name") // compiled code creates a StringBuilder and appends the constant parts and variable values to it.
+
+- In kotlin, 'public' is the default visibility; so you can omit it.
+- Java set, get accessors -> Kotlin just reference the properties directly.
+	- getters -> val
+	- setters -> var
+
+- In Kotlin enum is so-called soft keyword
+
+- when expression: if no argument is supplied, branch condition is any Boolean expression.
+
+- In Java, needs to add an explicit cast following the instanceof check.
+- In Kotlin, compiler does the check, and don't need to cast it afterward, compiler performs the cast for you --> Smart Cast
+	- Smart Cast works only
+		-> variable cound't have changed after the 'is' check
+			- property has to be a val and it can't have a custom accessor.
+
+- 'as' : explicit cast
+
+- Kotlin does not have ternary operator.
+
+- Progression: if you can iterate over all the values in a range, such a range is called 'progression'
+
+- Loops
+	- for(i in 0 until 100 step 3) // 0 3 6 9 ... 
+		-> we can use 'step' to skip some numbers.
+	- for(c in 'a' .. 'z') // we can also use other types in loops
+	- use withIndex() which returns Iterable 
+		ex)
+			val list = listOf(1, 2, 3, 4)
+    		for((index, item) in list.withIndex()){
+        		println("$index : $item")
+    		}
+    		// 0 : 1
+    		// 1 : 2
+    		// 2 : 3
+    		// 3 : 4
+
+- Use "in" operator to check collection and range membership
+	- can also use !in (for opposite)
+
+- Unlike in Java, in Kotlin the throw construct is an expression and can be used as a part of other expressions.
+	- "throw" is an expression. --> can be used as a part of other epxressions.
+
+- Kotlin doesn't require you to declare the exceptions that can be thrown by a function. (Kotlin does not have Checked Exceptions)
