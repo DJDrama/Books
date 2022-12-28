@@ -1,0 +1,115 @@
+[4. Classes, objects, and interfaces]
+- Interfaces
+	- Can contain definitions of abstract methods as well as implementations of non-abstract methods, BUT! can't contain any state.
+
+	- override modifier
+		- Unlike Java, using the override modifier is mandatory in Kotlin.
+
+	- Interface method can have a default implementation.
+		- you can omit it if you're fine with the default behavior.
+
+- Open, final, and abstract modifiers: final by default
+	- fragile base class problem
+		-> occurs when modifications of a base class can cause incorrect behavior of subclasses because the changed code of the base class no longer matches the assumptions in its subclasses.
+	- "Design and document for inheritance or prohibit it"
+		-> all classes and methods that aren't specifically inteded to be overriden in subclasses ought to be explicitly marked as final!
+	- Kotlin classes are "final" by default.
+	- use "open" modifier for inheritance. (classes, methods, properties)
+		* overriding member will also be open by default. In order to forbid the subclasses of your class from oerriding your implementation, explicitly mark the overriding member as final.
+
+	- Benefit of classes that are final by default
+		-> they enable smart casts in a larger variety of scenarios.
+			(Smart casts work only for variables that could not have changed after the type check)
+
+			* For a class, this means smart casts can only be used with a class property that is a val and that does not have a custom accessor.
+
+			-> property has to be final!
+				- otherwise a subclass could override the property and define a custom accessor, breaking the key requirement of smart casts.
+
+		-> Properties are final by default, you can use smart casts with most properties without thinking about it explicitly, which improves the expressiveness of your code.
+
+
+	- Abstract class
+		- usually contains abstract members that don't have implementations and must be overriden in subclasses.
+		- Abstract members are always open, no need o use an explicit open modifier.
+			- final : can't be overriden
+			- open : can be overriden
+			- abstract : must be oerriden (no super implementation)
+			- override : overrides a member in a superclass or interface
+
+- Visibility modifiers: Public by DEFAULT
+	- When you omit a modifier, the declaration becomes public.
+	- "internal" : visible inside a module.
+		- module: Kotlin files compiled together.
+
+	* "internal" modifier becomes public in the bytecode.
+		-> Sometimes you can access internal class from Java but not in Kotlin.
+
+- Inner and nested classes: nested by Default
+	- Kotlin nested classes do not have access to the outer class instance, unless you specifically request that.
+	- "inner" modifier -> it contains a reference to an outer class.
+
+- Sealed classes: Defining restricted class hierarchies
+	- just using interface and when -> we can forget to add newly added branches
+	- Use sealed interface / classes -> "when" expression covers all possible cases, so no "else" branch is needed.
+
+- Constructors
+	- Primary constructor (usually the main, concise way to initialize a class and is declared outside of the class body)
+	- Secondary constructor : declared in the class body
+	- also allows you to put additional initialization logic in initializer blocks.
+
+	- Use private constructor -> ensure that your class can't be instantiated by other code.
+	- Can declare as many secondary constructors as you need.
+
+- == for compare values, === for compare references.
+- hashCode method should be always overriden together with equals.
+
+* general hashCode contract : if two objects are equal, they must have the same hash code.
+
+- data class
+	-> automatically generates equals, hashcode, toString
+	- strongly recommended to use read-only properties rather than var, making the instances of the data class immutable
+	- "copy()" : good alternative to modify the instance in place
+		* shallow copy
+
+- Class Delegation
+	- Decorator pattern
+		-> needs fairly large amount of boilerplate code.
+	- Kotlin support delegation as a language feature.
+		- Compiler will generate all the method implementations when using by.
+
+- "object" keyword
+	- Object declaration : way to define a singleton
+	- Companion objects
+		-> can contain factory methods and other methods that are related to this class but do not require a class instance to be called. (Their members can be accessed via class name)
+	- Object expression is used instead of Java's anonymous inner class.
+
+- "Object" as singletons
+	- cannot have constructors(either primary or secondary)
+	- object declarations are created immediately at the point of definition, not through constructor calls from other places in the code. (Therefore, defining a constructor for an object declaration does not make sense)
+
+- "Companion Objects" : a place for factory methods and static members
+	- Classes in Kotlin can't have static members
+	- Top-level functions can't access private members of a class.
+	- Companion : gain the ability to access the methods and properties of that object directly through the name of the containing class.
+
+	* The companion object has access to all private members of the class, including the private constructor, and it's an ideal candidate to implement the Factory pattern.
+
+	(Factory methods are very useful)
+		- can be named according to their purpose.
+		- can return subclasses of the class where the method is declared.
+		- can avoid creating new objects when it's not necessary.
+		* companion object members can't be overriden in subclasses.
+
+	* Companion object is a regular object that is declared in a class.
+		- It can be named, implement an interface, or have extension functinos or properties.
+
+	* @JvmStatic for member, @JvmField for top-level property or a property declared in an object.
+
+	- We can make companion extension functions (But empty comapnion object should be inside the class)
+		Ex) fun Person.Companion.fromJSON(json: String) : Person { ... }
+
+- Object for anonymous objects
+	- declaring an anonymous object extension
+	- object expression declares a class and creates an instance of that class, but does not assign a name to the class or the instance.
+	* anonymous objects aren't sigletons!! Every time an object expression is executed, a new instance of the object is created!!
