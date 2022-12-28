@@ -1,0 +1,47 @@
+[2. RxJava in Your Android Code]
+- We do not have complete control over the lifecycle of the Activities within our apps.
+	Ex) If the user rotates a device, Activity that is currently on screen may be destroyed and re-created to load the layout appropriate for the device's new orientation.
+
+	-> This feature of the Android framework requires any efective asynchronous data loading solution to have two properties.
+		1) It must be able to notify an Activity that its data-loading operation is complete without causing the Activity to leak
+		2) It should not force developers to re-query a data source just because of a configuration change.
+			- Rather, it should hold onto an deliver the results of a data-loading operation to an Activity that's been re-created after a configuration change.
+
+- Avoiding Memory Leaks
+	- to avoid leaking an Activity within an Android app, we must ensure that any object that notifies an Activity when an asyncrhonous data load operation is complete does not 
+		a) live longer than the Activity
+		b) hold a strong reference to the Activity it seeks to notify.
+
+	- By using RxJava, we typically avoid causing memory leaks by ensuring that the Observables that emit asyncrhonous data do not hold a strong reference to an Activity after that Activity's onDstroy() method has been called.
+
+	(Features)
+	- Any call to Observable.subscribe() returns a Subscription.
+		- Subscription represent a connection between an Observable that's emitting data and an Observer that's consuming that data.
+		- the Subscription returned by Observable.subscribe() represents the connection between the Observable receiving the subscirbe() message and the Observer that is passed in as a parameter to the subscribe() method.
+		- Subscriptions give us the ability to server that connection by calling Subscription.unsubscribe().
+
+	* calling unsubscribe() in an Activity's onDestory() method will prevent any leaks from occurring.
+
+	- If an Activity utilizes multiple Observables, then the Subscriptions returned from each call to Observable.subscribe() can all be added to a CompositeSubscription.
+	- CompositeSubscription : a Subscription whose unsubscribe() method will unsubscribe all Subscriptions that were previously added to it and that may added to it in the future.
+	- calling unsubscribe() on a CompositeSubscription, any Subscriptions added to the CompositeSubscription from that point on will also be unsubscribed.
+
+	* Calling unsubscribe() on an Observable, however, does not guarantee that your Activity will not be leaked.
+		Ex) If you create an Observable in your Activity using an anonymous or (non-static) inner Observable.OnSubscribe funtion object, that object will hold an implcit reference to your Activity, and if the Observable.OnSubscribe funtion object lives longer than your Activity, then it will prevent the Activity from being garbage collected even after it has received a call to onDestroy().
+
+- Avoiding Re-querying for Data Upon Configuration Changes
+	- Two ways that we can use RxJava to solve the re-query problem
+		1) we create Observables that use the Loader classes to fetch data asyncrhonously.
+		2) Ensure that Observables survive configuration changes
+		3) Use the cache or replay operators to make those Observables emit the same items to any future Observers.
+
+- Publish operator
+	- To add multiple Observers to an Observable's data.
+	- It creates a ConnectableObservable that does not emit its data every time there is a call to Observable.subscribe().
+		-> Rather, the ConnectableObservable returned by the publish operator emits its data after a call to ConnectableObservable.connect().
+		-> This allows all interested Observers to subscribe to a ConnectableObservable before it actually starts emitting any of its data.
+
+	* when we apply publish operator and call 'connect()' on the ConnectableObservable returned by it, we are turning a "cold" Observable into a "hot" one. 
+		- cold: only emits items upon a call to Observable.subscribe()
+		- hot : emit items even if there is no one subscribing to it.
+

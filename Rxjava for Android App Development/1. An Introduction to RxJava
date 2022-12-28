@@ -1,0 +1,49 @@
+[1. An Introduction to RxJava]
+
+(Sharp Learning Curve, Big Rewards)
+- RxJava
+	- Allows us to represent any operation as an asyncrhonous data stream that can be created on any thread, declaratively composed, and consumed by multiple objects on any thread.
+
+(Observables)
+- Asyncrhonous data streams are "emitted" by Observables.
+- Observables are exactly like Iterables : they provide objects access to a stream of data with a well-defined termintation point.
+- Key difference between Observables and Iterators
+	-> Observables provide access to asyncrhonous data streams
+	-> while Iterables provide access to synchronous ones.
+		- Accessing a piece of data from an Iterable's Iterator blocks the thread until that element has been returned.
+
+- Objects that want to consume an Observable's Data, on the other hand, register with that Observable to receive that data when it is ready.
+
+(Observers)
+- Consumers of an Observable's asynchronous data stream
+- Observers can react to the data emitted by the Observable in whatever way they want.
+
+- Observers: Objects that can consume the asyncrhonous data emitted by an Observable.
+- Can be multiple Observers that are registered to receive the data emitted by an Observable.
+- Observers can handle any errors that might occur while the Observable is emitting its data and Obervers know when there are no more items that will be emitted by an Observable.
+
+(Observable Creation and Subscribers)
+- Observables emit asynchronous data streams.
+- Subscriber is just an Observer that can unsubscribe itself from the items emitted by an Observable.
+
+* Creating Observables inside Activities can Cause memory leaks
+
+(Schedulers)
+- Sechedulers determine the thread on which Observables emit their asynchronous data streams and the thread on which Observers consume those data streams.
+
+- Schedulers.io : scheduler that schedules the code that runs in the Observable.OnSubscribe object to be run on an I/O thread.
+	ex) Observable.create(...).subscribeOn(Schedulers.io());
+
+- observeOn()
+	- Scheduler passed into this method will determine the thread on which the Observer consumes the data emitted by the Observable subscribeOn() actually returns an Observable, so you can chain observeOn() onto the Observable that is returned by the call to subscribeOn()
+		ex) Observable.create(...).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+
+		* AndroidSchedulers.mainThread belongs to RxAndroid library.
+
+	- By calling observeOn() with a specific Scheduler, you can modify the thread on which Observers consume the data emitted by the Observable.
+
+- We can create and consume asynchronous data streams on any thread using RxJava
+
+(Operators)
+- Allows us to declaratively compose Observerables.
+
