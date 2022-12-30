@@ -1,0 +1,126 @@
+[5. Programming with lambdas]
+- A lambda expression in Kotlin is always surrounded by curly braces.
+	Ex) 
+		// val sum = {a: Int, b: Int -> a + b }
+		// println(sum(1, 2)) // 3
+
+- run { println(42) } // runs the code in the lambda
+
+- In Kotlin, sysntatctic convetion lets you move a lambda expression out of parentheses if it's the last argument in a function call.
+	Ex)
+		// people.maxBy({p: Person -> p.age}) 
+		// --> people.maxBy(){p: Person -> p.age} 
+		// --> people.maxBy{p: Person -> p.age} // easiest to read
+
+- It is better to declare the parameter of each lambda explicitly when nested lambdas.
+	-> otherwise, it's difficult to understand which value the 'it' refers to.
+	-> useful to declare parameters explicitly if the meaning or the type of the parameter isn't clear from the context.
+
+- If you use a lambda in a function, you can access the parameters of that function as well as the local variables declared before the lambda.
+
+- Difference between Kotlin and Java : you aren't restricted to accessing final variables.
+	- you can also modify variables from within a lambda.
+	* Kotlin, unlike Java, allows you to access non-final variables and even modify them in a lambda.
+	* captured: external variables accessed from a lambda, are said to be captured by the lambda.
+		Ex)
+			// fun(...){
+			//		var a = 0
+			//		collection.forEach{
+			//			a++ // external variable 'a' is captured by this lambda function
+			//		}
+			// }
+
+	* by default, the lifetime of a local variable is constrained by the function in which the variable is declared.
+		- But! if it's caputred by the lambda, the code that uses this variable can be stored and exectued later.
+
+		!! When you capture a final variable, its value is stored together with the lambda code that uses it.
+		!! For non-final variaables, the value is enclosed in a special wrapper that lets you change it, and the reference to the wrapper is stored together with the lambda.
+
+- Important caveat is that, if a lmabda is used as an event handler or is otherwise executed asynchronously, the modifications to local variables will occur only when the lambda is executed.
+
+- Member References
+	- In Kotlin, you can convert the function to a value. (Use the :: operator)
+		Ex) 
+			// val getAge = Person::age
+			// people.maxBy(Person::age)
+
+		Ex) reference to a function that's declared at the top level
+			// fun salute() = println("Salute!")
+			// run(::salute) <-> run { salute() } <-> salute()
+
+- Functional Apis for collections
+	Ex) filter, map, and etc
+
+- Essentials: filter and map
+	- basis for manipulating collections.
+	* filter
+		-> result is a new collection that contains filtered elements.(satisfying the predicate)
+	* map
+		-> transforming elements
+
+	- Do not repeat a calculation if you don't need to!
+
+- "all", "any", "count", and "find": applying a predicate to a collection
+	- all : to check all elements with a predicate
+	- any : to check at least one element satisfying a predicate
+	- count: how many elements satisfy the predicate
+		* use count when only to count the elements, size is for counting the result
+			Ex) people.filter { predicate }.size <-> people.count { predicate }
+				-> count only counts, but filter creates a new collection and counts by using "size"(Inefficient)
+
+- groupBy: converting a list to a map of groups
+	- creates a map by a predicate.
+
+- flatMap and flatten: processing elements in nested collections.
+	* flatMap
+		-> transforms (or maps) each element to a collection according to the function given as an argument, and then it combines(or flattens) several lists into one.
+			Ex) 
+				// val strings = listOf("abc", "def")
+				// println(strings.flatMap{ it.toList() }) // [a, b, c, d, e, f]
+
+		- combines the authors of all the books in a single, flat list.
+		* use flatten : when you don't need to transform anything and just need to flatten such a collection.
+
+- Sequences: Lazy collection operations.
+	- Eagerly : map, filter (meaning the intermediate result of each step is stored in a temporary list)
+	- Sequences : Lazily -> avoids the creation of intermediate temporary objects.
+	- Sequences improve performance for a large number of elements.
+	- Elements in a sequence are evaluated lazily.
+	- Can convert any collection to a sequence by calling the extension function 'asSequence'.
+	- call 'toList' for backward conversion.
+
+	* As a rule, use sequence when you have a chain of operations on a large collection.
+
+- Intermediate and Terminal operations
+	- Intermediate Operation : returns another sequence, which knows how to transform the elements of the original sequence.
+	- Terminal Operation: returns a result, which may be a collection, an element, a number, or any other object that's somehow obtained by the seuqnce of transformations of the initial collection.
+
+	* Intermediate Operations are always lazy.
+		- intermediate operations are postponed and will be applied only when the result is obtained(terminal operation is called)
+
+- Creating sequences
+	- asSequence() or generateSequence( initialValue ) { ... }
+
+- functional interface, or SAM interface(single abstract method)
+	-> interface that has only one abstract method
+
+- creating an anonymous object vs with lambda
+	-> When you explicitly declare an object, a new instance ic reated on each invocation.
+	-> With a lambda, if the lambda does not access any variables from the function where it's defined, the corresponding anonymous class instance is reused between calls.
+
+	* If the lambda captures variables from the surrounding scope, it's no longer possible to reuse the same instance for every invocation.
+		- compiler creates a new object for every call and stores the values of the captured variables in that object.
+
+- Lambda with receivers(with, apply)
+	- With
+		- converts the first argument into a receiver
+		- lambda as a second argument.
+		- can access the receiver via an explicit 'this' reference.
+		- returns the result of executing the lambda code.
+		- result is the last expression in the lambda.
+
+	- Apply
+		- returns the receiver object, not the result of executing the lambda.
+		- useful when creating an instance of an object and need to initialize some properties right away.
+	
+
