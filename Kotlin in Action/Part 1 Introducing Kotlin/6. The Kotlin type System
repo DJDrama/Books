@@ -1,0 +1,106 @@
+[6. The Kotlin type System]
+- Nullability
+	- double : 64-bit floating-point number.
+
+	- in Kotlin, all nullable checks are performed at compilation time
+		-> no overhead for working with nullable types in Kotlin.
+
+	- safe call operator: ?.
+	- elvis operator : ?: (null-coalescing operator)
+
+	- safe casts: "as?"
+		- tries to cast a value to the specified type and returns null if the value doesn't have the proper type.
+
+	- Not-null assertions: "!!"
+		- avoid using multiple !! assertions on the same line.
+			-> you won't be able to tell whether it was company or address that held a null value.
+				Ex) person.company!!.address!!.country
+
+	- let function
+		- combine it with the safe call syntax, it effectively converts an object of a nullable type on which you call let into a non-null type
+		* nested let -> in most cases, such code ends up fairly verbose and hard to follow.
+			-> it's easier to use regular if expression to check all the values together.
+
+	- use lateinit for unit testing! NOT nullable instances
+
+	* All type parameters of functions and classes in Kotlin are nullable.
+		- @Nullable String in Java -> String? by Kotlin
+		- @NotNull String in Java -> String by Kotlin
+
+		* When there is no annotation present, Java type becomes a pltform type in Kotlin.
+
+	- Platform Types
+		- Be careful while working with Java Apis.
+			-> Most of the libraries aren't annotated, so you may interpret all the types as non-null.
+		- Every List<String> coming from Java would be an ArrayList<String?>? in Kotlin, you need to check values for null on every access or use a cast, which would defeat the safety benefits.
+
+		- It's important to get nullability right when implementing methods from Java classes or interfaces.
+
+	- Kotlin doesn't distinguish between primitive types and wrapper types. You always use the same type.
+		- In most cases, Kotlin's Int type is compiled to the Java primitive type int.
+		* if the Int type is used as a type argument of the collection, then the collection will store instances of Integer, the corresponding wrapper type.
+
+		- Integer types: Byte, Long, Int, Short
+		- Floating-point number types - Float, Double
+		- Character Type - Char
+		- Boolean type - Boolean
+
+		* Kotlin type such as Int can be easily compiled under the hood to the corresponding Java primitive type, because the values of both types can't store the null reference.
+
+	- Nullable primitive types: Int? Boolean?, and more
+		- Nullable types in Kotlin can't be represented by Java primitive types because null can only be stored in a variable of Java reference type.
+		 -> whenever you use a nullable version of primitive type in Kotlin, it's compiled to the corresponding wrapper type.
+
+	- Number conversions
+		- conversion functions are defined for every primitive type (except Boolean)
+			- toByte()
+			- toShort()
+			- to Char() and so on.
+
+	- "Any" and "Any?": the root types
+		- In Java, Object is a supertype of all reference types only, and primitive types aren't part of the hierarchy.
+		- In Kotlin, Any is a supertype of all types, including the primitivie types such as Int.
+		* Any: non-nullable type, so type Any can't hold the value null. -> Use Any? for nullable type
+
+		- Object in Java -> Any in Kotlin.
+
+	- The Unit type: Kotlin's "void"
+		- Unit type = void in Java.
+		- Unit can be used as type argument. (You can omit type specification for functions)
+
+	- The Nothing type: "This function never returns"
+		- They never complete successfully.
+
+- Collections and arrays
+	- Read-only and mutable collections.
+		- To modify the data in the collection, use the Kotlin.collections.MutableCollection interface (extends the regular kotlin.collections.Collection)
+
+		- Collection: size, iterator(), contains() ---> MutableCollection: add(), remove(), clear()
+
+	* Defensive Copy : make a copy of that collection before passing it to such a function.
+
+	* read-only collections aren't necessarily immutable.
+		- read-only collections aren't always thread-safe.
+
+	- Arrays of objects and primitive types
+		- To create an array in Kotlin, you have to following possibilities:
+			1) The arrayOf function creates an array containing the elements specified as arguments to this function.
+			2) The arrayOfNulls function creates an array of given size containing null elements.
+			3) The Array constructor takes the size of the array and a lambda, and initializes each array element by calling the lambda.
+
+		* toTypedArray method : list to an typed array
+
+		* type arguments of array types always become object types.
+			Ex) Array<Int> --> array of Integers (not Int)
+
+		* To provide primitive types arrays, Kotlin provides a number of separate classes, one for each primitive type.
+			Ex) Int-> IntArray, ByteArray, CharArray, BooleanArray, and so on.
+				--> compiled to int[], byte[], char[], and so on.
+
+			Ex)
+				// val fiveZeros = IntArray(5)
+				// val fizeZerosToo = intArrayOf(0, 0, 0, 0, 0)
+				// val square = IntArray(5) { i -> (i+1) * (i+1) } // 1, 4, 9, 16, 25
+				
+
+
