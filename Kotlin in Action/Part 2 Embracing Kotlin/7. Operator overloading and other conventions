@@ -1,0 +1,88 @@
+[Chapter 7. Operator overloading and other conventions]
+
+- Overloading binary arithmetic operations
+	- operator fun
+		- a * b : times
+		- a / b : div
+		- a & b : mod
+		- a + b : plus
+		- a - b : minus
+
+	* Operators for your own types always use the same precedence as the standard numeric types.
+		Ex) a + b * c
+			-> multiplication will always be executed before the addition, even if you've defined those operators yourself.
+
+			-> *, /, % has higher precendence than +, -
+
+	* When you define an operator, you don't need to use the same types for the two operands.
+
+	* Kotlin does not support commutativity.
+		- ability to swap the left and right sides of an operator
+			Ex)	If you want to write 1.5 * p in addition to p * 1.5, you need to define a separate operator for that.
+
+
+	* No special operators for bitwise operations
+		- shl : shift left
+		- shr : shift right
+		- ushr : unsigned shift right
+		- and : and
+		- or : or
+		- xor : exclusive or
+		- inv : bitwise inversion
+
+- Compound assignment operators (+= or -=, and etc)
+	1. +=
+		-> plusAssign(parameter..)
+		* when you write += in your code, theoretically both plus and plusAssign functions can be called.
+	2. unary minus (-a, -b)
+		-> unaryMinus() // no parameter
+
+	===============================
+	+a : unaryPlus
+	-a : unaryMinus
+	!a : not
+	++a, a++ : inc
+	--a, a-- : dec
+
+- identity equals(===)
+	-> same as == operator in Java : checks that both of its arguments reference the same object (or have the same value, if they have a primitive type)
+	* can't be overloaded.
+
+- "compareValuesBy" function
+	- Kotlin Standard library to implement the compareTo method easily and concisely.
+	- Receives a list of callbacks that calculate values to be compared.
+	- Calls each callback in order for both objects and compares the return values.
+		-> If the values are different, it returns the result of the comparison.
+		-> If the values are same, it proceeds to the next callback or returns 0 if there are no more callbacks to call.
+		- Callbacks can be passed as lambdas, or property references.
+
+- Conventions used for collections and ranges
+	- index operator : a[b]
+	- in operator : check an element is in a collection or range or not.
+		- operator fun contains : custom 'in'
+
+	- rangeTo convention. (same as .. )
+		Ex) for(i in 0 .. 10) == for(i in 0.rangeTo(10))
+
+	- Iterator convetion for the "for" loop
+
+- Destructuring Declarations
+	- data class : the compiler generates a componentN function for every property declared in the primary constructor.
+
+- Delegation
+	- a design pattern where an object, instead of performing a task, delegates that task to another helper object. (The helper object is called a delegate)
+
+	- Delegated properties
+		Ex) var p: Type by Delegate() 
+
+	- The Delegate class must have getValue and setValue methods
+
+	- Lazy intialization
+		-> creating part of an object on demand, when it's accessed for the first time.
+
+	- Delegated Properties
+		-> come into play when objects that have a dynamically defined set of attributes associated with them (via Expando Objects)
+		
+
+
+
