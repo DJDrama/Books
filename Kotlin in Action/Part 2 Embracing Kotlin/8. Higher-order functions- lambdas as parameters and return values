@@ -1,0 +1,58 @@
+[8. Higher-order functions: lambdas as parameters and return values]
+- Higher order functions : functions that take lambdas as arguments or return them
+
+- inline functions: a powerful Kotlin feature that removes the performance overhead associated with using lambdas and enalbes more flexible control flow within lambdas.
+
+- Declaring higher-order functions
+	- higher-order function : function that takes noather function as an argument or returns one.
+	- In Kotlin, functions can be represented as values using lambdas or function references.
+
+- Function types
+	- function type declaration always requires an explicit return type, so you can't omit Unit!
+	- function types are declared as regular interfaces; a variable of a function type is an implementation of a FunctionN interface.
+		-> Kotlin standard library defines a series of interfaces, corresponding to diferent numbers of function arguments
+			- Function0<R> (this function takes no arguments)
+			- Function1<P1, R> (this function takes one argument), and so on.
+
+- Inline functions : removing the overhead of lambdas
+	* Every time you use a lambda expression, an extra class is created; and if the lambda captures some variables, then a new object is created on every invocation'
+		-> introduces runtime overhead, causing an implementation that uses a lambda to be less efficient than a function that executes the same code directly.
+
+	- When a function is inlined(inline modifier), the compiler won't generate a function call when this function is used and instead will replace every call to the function with the actual code implementing the function.
+
+	- function as inline, body is inlined and it's substituted directly into places where the function is called instead of being invoked normally.
+
+	* Restrictions
+		1) Not every function that uses lambdas can be inlined.
+			- If the parameter is stored somewhere for further use, the code of the lambda expression can't be inlined, because there must be an object contains this code.
+
+			* parameter can be inlined if it's called directly or passed as an argument to another inline function.
+
+		2) Lambdas used to process a sequence aren't inlined! Each intermediate sequence is represented as an object storing a lambda in its field, and the terminal operation causes a chain of calls through each intermediate sequnce to be performed.
+			-> Thus, even though operations on sequences are lazy, you shouldn't strive to insert an 'asSequence' call into every chain of collection operations in your code.
+
+			* Sequence only for large collections; smaller ones can be processed nicely with regular collection operations.
+
+- When to declare functions as inline?
+	- inline keyword is likely to improve performance only with functions that take lambdas as arguments; all other cases require additional measuring and investigation.
+
+	* inlining functions with lambda arguments is beneficial.
+		1) overhead you avoid through inlining is more significant.
+			-> saves function call
+			-> saves creation of the extra class for each lambda and an object for the lambda instance.
+		2) the JVM currently isn't smart enough to always prform inlining through the call and the lambda.
+		3) lets you use features that are impossible to make work with regular lambdas, such as non-local returns.
+
+	* When a function you want to inline is large, copying its bytecode into every call site could be expensive in terms of bytecode size!
+	 -> inline functions in Kotlin should awalys be small.
+
+- Using inlined lambes for resource management.
+	- One common pattern : resource management(acquring a resource before an operation and releasing it afterward)
+
+	- non-local return : If you use 'return' keyword in a lambda, it returns from the function in which you called the lambda, NOT just from the lambda itself.
+
+	- local return: similar to break expression in a for loop. 
+		-> To distinguish a local return from a non-local one, you use labels.
+
+	- Anonymous functions: local return by default.
+		- provides an alternative syntax to lambda expressions with different rules for resolving the return expressions. You can use them if you need to write a lock of code with multiple exit points.
