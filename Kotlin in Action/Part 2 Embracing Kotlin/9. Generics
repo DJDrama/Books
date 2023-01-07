@@ -1,0 +1,93 @@
+[9. Generics]
+- Reified type parameters
+	-> allows you to refer at runtime to the specific types used a specific type arguments in an inlline ffunctiiotn call.
+	- for normal functions or classes, this isn't possible, because type arguments are erased at runtime.
+
+- Declration-site variance
+	-> lets you specify whether a generic type with a type argument is a suptype or a supertype of another generic type with the same base type and a different type argument.
+ 
+- Use-site variance
+ 	-> same task as Java's wildcards.
+
+- Generic Type parameters
+ 	-> generics allow you to define types that have type parameters.
+ 		- type parameters are subsituted with specific types called "type arguments"
+
+ 	- Can declare type papramemters  mecllasses or interfaces, top-level functions, and extension functions.
+
+- Type parameter constraints
+	- lets you restrict the types that can be used as type arguments for a class or function.
+
+	- upper bound constraint (either the specified type or its subtypes)
+		ex) fun <T : Number> List<T>.sum() : T
+			- T: Type parameter
+			- : Number -> Upper bound
+
+
+	* Type parameter with no upper bound specified will have the upper bound of Any?.
+		-> To guarantee 'non-null' type, acheive by specifying a constraint.
+			ex) <T> --> <T : Any> // specifying a non-"null" upper bound.
+
+- Generics at runtime (erased and reified type parameters)
+	- Type Erasure: type arguments of an instance of a generic class aren't preservedat runtime.
+	* inline function -> its type arguments aren't erased(or, in Kotlin terms, are reified).
+
+- Generics at runtime: type checks and casts
+	- Kotlin's generics are ERASED at runtime.
+		-> If you create a List<String> and put strings into it, you'll only be able to see that it's a List. Not Possible to identify which type of elements the list was inteded to contain.
+
+		Ex) Error
+		// if(value is List<String>) { ... }
+
+	- Use star projection Syntax 
+		Ex) if(value is List<*>) { ... }
+
+- Declaring functions with reified type parameters.
+	* Kotlin generics are erased at runtime.
+		-> you can't find out the type arguments used when the instance was created!
+
+	* use inline functions -> limitation can be avoided!
+		- Type parameters of inline functions can be reified.
+			-> you can refer to actual type arguments at runtime!
+
+	* filterIsInstance<Type>()
+		-> check which values in the list are instances of the class specified as type argument.
+
+		* reified : type parameter will not be erased at runtime.
+
+- Replacing class references with reified type parameters.
+
+- Restrictions on reified type parameters.
+	- Cant' do the following.
+		1. Create new instances of the class specified as a type parameter.
+		2. Call methods on the companion object of the type parameter class.
+		3. Use a non-reified type parameter as a type argument when calling a function with a reified type parameter
+		4. Mark type parameters of classes, properties, or non-inline functions as reified.
+
+- Variance: generics and subtyping
+
+- Classes, types, and subtypes
+	- Subtype, SuperType
+	- non-null type is a subtype of null type
+		Ex) Int -> Int?, A -> A?, etc
+
+- Covariance : preserved subtyping relation	
+	- Subtyping is preserved.
+		Ex) Producer<Cat> is a subtype of Producer<Animal> (Cat is a subtype of Animal)
+
+	- if T is used as the return type of a function, it's in the out position.
+	- If T is used as the type of a function parameter, it's in the in position.
+
+	* out keyword
+		1. The subtyping is preserved
+		2. T can be used only in out positions.
+
+- Contravariance: reversed subtyping relation
+	- in keyword : values of the corresponding type are passed in to methods of this class and consumed by those methods.
+
+- Declaration-site variance
+	-> ability to specify variance modifiers on class declarations is convenient because the modifiers apply to all places where the class is used.
+
+- Use-site varaiance
+	-> every time you use a type with a type parameter, you can also specify whether this type parameter can be replaced with its subtypes or supertypes.
+
