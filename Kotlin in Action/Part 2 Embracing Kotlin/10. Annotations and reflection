@@ -1,0 +1,96 @@
+[10. Annotations and reflection]
+- use annotations : assign library-specific semantics to those classes
+- reflections : allows you to analyze the structure of the classes at runtime.
+
+- Example) Deprecated
+	// @Deprecated("use ...", ReplaceWith("removeAt(index"))
+	// fun remove(index: Int){ ... }
+
+	* Kotlin enhances with "replaceWith" parameter
+		-> provide a replacement pattern to support a smooth transition to a new version of the API
+
+- Annotations can have parameters of the following types only
+	- primitive types
+	- strings
+	- enums
+	- class references
+	- other annotation classes
+	- arrays
+
+	1) Specifying a clss as an annotation argument
+		- put ::class after the class name
+		- Ex) @MyAnnotation(MyClass::class)
+
+	2) To specify another annotation as an argument, don't put the @ character before the annotation name.
+		Ex) "ReplaceWith" is an annotation, but don't use @ when you specify it as an argument of the "Deprecated" annotation.
+
+	3) To specify an array as an argument, use the arrayOf function
+		Ex) @RequestMapping(path = arrayOf("/foo", "/bar"))
+
+		* If the annotation class is declared in Java, the parameter named value is automatically converted to a vararg parameter if necessary, so the arguments can be provided without using the arrayOf function.
+
+* Annotation arguments need to be known at compile time.
+	- you can't refer to arbitrary properties as arguments.
+	- To use a property as an annotation argument, you need to mark it with a "const" modifier.
+		--> tells the compiler that the property is a "compile-time constant"
+
+		Ex)
+			// const val TEST_TIMEOUT = 100L
+			// @Test(timeout = TEST_TIMEOUT) fun testMethod() { ... }
+
+- use-site target declaration.
+	- placed between the @ sign and the annotation name and is separated from the name with a colon.
+		Ex) @get:Rule
+			- get : Use-site target
+			- Rule : annotation name
+
+- Full list of supported use-site targets
+	- property
+	- field
+	- get
+	- set
+	- receiver
+	- param
+	- setparam
+	- delegate
+	- file
+
+- One of the classic use cases for annotations is customizing object serialization.
+	- Serialization: converting an object to a binary or text representation that can be then stored or sent over the network.
+	- Deserialization: converts such a presentation back to an object.
+
+	* JSON: common formats used for serialization
+
+- @JsonExclude and @JsonName
+	- @JsonExclude : mark a property that should be excluded from serialization and deserialization
+	- @JsonName : specify the key in the key/value pair representing the property should be the given string, not the name of the property.
+
+- Annotation classes
+	- they are only used to define the structure of metadata associated with declarations and expressions, they can't contain any code.
+
+- Meta-annotations
+	- annotations that can be applied to annotation classes
+		Ex) many dependency injection libraries use meta-annotations to mark annotations used to identify different injectable objects of the same type.
+
+02
+- Reflection: Introspecting Kotlin objects at runtime
+	- a way to access properties and methods of objects dynamically at runtime, without knowing in advance what those properties are.
+
+	* JSON serialization library needs to be able to serialize any object to JSON, so it can't reference specific classes and properties. This is where reflection comes into play.
+
+	- Kotlin classes are compiled to regular Java bytecode, Java reflection API supports them perfectly well.
+	(Java libraries that use the reflection API are fully compatible with Kotlin code.)
+
+	- Kotlin reflection API
+		-> gives you access to concepts that don't exist in the Java world.
+			- properties and nullable types.
+
+- Kotlin reflection API: KClass, KCallable, KFunction, and KProperty
+	- KClass : main entry point of the Kotlin reflection API, which represents a class.
+		- counterpart of java.lang.Class, you can use it to enumerate and access all the declarations contained in the class, superclasses, and so on.
+		- get an instance of KClass by writing MyClass::class.
+
+	- KCallable : superinterface for functions and properties.
+		- declares the "call" method, allowing you to call the corresponding function or the getter of the property.
+
+	- KProperty : member property
