@@ -1,4 +1,5 @@
-[1. Bootstarting Spring]
+1. Bootstarting Spring
+
 (1.1) Spring rebooted
 	- Spring was configured with XML
 	- Spring 2.5 introduced annotation-based component-scanning: Eliminated a great deal of explicit XML configuration for an app's own components.

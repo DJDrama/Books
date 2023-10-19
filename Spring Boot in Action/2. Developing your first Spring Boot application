@@ -1,0 +1,101 @@
+2. Developing your first Spring Boot application
+
+(2.1) Putting Spring Boot to work
+	
+	(2.1.1) Examining a newly initialized Spring Boot project
+		- the main application code is placed in the src/main/java branch of the directory tree
+		- resources are placed in the src/main/resources branch
+		- test code is placed in the src/test/java branch
+
+		- build.gradle - The Gradle build specifications
+		- ReadingListApplication.java - The application's bootstrap class and primary Spring configuration class
+		- application.properties - A place to configure application and Spring Boot properties
+		- ReadingListApplicationTests.java - A basic integration test class
+
+		[BOOTSTRAPPING SPRING]
+			- ReadingListApplication class serves two purposes in a Spring Boot application
+				1. configuration
+				2. bootstrapping
+				+ Central Spring Configuration class
+				+ Even though Spring Boot auto-configuration eliminates the need for a lot of Spring configuration, you'll need at least a small amount of Spring configuration to enable auto-configuration.
+
+				@SpringBootApplication : Enable component-scanning and auto-configuration
+					- enables Spring component-scanning and Spring Boot auto-configuration
+					- In fact, @SpringBootApplication combines three other useful annotations
+						1. Spring's @configuration
+							- Designates a class as a configuration class using Spring's Java-based configuration.
+							- Although we won't be writing a lot of configuration, we'll favor Java-based configuration over XML configuration when we do.
+						2. Spring's @ComponentScan
+							- Enables component-scanning so that the web controller classes and other components you write will be automatically discovered and registered as beans in the Spring application context.
+							- @Controller: component-scanning can find it
+						3. Spring Boot's @EnableAutoConfiguration
+							- one line of configuration that enables the magic of Spring Boot auto-configuration
+							- this one line keeps you from having to write the pages of configuration that would be required otherwise.
+
+						* In older versions of Spring Boot, you'd have annotated the ReadingListApplication class with all three of above annotations.
+						* But since Spring Boot 1.2.0, @SpringBootApplication is all you need.
+
+					- main() method will enable you to run your app as an executable JAR file from the command line.
+					- It passes a reference to the ReadingListApplication class to SpringApplication.run(), along with the command-line arguments, to kick off the application.
+
+					- Easiest way to build and run the application is to use the bootRun task with Gradle: $ gradle bootRun
+					- Alternatively you can build the project with Gradle and run it with java at the command line : 
+						$ gradle build
+						...
+						$ java -jar build/libs/readinglist-0.0.1-SNAPSHOT.jar
+
+					- The app should start up fine and enable a Tomcat server listening on port 8080.
+					- You can point your browser at http://localhost:8080 if you want, but no controller yet --> you'll be met with an HTTP 404 (Not Found) error and an error page.
+					- You'll almost never need to change ReadingListApplication.java
+					- When you need any additional Spring configuration beyond what Spring Boot auto-configuration provides, it's usually best to write it into separate @Configuration-configured class. (They'll be picked up and used by component-scanning.)
+
+				+ SpringApplication.run(ReadingListApplication.class, args); : Bootstrap the application
+
+		[CONFIGURING APPLICATION PROPERTIES]
+			- application.properties file given to you bye the Initializr is initially empty.
+			- This file is completely optional, so you could remove it completely without impacting the app, but there's also no harm in leaving it in place.
+			- If you want to poke around with application.properties, try adding the following line: server.port=8000
+				-> configuring the embedded Tomcat server to listen on port 8000 instead of the default port 8080.
+
+	(2.1.2) Diseecting a Spring Boot project build
+		- Provides Both Gradle and Maven to assist in building Spring Boot projects.
+		- Main feature of the build plugins is that they're able to package the project as an executable uber-JAR. -> includes pkacing all of the app's dependencies within the JAR and adding a manifest to the JAR with entires that make it possible to run the app with java -jar.
+
+(2.2) Using starter dependencies
+	(2.2.1) Specifying face-based dependencies
+		$ gradle dependencies : give you a dependency tree that includes every library your project is using and their versions.
+		$ mvn dependency: tree : same
+
+	(2.2.2) Overriding starter transitive dependencies
+		- exclude: exclude transitive dependencies
+
+(2.3) Using automatic configuration
+	- Spring Boot auto-configuration is a runtime (more accurately, application startup-time) process that considers several factors to decide what Spring configuration should and should not be applied.
+		1. Is Spring's JdbcTemplate available on the classpath? If so and if there is a DataSource bean, then auto-configure a JdbcTemplate bean.
+		2. Is Thymeleaf on the classPath? If so, then configure a Thymeleaf template resolver, view resolver, and template engine.
+		3. Is Spring Security on the classpath? If so, then configure a very basic web security setup.
+
+	(2.3.1) Focusing on application functionality
+
+		[DEFINING THE DOMAIN]
+			- @Entity: designating it as a JPA entity.
+			- @Id, @GeneratedValue : indicate that this field is the entity's identity and that its value will be automatically provided.
+
+		[DEFINING THE REPOSITORY INTERFACE]
+			- extending JpaRepository, ReadingListRepository inherits 18 methods for performing common persistence operations.
+			- JpaRepository interface is parameterized with two parameters: the domain type that the repository will work with, and the type of its ID property.
+			- The interface will be implemented automatically at runtime when the application is started.
+
+		[CREATING THE WEB INTERFACE]
+			- @Controller: picked up by component-scanning and automatically be registered as a ben in the Spring application context.
+			- @RequestMapping: map all of its handler mtehod to a base URL path of "/".
+
+	(2.3.2) Running the application
+
+	(2.3.3) What just happened?
+		- Configuration is a central element of the Spring Framework, telling Spring how to run your application.
+		- When you add Spring Boot to your app, there's a JAR file named spring-boot-autoconfigure that contains several configuration classes.
+		- Every one of these configuration classes is available on the app's classpath and has the opportunity to contribute to the configuration of your app.
+		
+
+
