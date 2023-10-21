@@ -1,0 +1,70 @@
+3. Customizing Configuration
+	(3.1) Overriding Spring Boot auto-configuration
+		(3.1.1) Securing the application
+			- gradle: implementation("org.springframework.boot:spring-boot-starter-security")
+			- username you'll need to enter is "user".
+			- for the password, it's a bit trickier.
+			- password is randomly generated and written to the logs each time the app is run.
+			- need to look through the logging messages (written to stdout by default) and look for a line that looks something like below.
+				-> Using generated security password: 3d6a16aa-286b-4938-9414-e84c9bd91a98
+
+		(3.1.2) Creating a custom security configuration
+			- writing a configuration class that extends WebSecurityConfigureAdapter.
+			- SecurityConfig
+			- @Entity: make data class a JPA entity.
+			- @Id: designate field as the entity's ID.
+			- Reader class implements the UserDetails interface
+				-> This makes it possible to use a Reader object to represent a user in Spring Security.
+				-> The getAutorities() method is overriden to always grant users READER authority.
+
+
+		(3.1.3) Taking another peek under the covers of auto-configuration
+
+	(3.2) Externalizing configuration with properties
+		(3.2.1) Fine-tuing auto-configuration
+			[DISABLING TEMPLATE CACHING]
+				- Thymeleaf templates are cahced by default, so they aren't applied unless you restart the app.
+					-> This improves app performance because you only compile the templates once, but it's difficult to make changes on the fly during development.
+				- You can disable Thymeleaf template caching by settign spring.thymeleaf.cache to false.
+
+			[CONFIGURING THE EMBEDDED SERVER]
+				- server.port : 8000 : set to different port to prevent collision.
+
+			[CONFIGURING LOGGING]
+				- Most apps provide some form of logging.
+				- By default, Spring Boot configures logging via Logback to log to the console at INFO level.
+				- For full control over the logging configuration, you can create a logback.xml file at the root of the classpath (in src/main/resources).
+
+			[CONFIGURING A DATA SOURCE]
+				- simply configure the URL and credentials for your database via properties.
+				- The DataSource bean will be pooled, using Tomcat's pooling DataSource if it's available on the classpath. If not, it will look for and use one of these other connection pool implementation on the classpath:
+					1) HikariCP
+					2) Commons DBCP
+					3) Commons DBCP 2
+				- If you set the spring.datasource.jndi-name property, the other datasource connection properties (if set) will be ignored.
+
+		(3.2.2) Externally configuring application beans
+			[ENABLING CONFIGURATION PROPERTIES]
+				- Because all of the configuration classes behind Spring Boot auto-configuration are already annotated with @EnableConfigurationProperties, you aren't taking advantage of auto-configuration at all, you should not need to explictly use @EnableConfigurationProperties.
+
+		(3.2.3) Configuring with profiles
+			- Spring framework introduced support for profile-based configuration in Spring 3.1
+			- ex) @Profile("production") -> requires that the "production" profile be active at runtime for this configuration to be applied., If the "production" profile is not active, this configuration will be ignored and, for lack of another overriding security configuration, the auto-configured security configuration will be applied.
+			- Profiles can be activated by setting the spring.profiles.active property using any of the means available for setting any other configuration property.
+
+			[WORKING WITH PROFILE-SPECIFIC PROPERTIES FILES]
+				- by creating additional properties files named with the pattern "application-{profile}.properties", you can provide profile-specific properties.
+				- For the logging scenario, the development configuration would be in a file named application-development.properties and contain properties for verbose, console-written logging: logging.level.root=DEBUG
+				- any properties that aren't specific to any profile or that serve as defaults can continue to be expressed in application.properties.
+
+	(3.3) Customizing application error pages
+		- Spring boot offers "whitelabel" error page by default as poart of auto-configuration.
+		- The default error handler that's auto-configured by Spring Boot looks for a view whose name is "error".
+			-> If it can't find one, it uses its default whitelabel error view. Therefore, the easiest way to customize the error page is to create a custom view that will resolve for a view named "error".
+
+		- Ultimately, this depends on the view resolvers in place when the error view is being resolved. This includes
+			1. Any bean that implements Spring's View interface and has a ben ID of "error"(resolved by Spring's BeanNameViewResolver).
+			2. A Thymeleaf template named "error.html" if Thymeleaf is configured.
+			3. A FreeMarker template named "Error.ftl" if FreeMarker is configured.
+			4. A Velocity template named "error.vm" if Velocity is configured.
+			5. A JSP template named "error.jsp" if using JSP views.
