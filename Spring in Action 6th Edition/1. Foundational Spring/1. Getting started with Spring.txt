@@ -1,0 +1,30 @@
+1.1 What is Spring?
+	- Spring offers a container, often referred to as the Spring application context, that creates and manages application components.
+	- These components, or beans, are wired together inside the Spring application context to make a complete application, much like bricks, mortar, timber, nails, plumbing, and wiring are bound together to make a house.
+	- Act of wiring beans together is based on a pattern known as dependency injection(DI).
+	- a dependency-injected app relies on a separate entity(the container) to create and maintain all components and inject those into the beans that need them.
+	- This is done through constructor arguments or property accessor methods.
+
+	[Spring application context]
+		- Inventory service ---- injected into -----> Product service
+		- Application components are managed and injected into each other by the Spring application context.
+
+	- @Configuration annotation: indicates to Spring that this is a configuration class that will provide beans to the Spring application context.
+	- The configuration's methods are annotated with @Bean, indiicating that the objects they return should be added as beans in the application context (where, by default, their respective bean IDs will be the same as the names of the methods that define them).
+
+	- Java-based configuration offers several benefits over XML-based configuration, including greater type safety and improved refactorability.
+	- Explicit configuration with either JAVA or XML is needed when Spring is unable to automatically configure the components.
+	- Autowiring, Component Scanning : Automatic configuration has its roots in the Spring techinques known as
+		1) With Component Scanning, Spring can automatically discover components from an app's classpath and create them as beans in the Spring app context.
+		2) With autowiring, Spring automatically injects the components with the other beans that they depend on.
+
+	- With the introduction of Spring Boot, automatic configuration has gone well beyond component scanning and autowiring.
+	- Spring Boot is an extension of the Spring Framework that offers several productivity enhancements.
+	- Autoconfiguration: Spring Boot can make reasonable guesses at what components need to be configured and wired together, based on entries in the classpath, environment variables, and other factors.
+
+	- Spring Boot autoconfiguration has dramatically reduced the amount of explicit configuration (whether with XML or Java) required to build an app.
+	- Spring Boot enhances Spring development so much that it's hard to imagine developing Spring apps without it.
+	- Spring XML configuration is the old-school way of working with Spring.
+
+1.2 Initializing a Spring application
+	- 
