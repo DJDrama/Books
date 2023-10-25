@@ -82,7 +82,7 @@
 	(Java libraries that use the reflection API are fully compatible with Kotlin code.)
 
 	- Kotlin reflection API
-		-> gives you access to concepts that don't exist in the Java world.
+		-> gives you access to conce pts that don't exist in the Java world.
 			- properties and nullable types.
 
 - Kotlin reflection API: KClass, KCallable, KFunction, and KProperty
