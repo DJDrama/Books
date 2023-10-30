@@ -27,4 +27,63 @@
 	- Spring XML configuration is the old-school way of working with Spring.
 
 1.2 Initializing a Spring application
-	- 
+	1.2.1 Initializing a Spring project with Spring Tool Suite
+	1.2.2 Examining the Spring project structure
+		- mvnw, mvnw.cmd : Maven wrapper scripts. You can use these scripts to build your project.
+		- pom.xml: Maven build specification.
+		- application.properties: offers a place where you can specify configuration properties.
+		- static: folder where you can place any static content (images, stylesheets, JavaScript, and so forth) that you want to serve to the browser.
+		- templates: place template files that will be used to render content to the browser. Mostly add a Thymeleaf template.
+
+		- "starter" word in dependency benefits
+			1) build file will be significantly smaller and easier to manage because won't need to declare a dependency on every library you might need.
+			2) able to think of your dependencies in terms of what capabilities they provide, rather than their library names. (If you're developing a web application, just add the web starter dependency rather than a laundry list of individual libraries that enable you to write a web app)
+			3) freed from the burden of worrying about library versions. You can trust that the versions of the libraries brought in transitively will be compatible for a given version of Spring Boot. You need to worry only about which version of Spring Boot you're using.
+
+		- the build specification ends with the Spring Boot plugin. This plugin performs a few important functions, described next:
+			1) provides a Maven goal that enables you to run the app using Maven.
+			2) ensures that all dependency libraries are included within the executable JAR file and available on the runtime classpath.
+			3) produces a manifest file in the JAR file that denotes the bootstrap calss as the main class for the executable JAR.
+
+		- @SpringBootApplication: clearly signifies that this is a Spring Boot application.
+		- @EnableAutoConfiguration: Enables Spring Boot automatic configuration.
+		- @ComponentScan: Enables component scanning. This lets you declare other classes with annotations like @Component, @Controller, and @Service to have Spring automatically discover and register them as components in the Spring app context.
+
+
+		- main() method in Application: method that will be run when the JAR file is executed. For the most part, this method is boilerplate code.
+		- main() method: calls a static run() method on the SpringApplication class, which performs the actual bootstrapping of the application, creating the Spring application context.
+			ex) SpringApplication.run(MyApplication.class, args);
+				-> two parameters passed to the run() method
+					1) configuration class
+					2) command-line arguments.
+
+		[TESTING THE APPLICATION]
+			- you can test your project manually by building it and then running it from the command line like this:
+				$ ./mvnw package
+				...
+				$ java -jar target/taco-cloud-0.0.1-SNAPSHOT.jar
+
+				OR
+
+				4 ./mvnw spring-boot:run
+
+			- @SpringBootTest annotation: tells JUnit to bootstrap the test with Spring Boot capabilities.
+			- @SpringBootTest is a composite annotation, which is itself annotated with @ExtendWith(SpringExtension.class), to add Spring testing capabilities to JUnit 5.
+
+			- To run any test classes from the command line, you can use the following Maven incantation:
+				$ ./mvnw test
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
