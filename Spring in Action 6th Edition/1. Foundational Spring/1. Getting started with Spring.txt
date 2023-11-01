@@ -73,6 +73,127 @@
 			- To run any test classes from the command line, you can use the following Maven incantation:
 				$ ./mvnw test
 		
+1.3 Writing a Spring application
+	1.3.1 Handling web requests
+		- Spring MVC is the conecpt of a controller, a class that handles requests and responds with information of some sort.
+		- In the case of a browser-facing app, a controller responds by optionally populating model data and passing the request on to a view to produce HTML that's returned to the browser.
+
+		- @Controller: primary purpose is to identify this class as a component for component scanning.
+		- Spring's component scanning automatically discovers it and creates an instance of XXXXController as a bean in the Spring application context.
+
+	1.3.2 Defining the view
+		- static content, such as images, is kept in the /src/main/resource/static folder.
+		- image must also reside within the project at /src/main/resources/static/images/XXXX.png
+
+	1.3.3 Testing the controller
+
+	1.3.4 Building and running the application
+	1.3.5 Getting to know Spring Boot DevTools
+		- DevTools provides Spring developers with some handy development-time tools
+			1) Automatic application restart when code changes
+			2) Automatic browser refresh when browser-destined resources (such as templates, JavaScript, stylesheets, and so on) change
+			3) Automatic disabling of template caches
+			4) Built in H2 Console, if the H2 database is in use
+
+		* DevTools isn't an IDE plugin, nor does it require that you use a spcific IDE.
+
+		[AUTOMATIC APPLICATION RESTART]
+			- with DevTools as part of your project, you'll be able to make changes to Java code and properties files in the project and see those changes applied after a brief moment.
+			- When DevTools is active, the app is loaded into two separate class loaders in the Java virtual Machine(JVM)
+				1) One class loader is loaded with your Java code, property files, and pretty much anything that's in the src/main/ path of the project. (These are items that are likely to change frequently)
+				2) The other class loader is loaded with dependenc libraries, which aren't likely to change as often.
+
+			- When a change is detected, DevTools reloads only the class loader containing your project code and restarts the Spring application context but leaves the other class loader and the JVM intact.
+
+			* Downside : changes to depdencies won't be available in automatic restarts. 
+				-> the class loader containing dependency libraries isn't automatically reloaded.
+				-> Any time, you add, change, or remove a dependency in your build specification, you'll need to do a hard restart of the application for those changes to take effect.
+
+		[AUTOMATIC BROWSER REFRESH AND TEMPLATE CACHE DISABLE]
+			- Thymeleaf and FreeMarker are configured to cache the results of template parsing so that templates don't need to reparsed with every request they servve.
+			- Even if you've made changes in development time, the cached template will still be in use until you restart the app.
+
+		[BUILT-IN H2 CONSOLE]
+			- If you choose to use the H2 database for development, DevTools will also automatically enable an H2 console that you can access from your web browser.
+
+	1.3.6 Let's review
+
+1.4 Surveying the Spring landscape
+	1.4.1 The core Spring Framework
+		- It provides the core container and dependency injection framework.
+		- Spring MVC can also be used to create REST APIs that produce non-HTML output.
+		- also offers some elemental data persistence support, specifically, template-based JDBC support.
+		- Spring includes support for reacive-style programming, including a new reactive web framework called Spring WebFlux that borrows heavily from Spring MVC.
+
+	1.4.2 Spring Boot
+		- Benefits
+			1) The Actuator provides runtime insight into the inner workings of an app, including metrics, thread dump info, app health, and environment properties available to the app
+			2) Flexible specification of environment properties
+			3) Additional testing support on top of the testing assistance found in the core framework.
+			4) offers an alternative programming model based on Groovy scripts that's called the Spring Boot CLI.
+
+	1.4.3 Spring Data
+
+	1.4.4 Spring Security
+		- addresses a board range of app security needs, including authentication, authorization, and API security.
+
+	1.4.5 Spring Integration and Spring Batch
+		- provides the implementation of these patterns for Spring apps.
+
+	1.4.6 Spring Cloud
+		- look at Cloud Native Spring in Action by Thomas Vitale
+
+	1.4.7 Spring Native
+		- GraalVM native-image compiler, resulting in images that start significantly faster and have a lighter footprint.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

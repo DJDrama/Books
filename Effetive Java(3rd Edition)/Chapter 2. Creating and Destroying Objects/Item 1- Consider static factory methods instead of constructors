@@ -1,0 +1,104 @@
+(Item 1: Consider static factory methods instead of constructors)
+	- static factory method is not the same as the Factory Method pattern from Design Patterns.
+	- Providing a static factory method instead of a public constructor has both advantages and disadvantages.
+
+	Advntage
+		1) unlike constructors, static factory method has name.
+			- static factory with a well-chosen name is easier to use and the resulting client code easier to read.
+				Ex) BigInteger(int, int, Random), which returns a BigInteger that is probably prime
+					--> better expressed as a static factory method name: BigInteger.probablePrime
+
+			* A class can have only a single constructor with a given signature.
+				- Programmers have been known to get around this restriction by providing two constructors whose parameter list differ only in the order of their parameter types --> This is a really BAD idea.
+
+				- The user of such an API will never be able to remember which constructor is which and will end up calling the wrong one by mistake.
+				- People reading code that uses these constructors will not know what the code does without referring to the class documentation.
+
+			* In cases where a class seems to require multiple constructors with the same signature, replace the constructors with static factory methods and carefully chosen names to highlight their differences.
+
+		2) Unlike constructors, they are not required to create a new object each time they're invoked.
+			- This allows immutable classes to use preconstructed instances, or to cache instances as they're constructed, and dispense them repeatedly to avoid creating unnecessary duplicate objects.
+				Ex) Boolean.valueOf(boolean)
+					-> it never creates an object.
+
+			* similar to the Flyweight pattern.
+
+			- improve performance if equivalent objects are requested often, especially if they are expensive to create.
+
+			- ability of static factory methods to return the same object from repeated invocations allows classes to maintain strict control over what instances exist at any time.
+			- Classes that do this are said to be instance-controlled.
+			- There are several reasons to write instance-controlled classes.
+				1) guarantee that it is a singleton or noninstantiable
+				2) allows an immutable value class to make the guarantee that no two equal instances exist
+
+				* Enum types provide this guarantee.
+
+		3) Unlike constructors, they can return an object of any subtype of their return type.
+			- gives you great flexibility in choosing the class of the returned object.
+
+			1. API can return objects without making their classes public
+				- Hiding implementation classes in this fashion leads to a very compact API.
+				- interface-based frameworks, where interface provide natural return types for static factory methods.
+
+			* using such a static factory method requires the client to refer to the returned object by interface rather than implementation class, which is generally good practice.
+
+		4) class of the returned object can vary from call to call as a function of the input parameters.
+			- The EnumSet class has no public constructors, only static factories.
+			- Clients neither know nor care about the class of the object they get back from the factory; they care only that it is some subclass of EnumSet.
+
+		5) class of the returned object need not exist when the class containing the method is writeen.
+			- A service provider framework (pattern): a system in which providers implement a service, and the system makes the implementations available to clients, decoupling the clients from the implementations.
+
+			- Three essential components in a service provider framework
+				1. service interface
+					- represents an implementation
+
+				2. provider registration API
+					- providers use to register implementations
+
+				3. service access API
+					- clients use to obtain instances of the service.
+
+				4. (Optional) service provider interface
+					- describes a factory object that produce instances of the service interface.
+
+				EX) JDBC
+					- Connection: part of the service interface
+					- DriverManager.registerDriver : provider registration
+					- DriverManager.getConnection: service access API
+					- Driver: service provider interface
+
+			- Bridge pattern: the service access API can return a richer service interface to clients than the one furnished by providers.
+
+	Limitation
+		1) classes without public or protected constructors cannot be subclassed.
+		
+		2) hard for programmers to find
+			(Common names for static factory methods)
+				- from: A type-conversion method that takes a single parameter and returns a corresponding instance of this type
+					Ex) Date d = Date.from(instant);
+
+				- of: An aggregation method that takes multiple parameters and returns an instance of this type that incorporates them
+					Ex) Set<Rank> faceCards = EnumSet.of(JACK, QUEEN, KING);
+
+				- valueOf: More verbose alternative to from and of
+					Ex) BigInteger prime = BigInteger.valueOf(Integer.MAX_VALUE);
+
+				- instace or getInstance: Returns an instance that is described by its parameters (if any) but cannot be said to have the same value
+					Ex) StackWalker luke = StackWalker.getInstance(options);
+
+				- create or newInstance: Like instance or getInstance, except that the method guarantees that each call returns a new instace
+					Ex) Object newArray = Array.newInstance(classObject, arrayLen);
+
+				- getType: Like getInstance, but used if the factory method is in a different class. Type is the type of object returned by the factory method
+					Ex) FileStore fs = Files.getFileStore(path);
+
+				- newType: Like newInstance, but used if the factory method is in a different class
+					Ex) BufferedReader br = Files.newBufferedReader(path);
+
+				- type: A concise alternative to getType and newType
+					Ex) List<Complaint> litany = Collections.list(legacyLitany);
+
+(Summary)
+	- avoid the reflex to provide public constructors without first considering static factories.
+
