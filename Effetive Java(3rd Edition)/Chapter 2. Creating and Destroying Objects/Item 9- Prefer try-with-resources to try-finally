@@ -1,0 +1,87 @@
+(Item 9: Prefer try-with-resources to try-finally)
+	- finalizers won't work very well.
+
+	- try-finally statement was the best way to guarantee that a resource would be closed properly, even in the face of an exception or return:
+		================================================================================
+		// try-finally - No longer the best way to close resources!
+		static String firstLineOfFile(String Path) throws IOException {
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			try {
+				return br.readLine();
+			} finally {
+				br.close();
+			}
+		}
+		================================================================================
+		-> This may not look bad, but it gets worse when you add a second resource:
+			================================================================================
+			// try-finally is ugly when used with more than one resource!
+			static void copy(String src, String dst) throws IOException {
+				InputStream in = new FileInputStream(src);
+
+				try {
+					OutputStream out = new FiledOutputStream(dst);
+					try {
+						byte [] buf = new byte[BUFFER_SIZE];
+						int n;
+						while((n = in.read(buf)) >= 0)
+							out.write(buf, 0, n);
+					} finally {
+					out.close();
+					}
+				} finally {
+					in.close();
+				}
+			}
+			================================================================================
+
+			- try-finally statement has a subtle deficiency.
+				-> The code in both the try block and the finally block is capable of throwing exceptions.
+					Ex) readLine() could throw an exception due to a failure in the underlying physical device, and the call to close could then fail for the same reason.
+
+	- Above problem is solved when Java 7 introduced the try-with-resources statement.
+		- a resource must implement the AutoCloseable interface, which consists of a single void-returning close method.
+		- Many classes and interfaces in the Java libraries and in third-party libraries now implement or extend AutoCloseable.
+		- If you write a class that represents a resource that must be closed, your class should implement AutoCloseable too.
+
+	- Our first example looks using try-with-resources:
+		================================================================================
+		// try-with-resources - the best way to close resources!
+		static String firstLineOfFile(String path) throws IOException {
+			try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+				return br.readLine();
+			}
+		}
+		================================================================================
+
+	- Second example looks using try-with-resources:
+		================================================================================
+		// try-with-resources on multiple resources - short and sweet
+		static void copy(String src, String dst) throws IOException {
+			try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(dst)){
+				byte[] buf = new byte[BUFFER_SIZE];
+				int n;
+				while ((n=in.read(buf)) >= 0)
+					out.write(buf, 0, n);
+			}
+		}
+		================================================================================
+		- Exceptions are not merely discarded; they are printed in the stack trace with a notation saying that they were suppressed.
+		- You can also access them programmatically with the getSuppressed method, which was added to Throwable in Java 7.
+
+	- You can put catch clauses on try-with-resources statements, just as you can on regular try-finally statements.
+		-> This allows you to handle exceptions without sullying your code with another layer of nesting.
+
+	- First Example with catching exception
+		================================================================================
+		// try-with-resources with a catch clause
+		static String firstLineOfFile(String path, String defaultVal) {
+			try (BufferedReader br = new BufferedReader(new FileReader(path)) {
+				return br.readLine();
+			} catch (IOException) {
+				return defaultVal;
+			}
+		}
+		================================================================================
+		- Always use try-with-resources in preference to try-finally when working with resources that must be closed.
+		

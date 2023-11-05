@@ -1,0 +1,25 @@
+(Item 7: Eliminate obsolete object references)
+	- obsolete references : simply a reference that will never be dereferenced again.
+
+	1) unintentional object retentions (Memory leaks in garbage-collected lagnuages) are insidious.
+		- added benefit of nulling out obsolete references
+			-> if they are subsequently dereferenced by mistake, the program will immediately fail with a NullPointerException, rather than quietly doing the wrong thing.
+			-> It is always beneficial to detect programming errors as quickly as possible.
+
+		- Nulling out object references should be the exception rather than the norm.
+
+		- whenever a class manages its own memory, the programmer should be alert for memory leaks.
+
+	2) Another common source of memomry leaks is caches.
+
+		- WeakHashMap; entries will be removed automatically after they become obsolete.
+
+		- LinkedHashMap class facilitates has removeEldestEntry method.
+
+	3) Another memory leaks is Listeners and other callbacks.
+
+		- if you implement an API where clients register callbacks but don't deregister them explicitly, they will accumulate unless you take some action.
+		- one way to ensure GC is to store only weak references to them, for instance, by storing them only as keys in a WeakHashMap.
+
+		Reference: https://stackoverflow.com/a/74375515
+		

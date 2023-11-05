@@ -1,0 +1,135 @@
+(Item 8: Avoid finalizers and cleaners)
+	- Finalizers are unpredictable, often dangerous, and generally unnecessary.
+	- Java 9 replacement for finalizers is cleaners.
+		-> Cleaners are less dangerous than finalizers, but still unpredictable, slow, and generally unnecessary.
+
+	- Java: try-with-resources or try-finally block is used for GC purpose.
+
+	- you should NEVER do anything time-critical in a finalizer or cleaner.
+		Ex) it is a grave error to depend on a finalizer or cleaner to close files because open file descriptors are a limited resource.
+		If many files are left open as a result of the system's tardiness in running finalizers or cleaners, a program may fail because it can no longer open files.
+
+	- A colleague debugged a long-running GUI app that was mysteriously dying with an OutOfMemoryError
+		-> Analysis revealed that at the time of its death, the app had thousands of graphics objects on its finalizer queue just waiting to be finalized and reclaimed.
+		-> Unfortunately, the finalizer thread was running at a lower priority than another app thread, so objects weren't getting finalized at the rate they became eleigible for finalization.
+
+		* The language specification makes no guarantees as to which thread will execute finalizers, so there is no portable way to prevent this sort of problem other than to refrain from using finalizers.
+
+		* Cleaners are a bit better than finalizers in this regard because class authors have control over their own cleaner threads, but cleaners still run in the background, under the control of the garbage collector, so there can be no guarantee of prompt cleaning.
+
+	(Consequence)
+	-> You should never depend on a finalizer or cleaner to update persistent state.
+
+	Cleaners and Finalizers: https://inside.java/2022/05/25/clean-cleaner/
+
+
+	* Another problem with finalizers is that an uncaught exception thrown during finalization is ignored, and finalization of that object terminates.
+	-> Uncaught exceptions can leave other objects in a corrupt state.
+
+	- There is a severe performance penalty for using finalizers and cleaners.
+		-> the time to create a simple AutoCoseable object, to close it using try-with resources, and to have the GC reclaim it is about 12 ns. Using a finalizer increases the time to 550 ns.
+		(It is about 50 times slower to create and destroy objects with finalizers.)
+		-> Because finalizers inhibit efficient garbage collection.
+
+	- Finalizers have a serious security problem: they open your class up to finalizer attacks.
+	- Throwing an exception from a constructor should be sufficient to prevent an object from coming into existence; in the presence of finalizers, it is not.
+		- final classes are immune to finalizer attacks because no one can write a malicious subclass of a final class.
+	* To protect nonfinal classes from finalizer attacks, write a final finalize method that does nothing.
+
+	* Just have your class implement AutoCloseable, and require its clients to invoke the close method on each instance when it is no longer needed, typically using try-with-resources to ensure termination even in the face of exceptions.
+
+	(So when to use cleaners and finalizers?)
+	1. to act as a safety net in case the owner of a resource neglects to call its close method.
+		- Some java library classes, such as FileInputStream, FileOutputStream, ThreadPoolExecutor, and java.sql.Connection, have finalizers that serve as safety nets.
+
+	2. with native peers.
+		- native peer is a native (non-Java) object to which a normal object delegates via native methods.
+		- Because a native peer is not a normal object, the gc doesn't knokw about it and can't reclaim it when its Java peer is reclaimed.
+		- A cleaner or finalizer may be an appropriate vehicle for this task, assuming the performance is acceptable and the native peer holds no critical resources.
+		- If the performance is unacceptable or the native peer holds resources that must be reclaimed promptly, the class should have a close method.
+
+
+	- Cleaners are a bit tricky to use.
+		============================================================================================================
+		// An autocloseable class using a cleaner as a safety net
+		public class Room implements AutoCloseable {
+			private static final Cleaner cleaner = Cleaner.create();
+
+			// Resource that requires cleaning. Must not refer to the Room!
+			private static class State implements Runnable {
+				int numJunkPiles; // Number of junk piles in this room
+
+				State(int numJunkPiles){
+					this.numJunkPiles = numJunkPiles;
+				}
+
+				@Override
+				public void run(){
+					System.out.println("Cleaning room");
+					numJunkPiles = 0;
+				}
+			}
+
+			// The state of this room, shared with our cleanable
+			private final State state;
+
+			// Our cleanable. Cleans the room when it's eligible for gc
+			private final Cleaner.Cleanable cleanable;
+
+			public Room(int numJunkPiles){
+				state = new State(numJunkPiles);
+				cleanable = cleaner.register(this, state);
+			}
+
+			@Override
+			public void close(){
+				cleanable.clean();
+			}
+		}
+		============================================================================================================
+		- The static nested State class holds the resources that are required by the cleaner to clean the room.
+		- numJunkPiles: represents the amount of mess in the room.
+			-> might be a final long that contains a pointer to a native peer.
+		- State implements Runnable, and its run method is called at most once, by the Cleanable that we get when we register our State instance with our cleaner in the Room constructor.
+		- The call to the run method will be triggered by one of two things:
+			1. Usually it is triggered by a call to Room's close method calling Cleanable's clean method. If the client fails to call the close method by the time a Room instance is eligible for gc, the cleaner will call State's run method.
+
+		- It is critical that a State instance does not refer to its Room instance.
+		- State must be a static nested class because nonstatic nested classes contain references to their enclosing instances.
+
+		- Room's cleaner is used only as a safety net. If clients surround all Room instantiations in try-with-resource blocks, automatic cleaning will never be required.
+			============================================================================================================
+			public class Adult {
+				public static void main(String[] args){
+					try(Room myRoom = new Room(7)){
+						System.out.println("GoodBye");
+					}
+				}
+			}
+			============================================================================================================
+
+			- what about below ill-behaved program, which never cleans its room?
+				============================================================================================================
+				public class Teenager {
+					public static void main(String[] args){
+						new Room(99);
+						System.out.println("Peace out");
+					}
+				}
+				============================================================================================================
+				- It never prints "Cleaning room"; it just exits.
+				- This is the unpredictability we spoke of earlier.
+				- The Cleaner spec ays, "the behavior of cleaners during System.exit is implementation specific"
+					-> No guarantess are made relating to whther cleaning actions are invoked or not.
+
+	(SUMMARY)
+		- don't use cleaners, or in releases prior to Java 9, finalizers, except as a safety net or to terminate noncritical native resources. Even then, beware the indeterminacy and performance consequences.
+		
+
+
+
+
+
+
+
+
