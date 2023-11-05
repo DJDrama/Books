@@ -1,0 +1,90 @@
+(Item 6: Avoid creating unnecessary objects)
+	- An Object can be always be reused if it is immutable.
+
+	* DONT DO THIS!!
+	================================================================
+	String s = new String("bikini");
+	================================================================
+	- The statement creates a new String instance each time it is executed, and none of those object creations is necessary.
+
+	- Improved version is simply the following:
+		================================================================
+		String s = "bikini";
+		================================================================
+
+		-> This version uses a single String instance, rather than creating a new one each time it is executed.
+		-> It is guaranteed that the object will be reused by any other code running in the same virtual machine that happens to conatin the same string literal.
+
+	- You can often avoid creating unnecessary objects by using static factory methods in preference to constructors on immutable classes that provide both.
+		Ex) Boolean.valueOf(String) factory method is preferable to the constructor Boolean(String), which was deprecated in Java 9.
+
+	- The constructor must create new object each time it's called, while the factory method is never required to do so and wo't in practice.
+
+	- You can also reuse mutable objects if you know they won't be modified.
+	- Some object creations are much more expensive than others.
+		-> If you're going to need such an "expensive object" repeatedly, it may be advisable to cahce it for reuse.
+
+	Ex) suppose you want to write a method to determine whehter a string is a valid Roman numeral:
+		================================================================
+		// Perforamnce can be greatly improved!
+		static boolean isRomanNumeral(String s){
+			return s.matches("^(?=.)M*(C[MD]|D?C{0,3})"
+  				+ "(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+		}
+		================================================================
+		* Problem: it relies on the String.matches method.
+			(While String.matches is the easiest way to check if a string matches a regular expression, it's not suitable for repeated use in performance-critical situations.)
+
+			-> It internally creates a Pattern instance for the regular expression and uses it only once, after which it becomes eligible for garbage collection.
+			-> Creating a Pattern instance is expensive because it requires compiling the regular expression into a finite state machine.
+
+		* To improve the performance, explicitly compile the regular expression into a Pattern instance (which is immutable) as part of class initialization, cahce it, and reuse the same instance for every invocation of the isRomanNumeral method:
+			================================================================
+			// Reusing expensive object for improved performance
+			public class RomanNumerals {
+				private static final Pattern ROMAN = Pattern.compile(
+					"^(?=.)M*(C[MD]|D?C{0,3})"
+					+ "(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+
+				static boolean isRomanNumeral(String s) {
+					return ROMAN.matcher(s).matches();
+				}
+			}
+			================================================================
+			-> This is about 6.5 times faster than the above one.
+			-> Not only the performance, making a static final field for the otherwise invisible Pattern instance allows us to give it a name, which is far more readable than the regular expression itself.
+
+		* If the class containing the improved version of the isRomanNumeral method is initialized but the method is never invoked, the field ROMAN will be initialized needlessly.
+			-> It would be possible to eliminate the initialization by lazily initializing the field the first time the isRomanNumeral method is invoked, but this is not recommended.
+			-> As is often the case with lazy initialization, it would complicate the implementation with no measurable performance improvement.
+
+	- When an object is immutable, it is obvious it can be reused safely.
+	- case of adapters, also known as views, an adapter is an object that delegates to a backing object, providing an alternative interface.
+	- Because an adapter has no state beyond that of its backing object, there's no need to create more than one instance of a given adapter to a given object.
+		Ex) the keySet method of the Map interface returns a Set view of the Map object, constisting of all the keys in the map.
+			-> every call to keySet on a given Map object may return the same Set instance.
+			-> Although the returned Set instance is typically mutable, all of the returned objects are functionally identical: when one of the returned objects changes, so do all the others, because they're all backed by the same Map instance.
+
+	- Autoboxing: allows programmer to mix primitive and boxed primitive types, boxing and unboxing automatically as needed.
+	- Autoboxing blurs but does not erase the distinction between primitive and boxed primitive types.
+
+		================================================================
+		private static long sum(){
+			Long sum = 0L;
+			for(long i=0; i<=Integer.MAX_VALUE; i++)
+				sum+=i;
+			return sum;
+		}
+		================================================================
+		-> sum variable is declared as a Long instead of a long, which means that the program constructs about 2^31 unnecessary Long instances.
+		-> Changing the declaration of sum from Long to long reduces the runtime from 6.3 seconds to 0.59 seconds.
+
+		* prefer primitives to boxed primitives, and whatch out for unintentional autoboxing.
+
+	- defensive copying
+		https://junroot.github.io/programming/Defensive-Copy/
+	- Dont create a new object when you should reuse an existing one
+	- Don't reuse an existing object when you should create a new one
+
+
+

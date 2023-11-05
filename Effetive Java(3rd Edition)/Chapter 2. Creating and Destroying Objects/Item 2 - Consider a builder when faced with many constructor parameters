@@ -1,0 +1,35 @@
+(Item 2: Consider a builder when faced with many constructor parameters)
+	- Static factories and constructors share a limitation
+		-> they do not scale well to large numbers of optional parameters.
+
+	1) (Telescoping constructor pattern) 
+		- Traditionally, programmers have used the telescoping constructor pattern (overloading)
+		-> you are forced to pass a value for many parameters that you don't want to set.
+		* It's hard to write client code when there are many parameters, and harder still to read it.
+
+		* If the client accidentally reverses two such parameters, the compiler won't complain, but the program will misbehave at runtime.
+
+	2) (Java Beans pattern)
+		- call a parameterless constructor to create the object and then call setter methods to set each required parameter and each optional parameter of interest.
+
+		* may be in an inconsistent state partway through its construction. (since construction is split across multiple calls)
+		* pattern precludes the possibility of making a class immutable, and requires added effort on the part of the programmer to ensure thread safety.
+
+	3) (Builder Pattern)
+		- client calls a constructor (or static factory) with all of the required parameters and gets a builder object.
+		- then the client calls setter-like methods on the builder object to set each optional parameter of interest.
+		- Finally, the client calls a parameterless build method to generate the object, which is typically immutable.
+		- The builder is typically a static member class of the class it builds.
+
+		* Easy to write, easy to read.
+		* simulates named optional parameters as found in python and Scala. (or Kotlin)
+
+		- Well suited to class hierarchies.
+
+		* must first create its builder --> performance-critical situations.
+		* use builder pattern when there are enough parameters, say four or more.
+
+		* Often better to start with a builder in the first place.
+		* Builder pattern is a good choice when designing classes whose constructors or static factories would have more than a hnadful of parameters, especially if many of the parameters are optional or of identical type.
+		* Client code is much easier to read and write with builders than with telescoping constructors, and builders are much safer than JavaBeans.
+

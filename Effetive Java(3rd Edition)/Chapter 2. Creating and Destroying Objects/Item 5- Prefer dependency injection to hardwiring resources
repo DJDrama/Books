@@ -1,0 +1,74 @@
+(Item 5: Prefer dependency injection to hardwiring resources)
+	- Many classes depend on one or more underlying resources.
+	- For example, a spell checker depends on a dictionary.
+	- It is not uncommon to see such classes implemented as static utility classes
+		========================================================================
+		// Inappropriate use of static utility - inflexible & untestable!
+		public class SpellChecker {
+			private static final Lexicon dictionary = ...;
+			private SpellChecker(){ } // Noninstantiable
+
+			public static boolean isValid(String word) { ... }
+			public static List<String> suggestions(String typo) { ... }
+		}
+		========================================================================
+
+		========================================================================
+		// Inappropriate use of singleton - inflexible & untestable!
+		public class SpellChecker {
+			private final Lexicon dictionary = ...;
+
+			private SpellChecker(...) {}
+			public static INSTANCE = new SpellChecker(...);
+
+			public static boolean isValid(String word) { ... }
+			public static List<String> suggestions(String typo) { ... }	
+		}
+		========================================================================
+
+		- Neither of above approaches is satisfactory, because they assume that there is only one dictionary worth using.
+		- In practice, each language has its own dictionary, and special dicionaries are used for special vocabularies.
+		- Also, it may be desirable to use a special dictionary for testing.
+
+		* You could try to have SpellChecker support multiple dictionaries by making the dictionary field nonfinal and adding a method to change the dictionary in an existing spell checker, but this would be awkward, error-prone, and unworkable in a concurrent setting.
+
+		* Static utility classes and singletons are inappropriate for classes whose behavior is parameterized by an underlying resource.
+
+		* pass the resource into the constructor when creating a new instance!
+			-> This is one form of dependency injection: the dictionary is a dependency of the spell checker and is injected into the spell checker when it is created.
+			========================================================================
+			// Dependency injection provides flexibility and testability
+			public class SpellChecker {
+				private final Lexicon dictionary;
+
+				public SpellChecker(Lexicon dictionary){
+					this.dictionary = Objects.requireNonNull(dictionary);
+				}
+
+				public static boolean isValid(String word) { ... }
+				public static List<String> suggestions(String typo) { ... }	
+			}
+			========================================================================
+
+			- The dependency injection pattern is so simple that many programmers use it for years without knowing it has a name.
+			- While our spell checker example had only a single resource (the dictionary), dependency injection works with an arbitrary number of resources and arbitrary dependency graphs.
+				-> Preserves immutability, so multiple clients can share dependent objects (assuming the clients desire the same underlying resources).
+
+			- Depdendency injection is equally applicable to constructors, static factories, and builders.
+
+		- A useful variant of the pattern is to pass a resource factory to the constructor.
+		- A factory is an object that can be called repeatedly to create instances of a type.
+		- Methods that take a Supplier<T> on input should typically onstrain the factory's type parameter using a bounded widcard type to allow the client to pass in a factory that creates any subtype of a specified type.
+			Ex) here is method that makes a mosaic using client-provided factory to produce each title:
+				========================================================================
+				Mosaic create(Supplider<? extends Tile> tileFactory) { ... }
+				========================================================================			
+				- Supplier Interface: represents a function which does not take in any argument but produces a value of type.
+
+		* DI can clutter up large projects, which typically contain thousands of dependencies.
+			-> This can be eliminated by using a dependency injection framework, such as Dagger, Guice, or Spring.
+
+
+	* SUMMARY
+		-> Do not use a singleton or static utility class to implement a class that depends on one or more underlying resources whose behavior affects that of the class, and do not have the class create these resources directlry.
+		-> Instead, pass the resources, or factories to create them, into the constructor (or static factory or builder).

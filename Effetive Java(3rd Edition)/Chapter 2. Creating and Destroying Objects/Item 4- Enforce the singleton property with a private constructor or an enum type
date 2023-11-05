@@ -1,0 +1,27 @@
+(Item 4: Enforce the singleton property with a private constructor or an enum type)
+	- write a class that is just a grouping of static methods and static fields --> a bad reputation because some people abuse them to avoid thinking in terms of objects, but they do have valid uses.
+
+	- They can be used to group related methods on primitive values or arrays, in the manner of java.lang.Math or java.util.Arrays.
+	- They can also be used to group static methods, including factories, for objects that implement some interface, in the manner of java.util.Collections.
+	- Lastly, such classes can be used to group methods on a final class, since you can't put them in a subclass.
+
+	- Such utility classes were not designed to be instantiated: an instance would be nonsensical.
+
+	- Attemtping to enforce noninstantiability by making a class abstract does not work!
+		-> The class can be subclassed and the subclass instantiated.
+		- misleads the user into thinking the class was designed for inheritance.
+
+	- a class can be made noninstantiable by including a private constructor:
+		=================================================================
+		// Noninstantiable Utility class
+		public class UtilityClass {
+			// suppress default constructor for noninstantiability
+			private UtilityClass(){
+				throw new AssertionError(); 
+			}
+		}
+		=================================================================
+		- Because the explicit constructor is private, it is inaccessible outside the class.
+		- AssertionError guarantees the class will never be instantiated under any circumstances.
+		- Also prevents the class from being subclassed.
+			-> All constructors must invoke a superclass constructor, explicitly or implicitly, and a subclass would have no accessible superclass constructor to invoke.
