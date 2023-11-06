@@ -1,0 +1,213 @@
+(Item 10: Obey the general contract when overriding equals)
+	- Overriding the equals method seems simple, but there are manyw ays to get it wrong, and consequences can be dire.
+	- Easiest way to avoid problems is not to override the equals method.
+		(This is the right thing to do if any of the following conditions apply)
+			1. Each instance of the class is inherently unique.
+				- Such as Thread that represent active entities rather than values.
+				- The equals implementation provided by Object has exactly the right behavior for these classes.
+			2. There is no need for the class to provide a "logical equality" test.
+				- Ex) java.util.regex.Pattern could have overridden equals to check whether two Pattern instances represented exactly the same regular expression, but the designers didn't think that clients would need or want this functionality. Under these circumstances, the equals implementation inherited from OBject is ideal.
+			3. A superclass has already overridden equals, and the superclass behavior is appropriate for this class.
+				- Ex) most Set implementations inherit their equals implementation from AbstractSet, List implementations from AbstractList, and Map implementations from AbstractMap.
+			4. the class is private or package-private, and you are certain that its equals method will never be invoked.
+				- you can override the equals method to ensure that it isn't invoked accidentally:
+					====================================================================================
+					@Override
+					public boolean equals(Object o){
+						throw new AssertionError(); // Method is never called.
+					}
+					====================================================================================
+
+	- So when is it appropriate to override equals?
+		-> It is when a class has a notion of logical equality that differs from mere object identity and a superclass has not already overriden equals.
+			-> Generally the case for value classes.
+			-> A value class is simply a class that represents a value, such as Integer or String.
+			-> A programmer who compares references to value objects using the equals method expects to find out whether they are logically equivalent, not whether they refer to the same object.
+			-> Not only is overriding the equals method necessary to satisfy programmer expectations, it enables instances to serve as map keys or set elements with predictable, desirable behavior.
+
+	- One kind of value class that does not require the equals method to be overriden is a class that uses instance control to ensure that at most one object exists with each value.
+		-> Enum types fall into this category.
+		-> These classes, logical equality is the same as object identity, so Object's equals method functions as logical equals method.
+
+	- When you override the equals method, you must adhere to its general contract!
+		(Contract)
+			- The equals method implements an equivalence relation.
+				1. reflexive: For any non-null reference value x, x.equals(x) must return true.
+				2. Symmetric: For any non-null reference values x and y, x.equals(y) must return true if and only if y.equals(x) returns true.
+				3. Transitive: For any non-null reference values x, y, z, if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) must return true.
+				4 Consistent: For any non-null reference values x and y, multiple invocations of x.equals(y) must consistently return true or consistently return false, provided no information used in equals comparisons is modified.
+				5. For any non-null reference value x, x.equals(null) must return false.
+
+			-> Now let's examine the five requirements in turn:
+				1. Refelxivity
+					- that an object must be equal to itself.
+					- To violate it and then add an instance of your class to a collection, the contains method might well say that the collection didn't contain the instance that you just added.
+						-> If equals return false, then contains will never work!
+
+				2. Symmetry
+					====================================================================================
+					// Broken - violates symmetry!
+					public final class CaseInsensitiveString {
+						private final String s;
+
+						public CaseInsensitiveString(String s){
+							this.s = Objects.requireNonNull(s);
+						}
+
+						// Broken - violates symmetry!
+						@Override
+						public boolean equals(Object o){
+							if(o instanceof CaseInsensitiveString)
+								return s.equalsIgnoreCase((CaseInsensitiveString) p).s);
+
+							if(o instanceof String) // One-way interoperability!
+								return s.equalsIgnoreCase((String) o);
+
+							return false;
+						}
+
+						... // Remainder omitted
+					}
+					====================================================================================
+					- in this class naively attempts to interoperate with ordinary Strings.
+					- Let's suppose that we have one case-insensitive string and one ordinary one:
+						====================================================================================
+						CaseInsensitiveString cis = new CaseInsensitiveString("Polish");
+						String s =  "polish";
+						====================================================================================
+						- cis.equals(s) returns true.
+						- the equals method in String is oblivious to case-insensitive strings.
+							-> Therefore, s.equals(cis) returns false, a clear violation of symmetry.
+
+						- suppose you put a case-insensitive string into a collection:
+							====================================================================================
+							List<CaseInsensitiveString> list = new ArrayList<>();
+							list.add(cis);
+							====================================================================================
+							- list.contains(s) will return false or true or throw a runtime exception.
+							- Once you've violated the equals contract, you simply don't know how other objects will behave when confronted with your object.
+
+							-> You can eliminate this problem by removing the ill-conceived attempt to interoperate with String from the equals method:
+								====================================================================================
+								@Override
+								public boolean equals(Object o){
+									return o instanceof CaseInsensitiveString &&
+										((CaseInsenstiveString) o).s.equalsIgnoreCase(s);
+								}
+								====================================================================================
+
+				3. Transitivity
+					- violating : Consider the case of a subclass that adds a new value component to its superclass.
+					- In other words, the subclass adds a piece of information that affects equals comparisons.
+					- Let's start with a simple immutable two-dimensional integer point class:
+						====================================================================================
+						public class Point {
+							private final int x;
+							private final int y;
+
+							public Point(int x, int y){
+								this.x = x;
+								this.y = y;
+							}
+
+							@Override
+							public boolean equals(Object o) {
+								if(!(o instanceof Point))
+									return false;
+								Point p = (Point) o;
+								return p.x == x && p.y == y;
+							}
+
+							... // Remainder omitted
+						}
+						====================================================================================
+
+						- Suppose you want to extend this class, adding the notion of color to a point:
+							====================================================================================
+							public class ColorPoint extends Point {
+								private final Color color;
+
+								public ColorPoint(int x, int y, Color color){
+									super(x, y);
+									this.color = color;
+								}
+								... // Remainder omitted
+							}
+							====================================================================================
+							-> If you leave the equals method entirely, the implementation is inherited from Point and color information is ignored in equals comparisons.
+							-> While this does not violate the equals contract, it is clearly unacceptable.
+							- If you write an equals method that returns true only if its argument is another color point with the same position aond color:
+								====================================================================================
+								// Broken - violates symmetry!
+								@Override public boolean equals(Object o){
+									if(!(o instanceof ColorPoint))
+										return false;
+									return super.equals(o) && ((ColorPoint) o).color == color;
+								}
+								====================================================================================
+								- you might get different results when comparing a point to a color point and vice versa.
+								- The former comparison ignores color, while the latter comparison always returns false because the type of the argument is incorrect.
+								- To make this concrete, let's create one point and one color point:
+									====================================================================================
+									Point p = new Point(1, 2);
+									ColorPoint cp = new ColorPoint(1, 2, Color.RED);
+									====================================================================================
+									-> p.equals(cp) returns true but cp.equals(p) returns false.
+									-> You might try to fix this by having ColorPoint.equals ignore color when doing "mixed comparisons":
+										====================================================================================
+										// Broken - violates transitivity
+										@Override
+										public boolean equals(Object o) {
+											if(!(o instanceof Point))
+												return false;
+
+											// If o is a normal Point, do a color-blind comparison
+											if(!(o instanceof ColorPoint))
+												return o.equals(this);
+
+											// o is a ColorPoint; do a full comparison
+											return super.equals(o) && ((ColorPoint) o).color == color;
+										}
+										====================================================================================
+										-> This does provide symmetry, but at the expense of transitivity:
+											====================================================================================
+											ColorPoint p1 = new ColorPoint(1, 2, Color.RED);
+											Point p2 = new Point(1, 2);
+											ColorPoint p3 = new ColorPoint(1, 2, Color.BLUE);
+											====================================================================================
+											-> Now p1.equals(p2) returns true and p2.equals(p3) returns true but p1.equals(p3) returns false.
+
+						* SOLUTION
+							- there is no way to extend an instantiable class and add a value component while preserving the equals contract, unless you're willing to forgo the benefits of object-oriented abstraction.
+
+							- you may hear it said that you can extend an instantiable class and add a value component while preserving the equals contract by using a getClass test in place of the instanceof test in the equals method:
+								====================================================================================
+								// Broken - violates Liskov substitution principle
+								@Override
+								public boolean equals(Object o){
+									if (o == null || o.getClass() != getClass())
+										return false;
+									Point p = (Point) o;
+									return p.x == x && p.y == y;
+								}
+								====================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
