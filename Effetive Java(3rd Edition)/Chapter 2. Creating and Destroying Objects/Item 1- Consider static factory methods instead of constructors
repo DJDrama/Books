@@ -46,7 +46,7 @@
 			- The EnumSet class has no public constructors, only static factories.
 			- Clients neither know nor care about the class of the object they get back from the factory; they care only that it is some subclass of EnumSet.
 
-		5) class of the returned object need not exist when the class containing the method is writeen.
+		5) class of the returned object need not exist when the class containing the method is written.
 			- A service provider framework (pattern): a system in which providers implement a service, and the system makes the implementations available to clients, decoupling the clients from the implementations.
 
 			- Three essential components in a service provider framework
