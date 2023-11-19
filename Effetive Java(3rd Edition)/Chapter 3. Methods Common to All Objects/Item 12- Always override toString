@@ -1,0 +1,29 @@
+(Item 12: Always override toString)
+	- Object toString method consists of the class name followed by an "at" sign(@) and the unsigned hexadecimal representation of the hash code
+		ex) PhoneNumber@163b91
+
+	- General contract for "toString": returned string should be "a concise but informative representation that is easy for a person to read."
+
+	- It is recommended that all subclasses override toString method.
+
+	- Providing a good toString implementation makes your class much more pleasant to use and makes systems using the class easier to debug.
+		Ex) System.out.println("Failed to connect to " + phoneNumber);
+
+	- When practical, the toString method should return all of the interesting information contained in the object.
+
+	- Whether or not you decide to specify the format, you should clearly document your intentions.
+		Ex)
+			==================================================================
+			/**
+			* Returns the string ... comments
+			* ...
+			*/
+			@Override
+			public String toString(){
+				return String.format("%03d-%03d-%04d", areaCode, prefix, lineNum);
+			}
+			==================================================================
+
+	- provide programmatic access to the information contained in the value returned by toString.
+
+	* override Object's toString implementation in every instantiable class you write, unless a superclass has already done so.
