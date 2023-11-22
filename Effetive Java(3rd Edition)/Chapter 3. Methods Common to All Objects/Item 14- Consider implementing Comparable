@@ -1,0 +1,151 @@
+(Item 14: Consider implementing Comparable)
+	- compareTo method is not declared in Object.
+	- permits order comparisons in addition to simple equality comparisons, and it is generic.
+	- By implementing Comparable, a class indicates that its intances have a natural ordering.
+		Ex) Arrays.sort(a);
+
+	- allow your class to interporate with all of the many generic algorithms and collection implementations that depend on this interface.
+
+	* All of the value classes in the Java platform libraries, as well as enum types implement Comparable.
+
+	- you should implement Comparable interface
+		ex)
+			================================================================
+			public interface Comparable<T> {
+				int compareTo(T t);
+			}
+			================================================================
+
+	- General contract of the compareTo method
+		- Returns a negative integer, zero, or a positive integer as this object is less than, equal to, or greather than the specified object.
+		- Throws ClassCastException if the specified object's type prevents it from being compared to this object.
+
+		- ex) sgn(expression) : mathematical signum function, which is defined to return -1, 0, or 1, according to whether the value of expression is negative, zero or positive.
+			- must enusre that sgn(x.compareTo(y)) == sgn(y.compareTo(x)) for all x and y.
+
+			- must also ensure that the relation is transitive:
+				-> x.compareTo(y) > 0 && y.compareTo(z) > 0 implies x.compareTo(z) > 0
+
+			- must ensure that x.compareTo(y) == 0 implies that sgn(x.compareTo(z)) == sgn(y.compareTo(z)), for all z
+
+			- recommended, but not required that (x.compareTo(y) == 0) == (x.equals(y))
+				-> any class that implements the Comparable interface and violates this condition should clearly indicate this fact.
+				-> This class has a natural ordering that is inconsistent with equals.
+
+	- compareTo throws ClassCastException.
+
+	- violating the compareTo can break other classes that depend on comparison.
+
+	- Classes that depend on comparison include the sorted collections TreeSet and TreeMap and the utility classes Collections and Arrays, which contain searching and sorting algorithms.
+
+	- Provisions
+		1. if the first object is equal to the second, then the second must be equal to the first
+		2. if the first object is greater than the second, than the second must be less than the first
+		3. if the first object is less than the second, then the second must be greater than the first
+
+	- CompareTo method must obey the same restrictions imposed by the equals contract
+		1. reflexivity
+		2. symmetry
+		3. transitivity
+
+	* If the provision is obeyed, the ordering imposed by the compareTo method is said to be consistent with equals.
+		-> If it's violated, the ordering is said to be inconsistent with equals.
+
+		Ex) BigDecimal class : compareTo method is inconsistent with equals.
+			- If you create an empty HashSet instance and then add new BigDecimal("1.0") and new BigDecimal("1.00"),
+				the set will contain two elements because the two BigDecimal instances added to the set are unequal when compared using the equals method.
+
+				* But when using TreeSet, the set will contain only one element because the two BigDecimal instances are equal when compared using the compareTo method.
+
+				* TreeSet uses comparator while HashSet uses equals
+
+	- In a compareTo method, fields are compared for order rather than equality.
+
+	* To compare object reference fields, invoke the compareTo method recursively.
+	* If a field does not implement Comparable or you need a nonstandard ordering, use a Comparator instead.
+
+	- You can write your own comparator or use an existing one, as in this compareTo method for CaseInsensitiveString
+		Ex)
+			================================================================
+			// Single-field Comparable with object reference field
+			public final class CaseInsensitiveString implements Comparable<CaseInsensitiveString> {
+				public int compareTo(CaseInsensitiveString cis){
+					return String.CASE_INSENSITIVE_ORDER.compare(s, cis.s);
+				}
+			}
+			================================================================
+			- when implementing Comparable, this means that a CaseInsensitiveString reference can be compared only to another CaseInsensitiveString reference.
+
+	* In Java 7, static compare methods were added to all of Java's boxed primitive classes.
+		-> Use of the relational operators > and < in compareTo methods is verbose and error-prone and no longer recommended!
+
+	- If a class has multiple significant fields, the order in which you compare them is critical
+		- Start with the most significant field and work your way down.
+		- If a comparison results in anything other than zero (which represents equality), you're done; just return the result.
+		- If the most significant field is equal, compare the next-most-significant field, and so on, until you find an unequal field or compare the least significant field.
+			Ex)
+				================================================================
+				// Multiple-field Comparable with primitive fields
+				public int compareTo(PhoneNumber pn){
+					int result = Short.compare(areaCode, pn.areaCode);
+					if(result==0){
+						result = Short.compare(prefix, pn.prefix);
+						if(result==0)
+							result = Short.compare(lineNum, pn.lineNum);
+					}
+					return result;
+				}
+				================================================================
+
+
+	- In Java 8, the Comparator interface was outfitted with a set of comparator construction methods, which enable fluent construction of comparators.
+		-> These comparators can then be used to implement a compareTo method, as required by the Comparable interface.
+		* When using this approach, consider using Java's static import facility so you can refer to static comparator construction methods by their simple names for clarity and brevity.
+			Ex)
+				================================================================
+				// Comparable with comparator construction methods
+				private static final Comparator<PhoneNumber> COMPARATOR = comparingInt((PhoneNumber pn) -> pn.areaCode)
+																			.thenComparingInt(pn -> pn.prefix);
+																			.thenComparingInt(pn -> pn.lineNum);
+				public int compareTo(PhoneNumber pn){
+					return COMPARATOR.compare(this, pn);
+				}
+				================================================================
+				- this implementation builds a comparator class at initialization time, using two comparator constructino methods.
+					1. comparingInt
+						-> static method that takes a key extractor functino that maps an object reference to a key of type int and returns a comparator that orders instances according to that key.
+
+	- Broken violating transitivity
+		Ex)
+			================================================================
+			// BROKEN difference-based comparator - violates transitivity!
+			static Comparator<Object> hashCodeOrder = new Comparator<>(){
+				public int compare(Object o1, Object o2){
+					return o1.hashCode() - o2.hashCode();  // (int) o1.hashCode() can be negative due to Integer.MAX_VALUE overflow!
+				}
+			}
+			================================================================
+			- DO NOT use this technique!
+				-> Danger from integer overflow and IEEE 754 floating point arithmetic artifacts.
+				-> resulting methods are unlikey to be significantly faster than those written using the techniques described in this item.
+					-> Use either a static compare method:
+						Ex)
+							================================================================
+							// Comparator based on static compare method
+							static Comparator<Object> hashCodeOrder = new Comparator<>(){
+								public int compare(Object o1, Object o2){
+									return Integer.compare(o1.hashCode(), o2.hashCode());
+								}
+							};
+							================================================================
+					-> Or a comparator construction method:
+						Ex)
+							============================================================================================
+							// Comparator based on Comparator construction method
+								static Comparator<Object> hashCodeORder = Comparator.comparingInt(o -> o.hashCode());
+							============================================================================================
+
+
+
+
+
