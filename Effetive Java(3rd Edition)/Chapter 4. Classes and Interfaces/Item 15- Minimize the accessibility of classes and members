@@ -1,0 +1,122 @@
+(Item 15: Minimize the accessibility of classes and members)
+	- Well Desgiend
+		-> hides all its implementation details, cleanly separating its API from its implementation.
+		-> Components then communicate only through their APIs and are oblivious to each other's inner workings.
+
+		* Information Hiding, Encapsulation : fundamental tenet of software design
+
+	- Why Information hiding is important?
+		1. decouples the components that comprise a system: allowing them to be developed, tested, optimized, used, understood, and modified in isolation.
+			-> speeds up system development because components can be developed in parallel.
+		2. eases the burden of maintenance because components can be understood more quickly and debugged or replaced with little fear of harming other components.
+		3. * information hiding does not, in and of itself, cause good performance, enables effective performance tuning: can be determined which components are causing performance problems
+			-> those components can be optimized without affecting the correctness of others.
+			* (performance issue) make code more complex and difficult to udnerstand -> hard for developers to debug and main the code,more difficult to integrate with other sw apps.
+		4. Information hiding increases software reuse because components that aren't tightly coupled often prove useful in other contexts besides the ones for which they were developed.
+		5. decreases the risk in building large systems
+			-> individual components may prove successful even if the system does not.
+
+	- Java has many facilities to aid in information hiding!
+		- Access Control mechanism
+			-> specifies the accessibility of classes, interfaces, and members.
+			-> accessibility of an entity is determined by the location of its declaration and by which, if any, of the access modifiers
+				(private, protected, and public)
+				* proper use of above modifiers is essential to information hiding.
+
+	- rule of thumb : MAKE each class or member as inaccessible as possible!
+		-> use the lowest possible access level consistent with the proper functioning of the software that you are writing.
+
+	- For top-level (non-nested) classes and interfaces, there are only two possible access levels.
+		1. package-private : public will be public and otherwise, it will be package-private.
+			-> by making package-private, you make it part of the implementation rather than the exported API, and you can modify it, replace it, or eliminate it in a subsequent release without fear of harming existing clients.
+			
+			* If a package-private top-level class or interface is used by only one class, consider making it a private static nested class of the sole class that uses it.
+				-> reduces accessibility from all the classes in its package to the one class that uses it.
+				-> public is part of the package's API, while the package-private top-level class is already part of its implementation.
+
+					ex) =====================================================================
+						public class Singleton  {    
+						    private static class Holder {    
+						        public static final Singleton INSTANCE = new Singleton();
+						    }    
+						    public static Singleton getInstance() {    
+						        return Holder.INSTANCE;    
+						    }    
+						}
+						=====================================================================
+
+		2. public
+			-> If you make it public, you are obligated to support it forever to maintain compatibility.
+
+	- Access modifiers
+		1. private
+			-> member is accessible only from the top-evel class where it is declared
+
+		2. package-private
+			-> member is accessible from any class in the package where it is declared.
+			-> known as default access (if no access modifier is specified) <-> except for interface members, which are public by default!
+
+		3. protected
+			-> member is accessible from subclasses of the class where it is declared and from any class in the package where it is declared.
+
+		4. public
+			-> member is accessible from anywhere.
+
+	* Both private and package-private members are part of a class's implementation and do not normally impact its exported API. These fields can, however, “leak” into the exported API if the class implements Serializable
+		-> When a class is marked as Serializable, it indicates that instances of that class can be serialized. During the serialization process, the entire state of the object, including its fields, is typically serialized. However, some fields of a class may be marked as transient to indicate that they should be excluded from the serialization process. If a class doesn't properly handle such scenarios, or if it has fields that should not be part of the serialized form, there is a risk that these "unintended" fields may be included in the serialized data, and thus "leak" into the exported API.
+
+		To prevent certain fields from being serialized, they should either be marked as transient or appropriate custom serialization methods should be implemented to control the serialization process more precisely. Failing to manage this properly can lead to unexpected behavior when serializing and deserializing objects.
+
+	- Liskov Substituion principle
+		* if a method overrides a superclass method, it cannot have a more restrictive access level in the subclass than in the superclass.
+		* This is necessary to ensure that an instance of the subclass is usable anywhere than an instance of the superclass is usable.
+
+		-> if a class implements an interface, all of the class methods that are in the interface must be declared public in the class.
+
+		* tests can be made to run as part of the package being tested, thus gaining access to its package-private elements.
+
+	- Instance fields of public classes should rarely be public.
+		* classes with public mutable fields are not generally thread-safe.
+
+	- By convention, static final fields have names consisting of capital letters, with words separated by underscores.
+
+	- nonzero-length array is always mutable, so 
+		* IT IS WRONG for a class to have a public static final array field, or an accessor that returns such a field.
+			ex) 
+				=====================================================================
+				// Potential security hole!
+				public static final Thing[] VALUES = { ... };
+				=====================================================================
+
+			-> fix
+				=====================================================================
+				private static final Thing[] PRIVATE_VALUES = { ... };
+				public static final List<Thing> VALUES = 
+					Collections.unmodifiableList(Arrays.asList(PRIVATE_VALUES));
+				=====================================================================
+				-> make the array private and add a public method that returns a copy of a private array
+
+			-> another fix
+				=====================================================================
+				private static final Thing[] PRIVATE_VALUES = { ... };
+				public static final Thing[] values(){
+					return PRIVATE_VALUES.clone();
+				}
+				=====================================================================
+
+			- module: grouping of packages, like a package is a grouping of classes.
+				- module may explicitly export some of its packages via export declarations in its module declaration (Which is by convention contained in a source file named module-info.java).
+
+				* public and protected members of unexported packages in a module are inaccessible outside the module; within the module, accessibility is unaffectedb by export declarations.
+
+				* using the module system allows you to share classes among packages within a module without making them visible to the entire world.
+				* unexported packages in the JAVA libraries are truly inaccessible outside of their modules.
+
+	[SUMMARY]
+		- reduce accessibility of program elements as much as possible.
+		- ensure that objects referenced by public static final fields are immutable.
+		
+
+
+
+
