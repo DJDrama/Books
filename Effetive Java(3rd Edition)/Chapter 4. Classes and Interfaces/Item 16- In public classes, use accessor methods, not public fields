@@ -1,1 +1,69 @@
 (Item 16: In public classes, use accessor methods, not public fields)
+	ex)
+		========================================================================
+		// Degenerate classes like this should not be public!
+		class Point{
+			public double x;
+			public double y;
+		}
+		========================================================================
+		-> above class does not offer the benefits of encapsulation. (data fields of such class are accessed directly)
+		* you can't change the representation without changing the API
+		* you can't enforce invariants
+		* you can't take auxiliary action when a field is accessed.
+
+		* always replaced by classes with private fields and public accessor methods (getters) and, for mutable classes, mutators (setters)
+			- getters = accessor methods
+			- setters = mutators
+
+			ex) =============================================================================================
+				// Encapsulation of data by accessor methods and mutators
+				class Point {
+					private double x;
+					private double y;
+				  
+					public Point(double x, double y) {
+				  		this.x = x;
+				  		this.y = y;
+					}
+				  
+					public double getX() { return x; }
+				 	public double getY() { return y; }
+					public void setX(double x) { this.x = x; } 
+					public void setY(double y) { this.y = y; } }
+				=============================================================================================
+
+				* if the class is accessible outside its package, provide accessor methods!
+					-> to preserve the flexibility to change the class's internal representation.
+					-> if a public class exposes its data fields, all hope of changing its representation is lost because client code can be distributed far and wide.
+
+					* However if a class is package-private or is a private nested class, there is nothing inherently wrong with exposing its data fields.
+
+		- several classes in the Java platform libraries violate the advice that public classes should not expose fields directly.
+			Ex) java.awt package Point and Dimension classes.
+
+			Ex)
+				====================================================================================
+				// Public class with exposed immutable fields - questionable
+				public final class Time {
+					private static final int HOURS_PER_DAY = 24;
+					private static final int MINUTES_PER_HOUR = 60;
+
+					public final int hour;
+					public final int minute;
+
+					public Time(int hour, int minute){
+						if (hour < 0 || hour >= HOURS_PER_DAY)
+							throw new IllegalArgumentException("Hour: " + hour);
+						if (minute <0 || minute >= MINUTES_PER_HOUR)
+							throw new IllegalArgumentException("Min: " + minute);
+
+						this.hour = hour;
+						this.minute = minute;
+					}
+
+					... // Remainder omitted
+				}
+				====================================================================================
+				- public classes should never expose mutable fields.
+				
