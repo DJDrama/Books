@@ -1,1 +1,73 @@
 (Item 17: Minimize mutability)
+	- Java immutable classes
+		-> String
+		-> Boxed primitive classes
+		-> BigInteger
+		-> BigDecimal
+
+	- To make a class immutable
+		1. Don't provide methods that modify the object's state (known as mutators)
+		2. Ensure that the class can't be extended
+			- by making class final
+		3. Make all fields final
+		4. Make all fields private
+		5. Ensure exclusive access to any mutable components
+			- ensure clients of the class cannot obtain references to mutable objects
+			- make defensive copies in constructors, accessors, and readObject methods
+
+	- functional approach : return new instance rather than modifying the instance.  <-> procedural or imperative approach
+		-> enables immutability. (Immutable objects are simple)
+
+	* names are prepositions(such as plus) rather than verbs(such as add).
+		-> emphasizes the fact that methods don't change the values of the objects.
+
+	- Immutable objects are inherently thread-safe; they require no synchronization.
+		-> immutable objects can be shared freely.
+
+		* one easy way to encourage clients to reuse existing instances where possible
+			-> provide public static final constants for commonly used values.
+				ex) ========================================================================
+					public static final Complex ZERO = new Complex(0, 0);
+					public static final Complex ONE = new Complex(1, 0);
+					public static final Complex I = new Complex(0, 1);
+					========================================================================
+
+		- immutable class can provide static factories. -> avoids creating new instances when existing onew would do.
+			(All the boxed primitive classes and BigInteger do this)
+			-> share instances instead of creating new ones, reducing memory footprint and garbage collection costs.
+
+			* never have to make defensive copies of them.
+			* you don't have to provide a clone method or copy constructor on an immutable class.
+
+	- Not only can you share immutable objects, but they can share their internals.
+
+	- Immutable objects make great building blocks for other objects, whether mutable of immutable.
+
+	- Immutable objects provide failure atomicity for free.
+
+	- Major disadvantage of immutable classes is that they require a separate object for each distinct value.
+		-> creating can be costly, especially if they are large.
+			ex) ======================================================
+				BigInteger moby = ...;
+				moby = moby.flipBit(0);
+				======================================================
+				-> flipBit creates a new BigInteger instance, also a million bits long, that differs from the original in only one bit.
+
+				-> BitSet class provides a method that allows you to change the state of a single bit of a million-bit instance in constant time.
+					ex) =============================================
+						BitSet moby = ...;
+						moby.flip(0);
+						=============================================
+
+				- "companion class"
+					-> provide a public mutable companion class.
+						ex) ===================================================================================================
+							String class -> mutable companion is StringBuilder(and its obsolete predecessor, StringBuffer)
+							===================================================================================================
+
+	[Summary]
+		- Class should be immutable unless there's a very good reason to make the mutable.
+		- provide mutable companion class for your immutable class only once you've confirmed that it's necessary to achieve satisfactory performance.
+		- If a class cannot be made immutable, limit its mutability as much as possible
+			-> declare every field private final unless there's a good reason to do otherwise.
+		- Constructors should create fully initialized objects with all of their invariants established.
