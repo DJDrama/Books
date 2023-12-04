@@ -1,1 +1,12 @@
 (Item 18: Favor composition over inheritance)
+	- Unlike method invocation, inheritance viloates encapsulation.
+		-> superclass implementation may change from release to release, and if it does, the subclass may break.
+
+	- Instead of extending an existing class, give your new class a private field that references an instance of the existing class.
+		-> COMPOSITION design
+
+	- Composition
+		- forwarding : each instance method in the new class invokes the corresponding method on the contained instance of the existing class and returns the results. (forwarding methods)
+
+	- Decorator pattern 
+	
