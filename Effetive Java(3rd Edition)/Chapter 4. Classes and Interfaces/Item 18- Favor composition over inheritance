@@ -2,11 +2,237 @@
 	- Unlike method invocation, inheritance viloates encapsulation.
 		-> superclass implementation may change from release to release, and if it does, the subclass may break.
 
+		ex) Let's suppose we have a program that usese a HashSet.
+			======================================================================================================
+			// Broken - Inappropriate use of inheritance!
+			public class InstrumentedHashSet<E> extends HashSet<E> {
+				// The number of attempted element insertions
+				private int addCount = 0;
+
+				public InstrumentedHashSet(){
+
+				}
+
+				public InstrumentedHashSet(int initCap, float loadFactor){
+					super(initCap, loadFactor);
+				}
+
+				@Override
+				public boolean add(E e){
+					addCount++;
+					return super.add(e);
+				}
+
+				@Override
+				public boolean addAll(Collection<? extends E> c){
+					addCount += c.size();
+					return super.addAll(c);
+				}
+
+				public int getAddAccount(){
+					return addCount;
+				}
+			}
+			======================================================================================================
+			-> this does not work!
+				ex) see below
+				======================================================================================================
+				InstrumentedHashSet<String> s = new InstrumentedHashSet<>();
+				s.addAll(List.of("Snap", "Crackle", "Pop"));
+				======================================================================================================
+				-> getAddCount method to return three at this point, but it returns six!
+				* HashSet's addAll method is implemented on top of its add method, although HashSet, quite reasonably, does not document this implementation detail!
+				* addAll method in Instrumented-HashSet added three to addCount and then invoked HashSet's addAll implementation using super.addAll.
+					-> addAll method is double-counted!
+
+				-> We can fix the subclass by eliminating its override of the addAll method.
+					* But! it would depend for its proper function on the fac that HashSet's addAll method is implemented on top of its add method.
+						-> this "self-use" is an implementation detail, not guaranteed to hold in all implementations of the Java platform and subject to change from release to release
+							-> resulting InstrumentedHashSet class would be fragile!!
+
+					-> It is BETTER to override the addAll method to iterate over the specified collection, calling the add method once for each element. (This would guarantee the correct result whether or not HashSet's addAll method were implemented atop its add method because HashSet's addAll implementation would no longer be invoked)
+						* HOWEVER! amounts to reimplementing superclass methods that may or may not result in self-use,
+							-> DIFFICULT
+							-> TIME-CONSUMING
+							-> ERROR-PRONE
+							-> REDUCE PERFORMANCE
+
+
 	- Instead of extending an existing class, give your new class a private field that references an instance of the existing class.
 		-> COMPOSITION design
 
 	- Composition
 		- forwarding : each instance method in the new class invokes the corresponding method on the contained instance of the existing class and returns the results. (forwarding methods)
 
-	- Decorator pattern 
-	
+			-> the resulting class will be ROCK SOLID
+			-> no dependencies on the implementation details of the existing class
+			-> adding new methods to the existing class will have no implact on the new class
+
+			-> replacement for InstrumentedHashSet (using the composition-and-forwarding approach)
+
+				ex) 
+					======================================================================================================
+					// Wrapper class - uses composition in place of inheritance
+					public class InstrumentedSet<E> extends ForwardingSet<E> {
+						private int addCount = 0;
+
+						public InstrumentedSet(Set<E> s){
+							super(s);
+						}
+
+						@Override
+						public boolean add(E e){
+							addCount++;
+							return super.add(e);
+						}
+
+						@Override
+						public boolean addAll(Collection<? extends E> c){
+							addCount += c.size();
+							return super.addAll(c);
+						}
+
+						public int getAddCount(){
+							return addCount;
+						}
+					}
+
+					// Reusable forwarding class
+					public class ForwardingSet<E> implements Set<E> {
+						private final Set<E> s;
+						
+						public ForwardingSet(Set<E> s) {
+							this.s = s;
+						}
+
+						public void clear(){
+							s.clear();
+						}
+
+						public boolean contains(Object o){
+							return s.contains(o);
+						}
+
+						public boolean isEmpty(){
+							return s.isEmpty();
+						}
+
+						public int size(){
+							return s.size();
+						}
+
+						public Iterator<E> iterator(){
+							return s.iterator();
+						}
+
+						public boolean add(E e){
+							return s.add(e);
+						}
+
+						public boolean remove(Object o){
+							return s.remove(o);
+						}
+
+						public boolean containsAll(Collection<?> c){
+							return s.containsAll(c);
+						}
+
+						public boolean addAll(Collection<? extends E> c){
+							return s.addAll(c);
+						}
+
+						public boolean removeAll(Collection<? extends E> c){
+							return s.removeAll(c);
+						}
+
+						public boolean retainAll(Collection<?> c){
+							return s.retainAll(c);
+						}
+
+						public OBject[] toArray(){
+							return s.toArray();
+						}
+
+						public <T> T[] toArray(T[] a){
+							return s.toArray(a);
+						}
+
+						@Override
+						public boolean equals(Object o){
+							return s.equals(o);
+						}
+
+						@Override
+						public int hashCode(){
+							return s.hashCode();
+						}
+
+						@Override
+						public String toString(){
+							return s.toString();
+						}
+
+					}
+					======================================================================================================
+						-> enabled by the existence of the Set interface, which captures the functionality of the HashSet class.
+						-> Flexible!
+						-> unlike the inheritance-based approach, which works only for a single concrete class and requires a separate constructor for each supported constructor in the superclass, the wrapper class can be used to instrument any Set implementation and will work in conjunctino with any preexisting constructor:
+							ex)
+								======================================================================================================
+								Set<Instant> times = new InstrumentedSet<>(new TreeSet<>(cmp));
+								Set<E> s = new InstrumentedSet<>(new HashSet<>(INIT_CAPACITY));
+								======================================================================================================
+
+						-> The InstrumentedSet class can even be used to temporarily instrument a set instance that has already been used without instrumentation:
+							ex)
+								======================================================================================================
+								static void walk(Set<Dog> dogs){
+									InstrumentedSet<Dog> iDogs = new InstrumentedSet<>(dogs);
+									... // Within this method use iDogs instead of dogs
+								}
+								======================================================================================================
+								-> InstrumentedSet instance contains ("wraps") another Set instance.
+									--> KNOWN AS "Decorator" pattern. (InstrumentedSet "decorates" a set by adding instrumentation.)
+
+						* Sometimes, the combination of composition and forwarding is loosely referred to as "delegation"
+							-> technically it's not delegation unless the wrapper object passes itself to the wrapped object.
+
+	- Disadvantage of wrapper classes
+		-> wrapper classes are not suited for use in callback frameworks.
+			-> because a wrapped object doesn't know of its wrapper, it passes a reference to itself(this) and callbacks elude the wrapper. (Known as SELF problem)
+
+	* Inheritance is appropriate only in circumstances
+		-> subclass really is a subtype of the superclass
+			- a class B should extend a class A only if an "is-a" relationship exists between the two classes.
+				* Always ask yourself that is every B really an A?
+
+		-> Does the class that you contemplate extending have any flaws in its API?
+			- If so, are you comfortable propagating those flaws into your class's API? 
+			* Composition lets you design a new API that hides these flaws.
+
+	* violation in the Java platform libraries
+		1. Stack is not a vector -> Stack should not extend Vector!
+		2. a property list is not a hash table, so Properties should not extend HashTable!
+
+		--> in both cases, composition would have been preferable.
+
+	- If you use inheritance where composition is appropriate, you needlessly expose implementation details.
+		-> The resulting API ties you to the original implementation, forever limiting the performance of your classs
+		-> More seriously, by exposing the internals you let clients access them directly.
+
+		* leading to confusing semantics
+			ex) if p refers to a Properties instance, then p.getProperty(key) may yield different results from p.get(key)
+				-> former method takes defaults into account, while the latter method, which is inherited from Hashtable, does not!
+				-> more seriously, the client may be able to corrupt invariants of the subclass by modifying the superclass directly!
+
+	[SUMMARY]
+		- inheritance is powerful, but violates encapsulation!
+		- only appropriate when a genuine subtype relationship exists between the subclass and the superclass.
+			* if the subclass is in a different package from the superclass, and the superclass is not designed for inheritance, then lead to fragility.
+
+		* use composition and forwarding instead of inheritance, especially if an appropriate interface to implement a wrapper class exists.
+		
+
+
+
+
