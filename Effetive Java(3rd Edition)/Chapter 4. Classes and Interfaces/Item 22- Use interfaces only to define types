@@ -1,0 +1,44 @@
+(Item 22: Use interfaces only to define types)
+	- When a class implements an interface, the interface serves as a type that can be used to refer to instaces of the class.
+
+	- constant interface : such an interface contains no methods; it consits solely of static final fields, each exporting a constant.
+		-> classes using these constants implement the interface to avoid the need to qualify constant names with a class name.
+			ex)
+				========================================================================
+				// Constant interface antipattern - do not use!
+				public interface PhysicalConstants{
+					// Avogadro's number (1/mol)
+					static final double AVOGADROS_NUMBER = 6.022_140_857e23;
+					
+					// Boltzmann constant (J/K)
+					static final double BOLTZMANN_CONSTANT = 1.380_648_52e-23;
+					
+					// Mass of the electron (kg)
+					static final double ELECTRON_MASS = 9.109_383_56e-31;
+				}
+				========================================================================
+				-> The constant interface pattern is a poor use of interfaces!
+					* it is of no consequence to the users of a class that the class implements a constant interface!
+						-> it also may confuse them.
+
+				-> if a future release of the class is modified so that it no longer needs to use the constants, it still must implement the interface to ensure binary compatibility.
+
+	* if the constants are best viewed as members of an enumerated type, you should export them with an enum type.
+		-> otherwise, you should export the constants with a noninstantiable utility class!
+			ex)
+				========================================================================
+				// Constant utility class
+				package com.effectivejava.science;
+
+				public class PhysicalConstants {
+			    	private PhysicalConstants() { } // Prevents instantiation
+			    	public static final double AVOGADROS_NUMBER = 6.022_140_857e23;
+			    	public static final double BOLTZMANN_CONST = 1.380_648_52e-23;
+			    	public static final double ELECTRON_MASS = 9.109_383_56e-31;
+			    }
+				========================================================================
+				-> use like this : PhysicalConstants.AVOGADROS_NUMBER
+
+	[SUMMARY]
+		- interfaces should be used only to define types.
+		- They should not be used merely to export constants.

@@ -1,0 +1,79 @@
+(Item 20: Prefer interfaces to abstract classes)
+	- Java permits only single inheritance
+
+	* Existing classes can easily be retrofitted to implement a new interface.
+
+	* Interfaces are ideal for defining mixins.
+		- a mixin: is a type that a class can implement in addition to its "primary type", to declare that it provides some optional behavior.
+			ex) Comparable is a mixin interface that allows a class to declare that its instances are ordered with respect to other mutually comparable objects.
+				(Abstract cannot be used to define mixins) -> because if you add a abstract method all other subclasses should implement it even they don't need it.
+
+	* Interfaces allow for the construction of nonhierarchical type frameworks.
+		ex) suppose we have an interface representing a singer and another representing a songwriter:
+			========================================================================
+			public interface Singer{
+				AudioClip sing(Song s);
+			}
+			public interface Songwriter{
+				Song compose(int chartPosition);
+			}
+			========================================================================
+			-> rather than abstract class, we used interfaces and a single class can implement both Singer and SongWriter.
+			-> we can also define a third interface that extends both Singer and Songwriter and adds new methods that are appropriate to the combination:
+				========================================================================
+				public interface SingerSongwriter extends Singer, Songwriter{
+					AudioClip strum();
+					void actSensitive();
+				}
+				========================================================================
+
+				* combinatorial explosion: if there are n attributes in the type system, there are 2^n possible combinations that you might have to support.
+					-> Bloated class hierarchies can lead to bloated classes with many methods that differ only in the type of their arguments because there are no types in the class hierarchy to capture common behaviors.
+
+	* Interfaces enable safe, powerful functionality enhancements via the wrapper class idiom.
+		-> if you use abstract class to define types, you leave the programmer who wants to add functionality with no alternative but inheritance.
+
+
+	- Template Method pattern
+		-> extending a skeletal implementation takes most of the work out of implementing an interface.
+		https://medium.com/@akshatsharma0610/template-design-pattern-in-java-453da50185a8
+
+	* By convention, skeletal implementation classes are called Abstract Interface, where Interface is the name of the interface they implement.
+		- ex) static factory method containing a complete, fully functional List implementation atop AbstractList:
+			========================================================================
+			// Concrete implementation built atop skeletal implementation
+			static List<Integer> intArrayAsList(int[] a){
+				Objects.requireNonNull(a);
+
+				// The diamond operator is only legal here in Java 9 and later
+				// If you're using an earlier release, specify <Integer>
+				return new AbstractList<>();
+			}
+
+			@Override
+			public Integer get(int i){
+				return a[i]; // Autoboxing
+			}
+
+			@Override
+			public Integer set(int i, Integer val){
+				int oldVal = a[i];
+				a[i] = val;	// Auto-unboxing;
+				return oldVal;	// Autoboxing
+			}
+
+			@Override
+			public int size(){
+				return a.length;
+			}
+			========================================================================
+			-> this is a power of skeletal implementations.
+
+
+	* good documentation is absolutely essential in a skeletal implementation.
+
+	[Summary]
+		- interface is the best way to define a type that permits multiple implementations.
+		- if you export a nontrivial interface, you should strongly consider providing a skeletal implementation to go with it.
+		- provide the skeletal implementation via default methods on the interface so that all implementors of the interface can make us of it.
+		
