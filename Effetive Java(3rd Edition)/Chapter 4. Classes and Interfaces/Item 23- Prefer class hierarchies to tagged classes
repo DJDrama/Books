@@ -1,1 +1,116 @@
 (Item 23: Prefer class hierarchies to tagged classes)
+	* tagged classes are verbose, error-prone, and inefficient.
+		ex) 
+			========================================================================================
+			// Tagged class- vastly inferior to a class hierarchy!
+			class Figure{
+				enum Shape { RECTANGLLE, CIRCLE; }
+
+				// Tag field - the shape of this figure
+				final Shape shape;
+
+				// These fields are used only if shape is RECTANGLE
+				double length;
+				double width;
+
+				// This field is used only if shape is CIRCLE
+				double radius;
+
+				// Constructor for circle
+				Figure(double radius){
+					shape = Shape.CIRCLE;
+					this.radius = radius;
+				}
+
+				// Constructor for rectangle
+				Figure(double length, double width){
+					shape = Shape.RECTANGLE;
+					this.length = length;
+					this.width = width;
+				}
+
+				double area(){
+					switch(shape){
+						case RECTANGLE:
+							return length*width;
+							break;
+						case CIRCLE:
+							return Math.PI * (radius*radius);
+							break;
+						default:
+							throw new AssertionError(Shape);
+					}
+				}
+			}
+			========================================================================================
+			-> such tagged classes have numerous shortcomings.
+				-> cluttered with boilerplate, including enum declarations, tag fields, and switch statements.
+				-> Readability is further harmed because multiple implementations are jumbled together in a single class.
+				-> Memory footprint is increased because intances are burdened with irrelevant fields belonging to other flavors.
+				-> Fields can't be made final unless constructors initialize irrelevant fields, resulting in more boilerplate.
+
+				* tagged classes are verbose, error-prone, and inefficient.
+
+				* A tagged class is just a pallid imitation of a class hierarchy.
+
+
+	- define a concrete subclass of the root class for each flavor of the original tagged class.
+		ex)
+			========================================================================================
+			// Class hierarchy replacement for a tagged class
+			abstract class Figure {
+				abstract double area();
+			}
+
+			class Circle extends Figure{
+				final double radius;
+
+				Circle(double radius){
+					this.radius = radius;
+				}
+
+				@Override
+				double area(){
+					return Math.PI * (radius * radius);
+				}
+			}
+
+			class Rectangle extends Figure {
+				final double width;
+				final double length;
+
+				Rectangle(double length, double width){
+					this.length = length;
+					this.width = width;
+				}
+
+				@Override
+				double area(){
+					return length * width;
+				}
+			}
+			========================================================================================
+
+	- Advantages of class heierarchies
+		-> they can be made to reflect natural hierarchical relationships among types, allowing for increased flexibility and better compile-time type checking.
+
+		-> Suppose the tagged class in the original example also allowed for squares!
+			ex)
+				========================================================================================
+				class Square extends Rectangle{
+					Square(double side){
+						super(side, side);
+					}
+				}
+				========================================================================================
+				-> the fields in the above hierarchy are accessed directly rather than by accessor methods
+					-> this was done for brevity and would be a poor design if the hierarchy were public.
+
+	[SUMMARY]
+		- tagged classes are seldom appropriate.
+		- If you're tempted to write a class with an explicit tag field, think about whether the tag could be eliminated and the class replaced by a hierarchy.
+		-> When you encounter an existing class with a tag field, consider refactoring it into a hierarchy.
+		
+				
+
+					
