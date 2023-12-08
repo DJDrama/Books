@@ -1,1 +1,77 @@
 (Item 25: Limit source files to a single top-level class)
+	- Java compiler lets you define multiple top-level classes in a single source file.
+		-> BUT! there are significant risks!
+
+	- it can provide multiple definitions for a class.
+
+		ex)
+			=================================================================================
+			public class Main{
+				public static void main(String[] args){
+					System.out.println(Utensil.Name + Dessert.Name);
+				}
+			}
+			=================================================================================
+
+			-> suppose you define both UTensil and Dessert in a single source file named Utensil.java
+				ex)
+					=================================================================================
+					// Two classes defined in one file. Don't ever do this!
+					class Utensil{
+						static final String NAME = "pan";
+					}
+
+					class Dessert {
+						static final String NAME = "cake";
+					}
+					=================================================================================
+					-> of course Main program prints "pancake".
+
+			-> Now suppose you accidentally make another source file named Dessert.java that defines the same two classes.
+				ex)
+					=================================================================================
+					// Two classes defined in one file. Don't ever do this!
+					class Utensil{
+						static final String NAME = "pot";
+					}
+
+					class Dessert {
+						static final String NAME = "pie";
+					}
+					=================================================================================
+					
+					1) If you compile with the command "javac Main.java Dessert.java"
+						-> the compilation will fail, and the compiler will tell you that you've multiply defined the classes Utensil and Dessert.
+							1. compiler will first compile Main.java
+							2. when it sees the reference to Utensil(which preces the reference to Dessert), it will look in Utensil.java for this class and find both Utensil and Dessert.
+							3. When the compiler encounters Dessert.java on the command line, it will pull in that file too, causing it to encounter both definitions of Utensil and Dessert.
+
+					2) If you compile with the command "javac Main.java" or "javac Main.java Utensil.java", it will behave as it did before you wrote the Dessert.java file, printing pancake.
+						* But if you compile the program with the command "javac Dessert.java Main.java", it will print "potpie".
+
+						-> behavior of the program is thus affected by the order in which the source files are passed to the compiler, which is cleary unacceptable.
+
+			-> Fixing is simple. 
+				1. If you want to put multiple top-level classes into a single source file, consider using static member classes as an alternative to splitting the classes into separate source files.
+					ex)
+						=================================================================================
+						// Static member classes instead of multiple top-level classes
+						public class Test{
+							public static void main(String[] args){
+								System.out.println(Utensil.NAME + Dessert.NAME);
+							}
+						}
+
+						private static class Utensil{
+							static final String NAME="pan";
+						}
+
+						private static class Dessert {
+							static final String NAME="cake";
+						}
+						=================================================================================
+
+			* Never put multiple top-level classes or interfaces in a single source file!
+			
+
+						
