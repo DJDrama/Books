@@ -1,0 +1,135 @@
+(Item 28: Prefer lists to arrays)
+	- Arrays differ from generic types in two important ways.
+		1) arrays are covariant.
+			-> if Sub is a subtype of Super, then the array type Sub[] is a subtype of the array type Super[].
+
+			* Generics, by contrast, are invaraiant: for any two distinct types Type1 and Type2,
+			List<Type1> is neither a subtype nor a supertype of List<Type2>
+
+			* generics seem to be deficient, but arguably it is arrays that are deficient.
+				ex) Legal
+					==============================================================================
+					// Fails at runtime!
+					Object[] objectArray = new Long[1];
+					objectArray[0] = "I don't fit in"; // Throws ArrayStoreException
+					==============================================================================
+
+					Not legal
+					==============================================================================
+					// Won't compile
+					List<Object> o1 = new ArrayList<Long>(); // Incompatible types
+					o1.add("I don't fit in!");
+					==============================================================================
+
+					* array: find mistake at runtime
+					* list: find mistake at compile time.
+
+		2) arrays are reified!
+			-> arrays know and enforce their element type at runtime!
+				- if you try to put a String into an array of Long, you'll get an ArrayStoreException.
+
+				* Generics, by contrast, are implemented by erasure
+					-> they enforce their type constraints only at compile time and discard (or erase) their element type information at runtime.
+					-> Erasure is what allowed generic types to interoperate freely with legacy code that did not use generics, ensuring a smooth transition to generics in Java 5.
+
+
+		-> because of above differences, arrays and generics do not mix well
+			ex) 
+				- it is legal to create an array of a generic type, a parameterized type, or a type parameter.
+					-> therefore, none of these array creation expressions are legal:
+							-> new List<E>[], new List<String>[], new E[]
+								-> All will result in generic array creation errors at compile time.
+
+		- Why is it illegal to create a generic array?
+			- Because it isn't typesafe!
+			- If it was legal, may throw a ClassCastException!
+
+			ex) ==============================================================================
+				// Why generic array creation is illegal - won't compile!
+				List<String>[] stringLists = new List<String>[1]; // (1)
+				List<Integer> intList = List.of(42); // (2)
+				Object[] objects = stringLists; // (3)
+				objects[0] = intList; // (4)
+				String s = stringLists[0].get(0); // (5)
+				==============================================================================
+				(1) which creates a generic array is LEGAL.
+				(2) creates and initializes a List<Integer> containing a single elemnt. (LEGAL)
+				(3) stores the List<String> array into an OBject array variable (LEGAL)
+				(4) stores the List<Integer> into the sole element of the Object array, which success because generics are implemented by erasure
+					-> runtime type of a List<Integer> is List, and the runtime type of List<String>[] is List[].
+
+				(5) retrieve the sole element from the sole list in this array
+					-> ClassCastException! (because String cannot be converted to Integer)
+
+			* type such as E, List<E>, and List<String> are technically known as nonreifiable types!
+				- non-reifiable type: whose runtime representation contains less info than its compile-time representation.
+					-> Examples of non-reifiable types are List<String> and List<Number>; the JVM cannot tell the difference between these types at runtime. As shown in Restrictions on Generics, there are certain situations where non-reifiable types cannot be used: in an instanceof expression, for example, or as an element in an array.
+					-> because of erasure, the only parameterized types that are reifiable are unbounded widcard types such as List<?> and Map<?, ?>.
+
+		- use List<E> in preference to the array type E[] when you get a generic array creation error or an unchecked cast warning on a cst to an array type.
+			-> you might sacrifice some conciseness or performance, but in echange you get better type safety and interoperability.
+				ex) 
+					==============================================================================
+					// Chooser - a class badly in need of generics!
+					public class Chooser {
+						private final Object[] choiceArray;
+
+						public Chooser(Collection choices){
+							chocieArray = choices.toArray();
+						}
+
+						public Object choose(){
+							Random rnd = ThreadLocalRandom.current();
+							return choiceArray[rnd.nextInt(choiceArray.length)];
+						}
+					}
+					==============================================================================
+					-> cast will fail at runtime! if you get type wrong.
+
+					
+					==============================================================================
+					// A first cut at masking Chooser generic  won't compile
+					public class Chooser<T>{
+						private final T[] choiceArray;
+
+						public Chooser(Collection<T> choices){
+							choiceArray = choices.toArrray();
+						}
+
+						// choose method unchanged
+					}
+					==============================================================================
+					-> error: incompatible types: Object[] cannot be converted to T[] (choiceArray = choices.toArray();)
+
+					-> FIX (No error but warning)
+						==============================================================================
+						choiceArray = (T[]) choices.toArray();
+						==============================================================================
+
+					-> Fix (eliminate the unchecked cast warning, use a list instead of an array)
+						==============================================================================
+						// List-based Chooser - typesafe
+						public class Chooser<T>{
+							private final List<T> chocieList;
+
+							public Chooser(Collection<T> choices){
+								choiceList = new ArrayList<>(choices);
+							}
+
+							public T choose(){
+								Random rnd = ThreadLocalRandom.current();
+								return chocieList.get(rnd.nextInt(choiceList.size()));
+							}
+						}
+						==============================================================================
+						-> slower, but it's worth it for the peace of mind that you won't get a ClassCastException at runtime!
+
+	[SUMMARY]
+		- arrays: covariant and reified; generics are invariant and erased.
+		- arrays provide runtime type safety but not compile-time type safety, and vice versa for generics.
+		* arrays and generics don't mix well
+			-> if you find yourself mixing them and getting compile-time errors or warnings, you first impulse should be to replace the arrays with lists.
+
+	
+
+

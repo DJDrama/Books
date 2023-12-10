@@ -1,1 +1,60 @@
 (Item 27: Eliminate unchecked warnings)
+	ex)
+		============================================================
+		Set<Lark> exalation = new HashSet();
+		============================================================
+		-> unchecked conversion warning
+		-> put diamond operator(<>)
+			========================================================
+			Set<Lark> exalation = new HashSet<>();
+			========================================================
+
+	* Eliminate every unchecked warning that you can!
+		-> typesafe! (you won't get ClassCastException at runtime)
+			-> increase confidence that your program will behave as you inteded.
+	
+	- If you can't eliminate a warning, but you can prove that the code that provoekd the arning is typesafe, then (and only then) suppress the warning with an @SuppressWarnings("unchecked") annotation.
+
+	- Always use the SuppressWarnings annotation on the smallest scope possible.
+
+	* Never use SuppressWarnings on an entire class!
+
+
+	ex)
+		========================================================
+		public <T> T[] toArray(T[] a){
+			if(a.length < size)
+				return (T[]) Arrays.copyOf(elements, size, a.getclass());
+			System.arraycopy(elemnts, 0, a, 0, size);
+
+			if(a.length > size)
+				a[size]=null;
+			return a;
+		}
+		========================================================
+		-> compiler generates warning: ArrayList unchecked cast. (return (T[]) ARrays.copyOf(elements, size, a.getClass());)
+		* declare a local variable to hold the return value and annotate its declaration, like so:
+			================================================================================================================
+			// Adding local variable to reduce scope of @SuppressWarnings
+			public <T> T[] toArray(T[] a){
+				if(a.length<size){
+					// This clast is correct because the array we're creating is of the same type
+					// as the one passed in, which is T[]
+					@SuppressWarnings("unchecked")
+					T[] result = (T[]) Arrays.copyOf(elements, size, a.getClass());
+					return result;
+				}
+				System.arraycopy(elements, 0, a, 0, size);
+				if(a.length>size)
+					a[size]=null;
+				return a;
+			}
+			================================================================================================================
+
+	* Every time you use a @SuppressWarnings("unchecked") annotation, add a comment saying why it is safe to do so!
+
+	[SUMMARY]
+		- don't ignore unchecked warnings!
+		- they represent the potetntial for a ClassCastException at runtime.
+		- If you can't elimintate them but you can prove that the code that provoked it is typesafe, suppress the warning with a @SuppressWarnings("unchecked") annotation in the narrowest possible scope.
+		
