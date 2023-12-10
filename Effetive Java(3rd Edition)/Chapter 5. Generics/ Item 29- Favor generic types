@@ -1,1 +1,104 @@
 (Item 29: Favor generic types)
+	- It's worth the effor to write own generic types (but difficult)
+		ex)
+			==========================================================================================
+			// Object-based collection - a prime candidate for generics
+			public class Stack {
+				private Object[] elements;
+				private int size = 0;
+				private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+				public Stack(){
+					elements = new Object[DEFAULT_INITIAL_CAPACITY];
+				}
+
+				public void push(Object e){
+					ensureCapacity();
+					elements[size++]=e;
+				}
+
+				public OBject pop(){
+					if(size==0) throw new EmptyStackException();
+
+					Object result = elements[--size];
+					elements[size] = null; // Eliminate obsolete reference
+					return result;
+				}
+
+				public boolean isEmpty(){
+					return size == 0;
+				}
+
+				private void ensureCapacity(){
+					if(elements.size == size)
+						elements = Arrays.copyOf(elements, 2*size+1);
+				}
+			}
+			==========================================================================================
+			-> we can generify : we can parameterize it without harming clients of the original non-parameterized version.
+				* client has to cast objects that are popped off the stack, and those casts might fail at runtime.
+
+			1. generifying a class is to add one or more type parameters to its declaration.
+			2. replace all the use of the type Object with the appropriate type parameter and then try to compile the resulting program:
+				==========================================================================================
+				// Initial attempt to generify Stack = won't compile!
+				public Class Stack<E>{
+					private E[] elements;
+					private int size=0;
+					private static final int DEFAULT_INITIAL_CAPACITY=16;
+
+					public Stack(){
+						elements = new E[DEFAULT_INITIAL_CAPACITY];
+					}
+
+					public void push(E e){
+						ensureCapacity();
+						elements[size++] = e;
+					}
+
+					public E pop(){
+						if(size==0)
+							throw new EmptyStackException();
+						E result = elements[--size];
+						elements[size] = null; // Eliminate obsolete reference
+						return result;
+					}
+
+					... // no changes in isEmpty or ensureCapacity
+				}
+				==========================================================================================
+				-> you will get an error or warning
+					-> generic array creation (elements = new E[DEFAULT_INITIAL_CAPACITY];)
+
+					* you can't create an array of a non-reifiable type, such as E.
+
+					(FIX)
+					[1] suppress warnings
+						1) directly circumvents the prohibition on generic array creation:
+							create an array of Object and cast it to the generic array type.
+								-> but will emit a warning
+									unchecked cast (elements = (E[]) new Object[DEFAULT_INITIAL_CAPACITY];)
+
+						2) put SuppressWarnings annotation
+							->
+								@SuppressWarnings("unchecked")
+								public Stack(){
+									elements = (E[]) new Object[DEFAULT_INITIAL_CAPACITY];
+								}
+
+					[2] change the type of the field elements from E[] to Object[];
+						1) E result = elements[--size];
+							-> error! (imcompatible types)
+
+						2) Cast the element!
+							-> E result = (E) elements[--size];
+								-> warning: unchecked cast!
+
+							* E is non-reifiable type, there's no way that the compiler can check the cast at runtime.
+
+						3) put SuppressWarnings annotation
+							@SuppressWarnings("unchecked")
+							E result = (E) elements[--size];
+
+					* HOWEVER!, it causes heap pollution
+						-> runtime type of the array does not match its compile-time type.
