@@ -1,1 +1,106 @@
 (Item 30: Favor generic methods)
+	- All of the algorithm methods in Collections (such as binarySearch and sort) are generic.
+
+	- Writing generic methods is similar to writing generic types
+		ex)
+			========================================================================
+			// Use raw types - unacceptable!
+			public Static Set union(Set s1, Set s2){
+				Set result = new HashSet(s1);
+				result.addAll(s2);
+				return result;
+			}
+			========================================================================
+			-> warnings (unchecked call to HashSet(Collection<? extends E) as a member of raw type HashSet)
+			-> warnings (unchecked call to addAll(Collection<? extends E) as a member of raw type set)
+
+			-> FIX
+				- declare a type parameter representing the element type for the three sets(the two arguments and the return value)
+
+				* The type parameter list, which declares the type parameters, goes between a method's modifiers and its return type
+					ex)
+						========================================================================
+						// Generic method
+						public static <E> Set<E> union(Set<E> s1, Set<E> s2){
+							Set<E> result = new HashSet<>(s1);
+							result.addAll(s2);
+							return result;
+						}
+						========================================================================
+						-> type safe, no warnings
+
+						- you can make the method more flexible by using bounded wildcard types!
+
+	- generic singleton factory
+		-> used for function objects such as Collections.reverseOrder, and occasionally for collections such as Collections.emptySet.
+
+			ex)
+				========================================================================
+				// Generic singleton factory pattern
+				private static UnaryOperator<Object> IDENTITY_FN = (t) -> t;
+
+				@SuppressWarnings("unchecked")
+				public static <T> UnaryOperator<T> identityFunction(){
+					return (UnaryOperator<T>) IDENTITY_FN;
+				}
+
+				------------------------------------------------------------------------
+
+				// Sample program to exercise generic singleton
+				public static void main(String[] args){
+					String[] strings = {"jute", "hemp", "nylon"};
+					UnaryOperator<String> sameString = identityFunction();
+
+					for(String s: strings)
+						System.out.println(sameString.apply(s));
+
+					Number[] numbers = {1, 2.0, 3L};
+					UnaryOperator<Number> sameNumber = identityFunction():
+
+					for(Number n: numbers)
+						System.out.println(sameNumber.apply(n));
+				}
+
+				========================================================================
+				-> for a type parameter to be bounded by some expression involving that type parameter itself.
+					-> recursive type bound.
+						- A common use of recursive type bounds is in connection with the Comparable interface
+
+	- using a recursive type bound to express mutual comparability (the elements of the list be mutually comparable)
+		ex)
+			========================================================================
+			public static <E extends Comparable<E>> E max(Collection<E> c);
+
+			// Returns max value in a collection - uses recursive type bound
+			public static <E extends Comparable<E>> E max(Collection<E> c){
+				if(c.isEmpty())
+					throw new IllegalArgumentException("Empty Collection!");
+
+				E result = null;
+				for(E e: c){
+					if(result == null || e.compareTo(result) > 0)
+						result = OBjects.requireNonNull(e);
+				}
+
+				return result;
+			}
+			========================================================================
+			-> better alternative would be to return an Optional<E> rather than throwing IllegalArgumentException
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
