@@ -1,0 +1,67 @@
+(Item 31: Use bounded wildcards to increase API flexibility)
+
+	- "bounded wildcard type"
+		ex) Iterable<? extends E>
+				============================================================
+				public void pushAll(Iterable<E> src){
+					for(E e: src)
+						push(e);
+				}
+
+				CHANGE TO
+
+				public void pushAll(Iterable<? extends E> src){
+					for(E e: src)
+						push(e);
+				}
+				============================================================
+
+		ex) Collection<? super E>
+				============================================================
+				public void popAll(Collection<? super E> dst){
+					while(!isEmpty())
+						dst.add(pop());
+				}
+				============================================================
+
+		* For maximum flexibility, use wildcard types on input parameters that represent producers or consumers.
+
+		* PECS stands for producer-extends, consumer-super
+
+
+	* DO NOT use bounded wildcard types as return types
+	* If the user of a class has to think about wildcard types, there is probably something wrong with its API.
+
+	- "explicit type argument"
+		ex)
+			===============================================================
+			Set<Number> numbers = Union.<Number>union(integers, doubles);
+			===============================================================
+
+	* always use Comparator<? super T> in preference to Comparator<T>
+
+
+	* If a type parameter appears only once in a method declaration, replace it with a wildcard.
+
+
+	ex)
+		============================================================
+		public static void swap(List<?> list, int i, int j){
+			list.set(i, list.set(j, list.get(i)));
+		}
+		============================================================
+		--> List<?>, you can't put any value except null!
+
+		[FIX]
+		============================================================
+		public static void swap(List<?> list, int i, int j){
+			swapHelper(list, i, j);
+		}
+
+		private static <E> void swapHelper(List<E> list, int i, int j){
+			list.set(i, list.set(j, list.get(i)));
+		}
+		============================================================
+		-> swapHelper method knows that list is a List<E>
+		-> any value it gets out of this list is of type E and that it's safe to put any value of type E into the list.
+		
