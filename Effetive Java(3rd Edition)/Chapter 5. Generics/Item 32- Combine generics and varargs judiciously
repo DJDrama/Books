@@ -1,1 +1,98 @@
 (Item 32: Combine generics and varargs judiciously)
+	
+	- varargs: leaky abstraction
+		-> when you invoke a varargs method, an array is created to hold the varargs parameters; that array,
+			which should be an implementation detail, is visible.
+
+	* non-reifiable type
+		-> whose runtime representatino has less information than its compile-time representation,
+			and that nearly all generic and parameterized types are non-reifiable.
+
+	* Heap pollution
+		-> occurs when a variable of a parameterized type refers to an object that is not of that type.
+
+		ex)
+			============================================================
+			// Mixing generics and varargs can violate type safety!
+			static void dangerous(List<String>... stringLists){
+				List<Integer> intList = List.of(42);
+				Object[] objects = stringLists;
+				objects[0] = intList; // Heap pollution
+				String s = stringLists[0].get(0); // ClassCastException
+			}
+			============================================================
+
+			* it is unsafe to store a value in a generic varargs array parameter.
+
+	- In Java 7, the SafeVarargs annotation was added to the platform, to allow the author of a method with a generic varargs parameter to suppress client warnings automatically.
+
+	* the SafeVarargs annotation constitutes a promise by the author of a method that it is typesafe.
+
+	* do not annotate a method with @SafeVarargs unless it actually is SAFE.
+
+	ex)
+		===============================================================
+		// UNSAFE - exposes a reference to its generic parameter array!
+		static <T> T[] toArray(T... args){
+			return args;
+		}
+		===============================================================
+		-> type of this array is determined by the compile-time types of the arguments passed in to the method,
+			and the compiler may not have enough information to make an accurate determination.
+
+		-> it can propagate heap pollution up the call stack.
+
+		[to make concrete]
+		============================================================
+		static <T> T[] pickTwo(T a, T b, T c){
+			switch(ThreadLocalRandom.current().nextInt(3)){
+				case 0: return toArray(a, b);
+				case 1: return toArray(a, c);
+				case 2: return toArray(b, c);
+			}
+			throw new AssertionError(); // Cant get here
+		}
+		============================================================
+		-> pickTwo will always return an array of type Object[]
+
+	* it is unsafe to give another method access to a generic varargs parameter array, with two exceptions:
+		- it is safe to pass the array to another varargs method that is correctly annotated with @SafeVarargs,
+		- and it is safe to pass the array to a non-varargs method that merely computes some function of the contents of the array.
+
+		ex)
+			============================================================
+			// Safe method with a generic varargs parameter
+			@SafeVarargs
+			static <T> List<T> flatten(List<? extends T>... lists){
+				List<T> result = new ArrayList<>();
+				for(List<? extends T> list: lists)
+					result.addAll(list);
+				return result;
+			}
+			============================================================
+			* USE @SafeVarargs on every method with a varargs parameter of a generic or parameterized type,
+				-> so its users won't be burdened by needless and confusing compiler warnings.
+
+	* generic varargs methods is safe if
+		1. it doesn't store anything in the varargs parameter array
+		2. it doesn't make the array (or a clone) visible to untrusted code. If either of these prohibitions is violated, fix it.
+
+	* Alternative to using the SafeVarargs annotation is to take the advice, replace the varargs parameter with a List parameter.
+		ex)
+			============================================================
+			// List as a typesafe alternative to a generic varargs parameter
+			static <T> List<T> flatten(List<List<? extends T>> lists){
+				List<T> result = new ArrayList<>();
+				for(List<? extends T> list: lists)
+					result.addAll(list);
+				return result;
+			}
+			============================================================
+			-> audience = flatten(List.of(friends, romans, countrymen));
+
+			-> the compmiler can prove that the method is TYPESAFE!
+
+	* Use List with generics (not arrays) for typesafety.
+
+	* first ensure that the method is typesafe, and then annotate it with @SafeVarargs so it is not unpleasant to use.
+
