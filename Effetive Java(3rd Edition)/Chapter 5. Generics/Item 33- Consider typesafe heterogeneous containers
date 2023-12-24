@@ -1,0 +1,68 @@
+(Item 33: Consider typesafe heterogeneous containers)
+
+	- type token: when a class literal is passed among methods to communicate both compile time and runtime type information.
+
+	ex)
+		======================================================
+		// Typesafe heterogeneous container pattern - API
+		public class Favorites {
+			public <T> void putFavorite(Class<T> type, T instance);
+			public <T> T getFavorite(Class<T> type);
+		}
+
+		// Typesafe heterogeneous container pattern - client
+		public static void main(String[] args){
+			Favorites f = new Favorites();
+			f.putFavorite(String.class, "Java");
+			f.putFavorite(Integer.class, 0xcafebabe);
+			f.putFavorite(Class.class, Favorites.class);
+
+			String favoriteString = f.getFavorite(String.class);
+			int favoriteInteger = f.getFavorite(Integer.class);
+
+			Class<?> favoriteClass = f.getFavorite(Class.class);
+
+			System.out.printf("%s %x %s%n", favoriteString, favoriteInteger, favoriteClass.getName());
+		}
+		======================================================
+		-> prints Java cafebabe Favorites.
+		(use %n instead of \n in printf)
+
+		-> Favorites instance is typesafe: it will never return an Integer when you ask it for a String.
+
+		* heterogeneous: unlike an ordinary map, all the keys are of different types.
+			-> we call Favorites a typesafe heterogeneous container.
+
+
+		[implementation]
+		======================================================
+		// Typesafe heterogeneous container pattern - implementation
+		public class Favorites {
+			private Map<Class<?>, Object> favorites = new HashMap<>();
+
+			public <T> void putFavorite(Class<T> type, T instance) {
+				favorites.put(Objects.requireNonNull(type), instance);
+			}
+
+			--> Achieving runtime type safety with a dynamic cast   (above code: we can put HashSet and put String instead of HashSet<Integer> and String not allowed!)
+			public <T> void putFavorite(Class<T> type, T instance){
+				favorites.put(type, type.cast(instance));
+			}
+
+			public <T> T getFavorite(Class<T> type){
+				return type.cast(favorites.get(type));
+			}
+		}
+		======================================================
+
+		* use bounded type token, which is simply a type token that places a bound on what type can be represented, using a bounded type parameter or a bounded wildcard.
+
+			ex)
+				======================================================
+				public <T extends Annotation>
+				T getAnnotation(Class<T> annotationType);
+				======================================================
+				-> annotationType, is a bounded type token representing an annotation type.
+				-> the method returns the element's annotation of that type, if it has one, or null.
+
+		* asSubClass : typesafe (casts the Class object on which it is called to represent a subclass of the class represented by its argument.)
