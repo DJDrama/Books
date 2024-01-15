@@ -1,0 +1,225 @@
+(Item 34: Use enums instead of int constants)
+	- Before enums, common pattern was using int constants
+		ex)
+			======================================================
+			// The int enum pattern - severely deficient!
+			public static final int APPLE_FUJI = 0;
+			public static final int APPLE_PIPPIN = 1;
+			...
+			======================================================
+			* The compiler won't complain if you pass an apple to a method that expects an orange
+			* compare apples to oranges with the == operator, or worse
+				ex)
+					======================================================
+					// Tasty citrus flavored applesauce!
+					int i = (APPLE_FUJI - ORANGE_TEMPLE) / APPLE_PIPPIN;
+					======================================================
+	
+	* int enums are brittle
+		-> int enums are constant variables 
+		-> IF an int enum is changed, its clients must be recompiled! (if not, behavior will be incorrect!)
+
+	* hard to make them to printable strings
+		-> all you see is a number!
+
+	* no reliable way to iterate over all the int enum constatns in a group
+
+	* cannot obtain the size of an int enum group.
+
+	(IF you use String enum pattern)
+		-> it provides printable strings
+
+		BUT!
+		-> lead naive users to hard-code string constants into client code instead of using field names.
+		-> if a hard-code string constant contains a typographical error, it will escape detection at compile time and result in bugs at runtime!
+			ex)
+				======================================================
+				public static final HELLO = "Hello";
+
+				if(HELLO.equals("hello")){ // <-- hard-code string typographical error!
+					// do something
+				}
+				======================================================
+		-> Bad performance : relies on string comparisons (equals: O(n))
+
+
+	- JAVA provides enum type!
+		ex)
+			======================================================
+			public enum Apple { FUJI, PIPPIN, GRANNY_SMITH }
+			public enum Orange { NAVEL, TEMPLE, BLOOD }
+			======================================================
+			- enums are essentially int values.
+
+		* Enum types are "final" (having no accessible constructors)
+
+		* clients can neither create instances of an enum type nor extend it
+			-> there can be no instances but the declared enum constants.
+
+		* They are a generalization of singletons (single-element enums)
+
+		* Enums provide compile-time type safety.
+			ex) 
+				if you declare a parameter to be of type Apple, you are guaranteed that any non-null object reference passed to the parameter is one of the three valid Apple values!
+					-> attempts to pass values of the wrong type will result in compile time errors!
+
+		* Each type has its own namespace.
+			-> can add or reorder constants in an enum type without recompiling its clients because the fields that export the constants provide a layer of insulation between an enum type and its clients: constant values are not compiled into the clients as they are in the int enum patterns.
+
+		* you can translate enums into printable strings by calling their "toString" method.
+
+	- Enum type with data and behavior
+		ex)
+			======================================================
+			public enum Planet{
+				MERCURY(3.302e+23, 2.439e6),
+				 VENUS (4.869e+24, 6.052e6),
+				 EARTH (5.975e+24, 6.378e6),
+				 MARS (6.419e+23, 3.393e6),
+				 JUPITER(1.899e+27, 7.149e7),
+				 SATURN (5.685e+26, 6.027e7),
+				 URANUS (8.683e+25, 2.556e7),
+				 NEPTUNE(1.024e+26, 2.477e7);
+
+				 private final double mass; // In kilograms
+				 private final double radius; // In meters
+				 private final double surfaceGravity: // In m / s^2
+
+				 // Universal gravitational constant in m^3 / kg s^2
+				 private static final double G = 6.67300E-11
+
+				 // Constructor
+				 Planet(double mass, double radius){
+				 	this.mass = mass;
+				 	this.radius = radius;
+				 	surfaceGravity = G * mass / (radius * radius);
+				 }
+
+				 public double mass(){
+				 	return mass;
+				 }
+
+				 public double radius(){
+				 	return radius;
+				 }
+
+				 public double surfaceGravity(){
+				 	return surfaceGravity;
+				 }
+
+				 public double surfaceWeight(double mass){
+				 	return mass * surfaceGravity; // F = ma
+				 }
+			}
+			======================================================
+			-> easy to write a rich enum type such as Planet.
+
+			* To associate data with enum constants, declare instance fields and write a constructor that takes the data and stores it in the fields.
+
+			* Enums are by their nature "immutable", so all fields should be final.
+
+			* It's better to make fields private and provide public accessors.
+
+			ex) POWERFUL!
+				====================================================================================
+				public class WeightTable{
+					public static void main(String[] args){
+						double earthWeight = Double.parseDouble(args[0]);
+						double mass = earthWeight / Planet.EARTH.surfaceGravity();
+
+						for(Planet p: Planet.values()){
+							System.out.printf("Weight on %s is %f%n", p, p.surfaceWeight(mass));
+						}
+					}
+				}
+				====================================================================================
+				-> Planet, like all enums, has a static "values" method that returns an array of its values in the order they were declared.
+
+	- If an enum is generally useful, it should be a top-level class; if its use is tied to a specific top-level class, it should be a member class of that top-level class.
+
+	- "constant-specific method implementations"
+		-> declare an abstract "apply" method in the enum type, and override it with a concrete method for each constant in a constant-specific class body.
+			ex)
+				======================================================================
+				// Enum type with constant-specific method implementations
+				public enum Operation {
+					PLUS {
+						public double apply(double x, double y){
+							return x + y;
+						}
+					}
+					MINUS {
+						public double apply(double x, double y){
+							return x - y;
+						}
+					}
+					TIMES {
+						public double apply(double x, double y){
+							return x * y;
+						}
+					}
+					DIVIDE {
+						public double apply(double x, double y){
+							return x / y;
+						}
+					}
+
+					public abstract double apply(double x, double y);
+				}
+				======================================================================
+				-> compiler will remind you if you forget to override the abstract method!
+				-> because abstract methods in an enum type must be overriden with concrete methods in all of its constants.
+
+		-> Constant-specific method implementations can be combined with constant-specific data!
+			ex)
+				======================================================================
+				// Enum type with constant-specific class bodies and data
+				public enum Operation{
+					PLUS("+"){
+						public double apply(double x, double y){
+							return x + y;
+						}
+					}
+					MINUS("-") {
+						public double apply(double x, double y){
+							return x - y;
+						}
+					}
+					TIMES("*") {
+						public double apply(double x, double y){
+							return x * y;
+						}
+					}
+					DIVIDE("/") {
+						public double apply(double x, double y){
+							return x / y;
+						}
+					}
+
+					private final String symbol;
+
+					Operation(String symbol){
+						this.symbol = symbol;
+					}
+
+					@Override public String toString(){
+						return symbol;
+					}
+
+					public abstract double apply(double x, double y);
+				}
+				======================================================================
+
+	- Enum types have an automatically generated "valueOf(String)" method that translates a constant's name into the constant itself.
+
+	* Switches on enums are good for augmenting enum types with constant-specific behavior.
+
+	* Minor performance disadvantage of enums is that there is a space and time cost to load and initialize enum types, but it is unlikely to be noticeable in practice.
+
+	* Use enums any time you need a set of constants whose members are known at compile time.
+
+	* It is not necessary that the set of constants in an enum type stay fixed for all time.
+
+	* Enums are more readable, safer, and more powerful.
+
+
