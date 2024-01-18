@@ -64,4 +64,6 @@
 		============================================================
 		-> swapHelper method knows that list is a List<E>
 		-> any value it gets out of this list is of type E and that it's safe to put any value of type E into the list.
-		
+
+	* all comparables and comparators are consumers.
+	
