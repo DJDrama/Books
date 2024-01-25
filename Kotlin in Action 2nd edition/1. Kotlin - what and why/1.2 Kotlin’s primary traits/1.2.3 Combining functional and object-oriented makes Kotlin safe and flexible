@@ -1,0 +1,61 @@
+(1.2.3) Combining functional and object-oriented makes Kotlin safe and flexible
+	- Kotlin combines the object-oriented approach with the functional programming style.
+
+	* Key concepts of functional programmings are
+		1) First-class functions
+			-> You work with functions (pieces of behavior) as values.
+			-> You can store them in variables, pass them as parameters, or return them from other functions.
+
+		2) Immutability
+			-> You work with immutable objects, which guarantees that their state can't change after their creation.
+
+		3) No side effects
+			-> You write "pure functions" (functions that return the same result given the same inputs and don't modify the state of other objects or interact with the outside world.)
+
+
+	* Benefits of functional style
+		1) Conciseness
+			-> instead of mutating variables(Imperative) and relying on loops and conditional branching, working with functions as values gives you much more power of abstraction.
+
+		2) Avoid duplication
+			-> if you have similar code fragments that implement a similar task, but differ in some smaller details, you can easily extract the common part of the logic into a function, and pass the differing parts as arguments.
+			-> In Kotlin, you can express those using a concise syntax for lambda expressions.
+
+		3) Safe concurrency
+			-> Biggest sources of errors in multithreaded programs is modification of the same data from multiple threads without proper synchronization.
+			-> If you use immutable data structures and pure functions, you can be sure that such unsafe modifications won't happen, and no need for synchronization schemes.
+
+		4) Easier testing
+			-> Functions without side effects can be tested in isolation without requiring a lot of setup code to construct the entire environment that they depend on.
+
+	- Kotlin has a rich set of features to support functional programming
+		-> Function types 
+			+ allowing functions to receive other functions as arguments or return other functions.
+
+		-> Lambda expressions
+			+ letting you pass around blocks of code with minimum boilerplate
+
+		-> Member references
+			+ allowing you to use functions as values, for instance, pass them as arguments.
+
+		-> Data clsses
+			+ providing a concise syntax for creating classes that can hold immutable data
+
+		-> Rich set of APIS
+			-> rich set of APIs in the standard library for working with objects and collections in the functional style
+
+
+	ex) a chain of actions to be performed with an input sequence.
+		finds "all senders of non-empty unread messages sorted by their names"
+		================================================
+		messages
+			.filter { it.body.isNotBlank() && !it.isRead }
+			.map(Message::sender)
+			.distinct()
+			.sortedBy(Sender::name)
+		================================================
+		-> Kotlin standard library defines functions like "filter", "map", and "sortedBy".
+		-> Kotlin supports lambda expressions and member references (like Message::sender)
+			+ so the arguments passed to these functions are really concise.
+
+		

@@ -1,0 +1,45 @@
+(1.2.2) Static typing makes Kotlin performant, reliable, and maintainable
+	- Statically typed programming languages come with a number of advantages
+		-> performance
+			+ Calling methods is faster because there's no need to figure out at runtime which method needs to be called
+
+		-> reliability
+			+ The compiler uses types to verify the consistency of the program, so there are fewer chances for crashes at runtime.
+
+		-> maintainability
+			+ Working with unfamiliar code is easier because you can see what kind of types the code is working with.
+
+		-> tool support
+			+ Static typing enables reliable refactorings, precise code completion, and other IDE features.
+
+		* Every expression in a program is known at compile time.
+		* Kotlin compiler can validate that the methods and fields you're trying to access on an object actually exist.
+			-> eliminates an entire class of bugs--rather than crash at runtime.
+
+		* Static Typed language <-> Dynamic typed language (Python, Javascript, and etc)
+			-> Dynamic typed languages let you define variables and functions that can store or return data of any type and resolve the method and field references at runtime.
+				-> Shorter code and greater flexibility in creating data structures.
+				-> BUT! misspelled names or invalid parameters passed to functions can't be detected during compilation and can lead to runtime errors.
+
+	- type of every expression in your program needs to be known at compile time, Kotlin doesn't require you to specify the type of every variable.
+		-> The type of a variable can automatically be determined from the context, allowing you to omit the type declaration.
+			ex)
+				========================================
+				val x: Int = 1
+				val y = 1 
+				========================================
+				-> Because y is initialized with an integer value, Kotlin automatically determines that its type is Int.
+
+		* The ability of the compiler to determine types from context is called "type inference".
+			-> "Type inference" : most of the extra verbosity associated with static typing disappears, because you don't need to declare types explicitly.
+
+	- Kotlin support for nullable types
+		-> lets you write more reliable programs by detecting possible null pointer exceptions at compile time, rather than at runtime.
+
+	- Kotlin's type system also has first-class support for function types.
+
+	
+	
+
+
+

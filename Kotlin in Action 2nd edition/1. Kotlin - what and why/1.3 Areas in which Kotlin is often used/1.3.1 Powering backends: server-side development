@@ -1,0 +1,64 @@
+(1.3.1) Powering backends: server-side development with Kotlin
+	- Server-side programming encompasses all the following types of apps and much more:
+		1) Web apps that return HTML pages to a browser
+		2) Backends for mobile or single-page apps that expose a JSON API over HTTP
+		3) Microservices that communicate with other microservices over an RPC protocol or message bus
+
+	- You won't run into problems when you need to extend Java classes in Kotlin or annotate the methods and fields of a class in a certain way.
+
+	- Better reliability for your app
+		-> Kotlin's type system, with its precise tracking of null values, makes the problem of null pointer exceptions much less pressing.
+		* Most of NullPointerException at runtime in Java fails to compile in Kotlin, ensuring that you fix the error before the app gets to the production environment.
+
+
+	ex) you're defining a simple Spring Boot application, that serves a list of Greeting objects, consisting of an ID and some text, as JSON via HTTP
+		==========================================================================================
+		@SpringBootApplication
+		class DemoApplication
+
+		fun main(args: Array<String>){
+			runApplication<DemoApplication>(*args)
+		}
+
+		@RestController
+		class GreetingResource {
+			
+			@GetMapping
+			fun index(): List<Greeting> = listOf(
+				Greeting(1, "Hello!"),
+				Greeting(2, "Bonjour!"),
+				Greeting(3, "Guten Tag!"),
+			)
+		}
+
+		data class Greeting(val id: Int, val text: String)
+		==========================================================================================
+
+	- Ktor
+		-> connected applications framework for Kotlin built by JetBrains.
+		-> makes full use of the capabilities of the languages.
+			ex) defines a custom domain-specific language (DSL) to declare how HTTP requests are routed through the application.
+				(Rather than configuring your application using annotations or XML files, you can use a DSL from Ktor to configure the routing of your server-side application, with constructs that look like they are a part of the Kotlin language, but are completely custom for the framework.)
+
+			ex) you're defining three routes, "/world", "/greet", and "/greet/{entityId}", using the get, post, and route DSL constructs from Ktor:
+				==========================================================================================
+				fun main(){
+					embeddedServer(Netty, port = 8000){
+						routing{
+							get ("/world"){
+								call.respondText("Hello world!")
+							}
+							route ("/greet"){
+								get { /* ... */ }
+								post("/{entityId}") { /* ... */ }
+							}
+						}
+					}.start(wait = true)
+				}
+				==========================================================================================
+				-> DSL, it is defined entirerly by the framework, without the reuquirement for external configuration files or modifying the compiler.
+
+	- DSLs flexibility combine Kotlin language features, and are often used for
+		1) configuration : construction of complex objects
+		2) object-relational mapping(ORM): translating objects into their database representation and vice versa.
+		

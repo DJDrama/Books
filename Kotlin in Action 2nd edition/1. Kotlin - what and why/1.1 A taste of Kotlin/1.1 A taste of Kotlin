@@ -1,0 +1,24 @@
+1.1 A taste of Kotlin
+
+	ex)
+		==================================================
+		data class Person(
+			val name: String,
+			val age: Int?=null
+		)
+
+		fun main(){
+			val persons = listOf(
+				Person("Alice", age=29),
+				Person("Bob"),
+			)
+
+			val oldest = persons.maxBy {
+				it.age ?: 0	
+			}
+
+			println("The oldest is : $oldest")
+		}
+
+		// --> The oldest is : Person(name=Alice, age=29)
+		==================================================

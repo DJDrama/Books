@@ -1,0 +1,43 @@
+(1.2.4) Concurrent and asynchronous code becomes natural and structured with coroutines
+	- User interfaces need to remain responsive while long-running computations are running in the background.
+
+	- Kotlin uses "suspendable" computations called "Coroutines", where code can suspend its execution, and resume its work at a later point.
+
+		ex) 
+			===========================================================
+			suspend fun processUser(credentials: Credentials){
+				val user = authenticate(credentials)
+				val data = loadUserData(user)
+				val profilePicture = loadImage(data.imageId)
+				// ...
+			}
+
+			suspend fun authenticate(c: Credentials): User { ... }
+			suspend fun loadUserData(u: User): Data { ... }
+			suspend fun loadImage(id: Int): Image { ... }
+			===========================================================
+			- When performing each network request, the execution of the "processUser" function is suspended while waiting for the result.
+			- the thread this code is running on (and, by extension, the app itself), isn't blocked!
+				-> while waiting for the result of "processUser", it can do other tasks in the meantime, such as responding to user inputs.
+
+		* You won't be able to write this code sequentially in an imperative fashion(one call after another), without blocking the underlying threads.
+			-> With callbacks or reactive streams such simple consecutive logic becomes much more complicated.
+		
+	- You can load two images concurrently, then wait for the loading to be completed and return the overlay as the result:
+		ex)
+			======================================================================================
+			suspend fun loadAndOverlay(first: String, second: String): Image = coroutineScope {
+				val firstDeferred = async { loadImage(first) }
+				val secondDeferred = async { loadImage(seoncd} }
+
+				overlay(firstDeferred.await(), secondDeferred.await())
+			}
+			======================================================================================
+			-> two loading process are started in a structured way(from the same coroutinescope)
+			-> guarantees that if one loading failes, the second one gets automatically canceled. (Structured concurrency)
+
+		* "Structured concurrency"
+			-> helps you manage the liftime of your coroutines.
+
+	* Coroutines are also a very lightweight abstraction, meaning you can launch millions of concurrent jobs without significant performance penalties.
+		+ together, with abstractions like cold and hot flows, and channels that facilitate communication.

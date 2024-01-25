@@ -1,0 +1,9 @@
+- Kotlin: multi-paradigm language.
+
+* Statically typed: many errors can be caught at compile time instead of runtime.
+
+
+(1.2.1) Kotlin use-cases: Android, server-side, anywhere Java runs, and more
+	- The most common areas to use Kotlin are:
+		1) Building mobile apps that run on Android devices
+		2) Building server-side code (typically, backends of web apps)
