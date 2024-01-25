@@ -1,2 +1,36 @@
 (1.3.2) Mobile Development: Android is Kotlin-first
-	
+	- Android started officially supporting Kotlin as a language for building apps in 2017.
+	- Only 2 years later, in 2019, after a lot of positive feedback from developers, Android became Kotlin-first, making Kotlin the default choice for new apps.
+
+	- Jetpack compose toolkit -> easier-to-maintain code when building the UI of your mobile app
+		ex) 
+			==========================================================================================
+			@Composable
+			fun MessageCard(modifier: Modifier, message: Message){
+				var isExpanded by remember { mutableStateOf(false) }
+				Column(modifier.clickable {
+					isExpanded = !isExpanded
+				}){
+					Text(message.body)
+					if (isExpanded){
+						MessageDetails(message)
+					}
+				}
+			}
+
+			@Composable
+			fun MessageDetails(message: Message){
+				...
+			}
+			==========================================================================================
+
+	- Kotlin
+		-> reliable code, fewer NullPointerExceptions
+		-> fewer message that read "Unfortunately, process has stopped"
+		* "Google Home" app reduced the number of NullPointerException crashes by 30% after switching the development of new features from Java to Kotlin.
+
+
+	- Kotlin is fully compatible with Java 8 and above.
+
+	* When you use lambdas, many of the Kotlin standard library functions will inline them
+		-> Inlining lambdas ensures that no new objects will be created and the app won't suffer from extra GC pauses.
