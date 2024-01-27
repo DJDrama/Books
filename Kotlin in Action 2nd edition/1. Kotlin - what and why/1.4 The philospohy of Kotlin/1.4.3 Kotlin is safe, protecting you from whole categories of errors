@@ -1,0 +1,15 @@
+1.4.3 Kotlin is safe, protecting you from whole categories of errors
+
+	- Kotlin tries to prevent NullPointerException
+
+	- Kotlin helps avoid the class cast exception
+		-> Kotlin combines check and cast into a single operation.
+			ex)
+				================================================
+				fun modify(value: Any){
+					if(value is String){
+						println(value.uppercase())
+					}
+				}
+				================================================
+				-> compiler knows that in the true branch of the conditional, value has to be of type string so it can safely permit the usage of methods from that type(so called "smart-cast")

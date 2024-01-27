@@ -1,0 +1,18 @@
+1.5.2 Compiling Kotlin code
+	- Kotlin is a compiled language
+		-> before you can run Kotlin code, you need to compile it.
+
+	- Kotlin code can be compiled to different targets:
+		1. JVM bytecode (stored in .class files) to run on Java Virtual Machine
+		2. JVM bytecode to be further transformed and run on Android
+		3. Native targets to run natively on different operating systems
+		4. Javascript (and WebAssembly) to run in browser
+
+
+	(Compilation process for Kotlin/JVM)
+		- Kotlin source code is normally stored in files with the extension .kt.
+
+		- When compiling Kotlin code for the JVM target
+			1. The compiler analyzes the source code and generates .class files, just like the JAVA compiler does.
+			2. The generated .class files are then packaged and executed using the standard procedure for the type of application you're working on.
+			
