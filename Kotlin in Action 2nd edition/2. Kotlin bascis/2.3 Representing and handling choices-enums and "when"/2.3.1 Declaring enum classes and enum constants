@@ -1,0 +1,31 @@
+2.3.1 Declaring enum classes and enum constants
+	- In Java -> enum Colors
+	- In Kotlin -> enum class Colors
+
+	- In Kotlin, enum is so-called "soft keyword"
+	<-> class : "hard keyword" (meaning that you can't use it as an identifier, and you have to use an alternate spelling or phrasing, like clazz or aClass)
+
+
+	ex)
+		=======================================================
+		enum class Color(val r: Int, val g: Int, val b: Int){
+			RED(255, 0, 0),
+			ORANGE(255, 165, 0),
+			YELLOW(255, 255, 0),
+			GREEN(0, 255, 0),
+			BLUE(0, 0, 255),
+			INDIGO(75, 0, 130),
+			VIOLET(238, 130, 238);   // <-- semicolon separates the num constant list from the method definitions
+
+			val rgb = (r*256 + g)*256 + b
+
+			fun printColor() = println("$this is $rgb")
+		}
+
+		fun main(){
+			println(Color.BLUE.rgb) // 255
+
+			Color.GREEN.printColor() // GREEN is 65280
+		}
+		=======================================================
+

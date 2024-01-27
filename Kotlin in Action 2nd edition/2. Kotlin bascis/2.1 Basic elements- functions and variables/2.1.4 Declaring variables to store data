@@ -1,0 +1,31 @@
+2.1.4 Declaring variables to store data
+	- You can omit the type delcarations
+		ex)
+			============================================================
+			// Instead of 
+			// val question: String = "How are you?"
+			val question = "How are you?" 
+
+			// Instead of
+			// val answer: Int = 42
+			val answer = 42
+			============================================================
+
+	* If you use a floating-point constant, the variable will have the type "Double"
+		ex)
+			============================================================
+			val yearsToCompute = 7.5e6
+			============================================================
+
+
+	- If you try to assign a variable later, you won't be able to infer the type for the variable
+		-> you need to specify the type explictly
+			ex)
+				============================================================
+				fun main(){
+					// specify the type explicitly
+					val answer: Int
+
+					answer = 42
+				}
+				============================================================

@@ -1,0 +1,5 @@
+2.1.1 Writing your first Kotlin program: Hello, world!
+	- fun : keyword for declaring a function.
+	- the function can be declared at the top level of any Kotlin file.(No need to put it in a class)
+	- No semicolon(;) needed at the end of the code line.
+	

@@ -1,0 +1,17 @@
+2.1.6 Easier string formatting: string templates
+	- by putting '$' character in front of a variable name, you can refer to local variables in string literals.
+		ex) 
+			====================================================================================================	
+			println("Hello $variable!") <--> (Java style) System.out.println("Hello " + variable + "!");
+			====================================================================================================
+
+	- you can even put an expression inside using curly braces
+		ex)
+			====================================================================================================
+			println("Hello, ${if(true) "world" else "noworld"}!")
+			====================================================================================================
+
+	* For JVM 1.8 targets, the compiled code creates a StringBuilder and appends the constant parts and variable values to it.
+
+	* Application targeting JVM 9 or above compile string concatenations into more efficient dynamic invocations via invokeddynamic
+	

@@ -1,0 +1,12 @@
+2.3.2 Using "when" to deal with enum classes
+	- you don't need "break" like Java switch case statements
+	- you can combine multiple values in the same branch if you separate with commas.
+		ex)
+			========================
+			when(something){
+				a, b ->  ... 
+				c -> ...
+			}
+			========================
+
+	

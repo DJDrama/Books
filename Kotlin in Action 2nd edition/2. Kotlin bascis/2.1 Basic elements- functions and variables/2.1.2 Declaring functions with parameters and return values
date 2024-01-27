@@ -1,0 +1,11 @@
+2.1.2 Declaring functions with parameters and return values
+	- the entry point of every Kotlin program is its "main" function.
+
+	- "If" is an expression (Not a statement)
+
+	- Difference between expression and statement
+		-> Expression has a value (which can be used as part of another expression)
+		-> Statement is always a top-level element in its enclosing block and doesn't have its own value.
+
+	* In Kotlin, most control structures, except for the loops (for, while, and do/while) are expressions.
+	

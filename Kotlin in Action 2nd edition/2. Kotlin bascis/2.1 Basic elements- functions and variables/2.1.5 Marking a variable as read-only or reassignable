@@ -1,0 +1,12 @@
+2.1.5 Marking a variable as read-only or reassignable
+	- Kotlin provides two keywords "val" and "var"
+		1. val
+			-> declares a read-only reference.
+			-> can be assigned only once
+			-> it can't be reassigned a different value (after it has been initialized)  (like "final" modifier in JAVA)
+
+		2. var
+			-> declares a reassignable reference
+			-> like regular, non-final variable in JAVA
+
+	

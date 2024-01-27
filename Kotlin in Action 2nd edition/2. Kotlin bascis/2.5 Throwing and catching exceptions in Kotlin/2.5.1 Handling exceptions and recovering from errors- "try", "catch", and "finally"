@@ -1,0 +1,41 @@
+2.5.1 Handling exceptions and recovering from errors: "try", "catch", and "finally"
+
+	- Unlike JAVA, Kotlin does not have a "throws" clause
+
+	ex)
+		========================================================================
+		fun readNumber(reader: BufferedReader): Int? {
+			try{
+				val line = reader.readLine()
+				return Integer.parseInt(line)
+			} catch(e: NumberFormatException){
+				return null
+			} finally {
+				reader.close()
+			}
+		}
+
+		fun main(){
+			val reader = BufferedReader(StringReader("239"))
+			println(readNumber(reader))
+		}
+		========================================================================
+
+		-> If it was Java then you have to write "throws IOException"
+			ex)
+				========================================================================
+				Integer readNumber(BufferedReader reader) throws IOException
+				========================================================================
+				-> Java's readLine and close may throw an IOException, which is a "checked exception"
+				-> In Java, you have to declare all checked exceptions that your function can throw
+
+	* Kotlin does not differentiate between checked and unchecked exceptions.
+		-> You don't specify the exceptions thrown by a function, and you may or may not handle any exceptions.
+
+		(Reason)
+		1. Java rules often require a lot of meaningless code to rethrow or ignore exceptions
+		2. those rules don't consistently protect you from the errors that can happen.
+
+
+
+	* Kotlin does not have any special syntax for "try-with-resources"

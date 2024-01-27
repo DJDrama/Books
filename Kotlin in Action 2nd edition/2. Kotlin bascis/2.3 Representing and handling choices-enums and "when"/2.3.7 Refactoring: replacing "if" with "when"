@@ -1,0 +1,10 @@
+2.3.7 Refactoring: replacing "if" with "when"
+	ex)
+		========================================================
+		fun eval(e: Expr): Int = 
+			when(e){
+				is Num -> e.value
+				is Sum -> eval(e.right) + eval(e.left)
+				else -> throw IllegalArgumentException("Unknown expr")
+			}
+		========================================================

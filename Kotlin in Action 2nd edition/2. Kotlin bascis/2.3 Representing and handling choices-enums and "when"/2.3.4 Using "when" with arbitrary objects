@@ -1,0 +1,12 @@
+2.3.4 Using "when" with arbitrary objects
+	- You can use any kind of object as a branch condition.
+		ex)
+			=============================================
+			when(setOf(c1, c2)){
+				setOf(RED, YELLOW) -> ORANGE
+				setOf(YELLOW, BLUE) -> GREEN
+				else -> throw Exception("Dirty color")
+			}
+			=============================================
+
+	

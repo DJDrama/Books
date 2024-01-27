@@ -1,0 +1,11 @@
+2.3.5 Using "when" without an argument
+	- you can use "when" expression without an argument
+		ex)
+			========================================
+			fun something(a: Int, b: Int) = when {
+				a==1 -> "a"
+				b==2 -> "b"
+				else -> throw Exception()
+			}
+			========================================
+			-> When no argument is supplied for the when expression, the branch condition is any Boolean expression

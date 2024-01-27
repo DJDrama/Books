@@ -1,0 +1,41 @@
+2.3.6 Smart casts: combining type checks and casts
+	ex)
+		=================================================================================
+		interface Expr // Marked Interface
+		class Num(val value: Int): Expr
+		class Sum(val left: Expr, val right: Expr): Expr
+		=================================================================================
+		-> interface Expr = marked interface (provides a common type for different kinds of expressions)
+
+
+
+	- In Kotlin, you can check whether a variable is of a certain type by using an "is" check
+		ex)
+			=================================================================================
+			fun eval(e: Expr): Int {
+				if(e is Num){
+					val n = e as Num
+					return n.value
+				}
+				if (e is Sum){
+					return eval(e.right) + eval(e.left)
+				}
+				throw IllegalArgumentException("Unknown expression")
+			}
+
+			fun main(){
+				println(eval(Sum(Sum(Num(1), Num(2)), Num(4))))
+			}
+			=================================================================================
+			-> if you check the variable for a certain type, you don't need to cast it afterward; you can use it as having the t ype you checked for it.
+			-> Kotlin compiler performs the cast for you ("Smart Cast")
+
+			* In Java, you still need to add an explicit cast even though you checked the type of a variable!
+
+
+
+	- Explicit cast to the specific type is expressed via the "as" keyword"
+		ex)
+			=================================================================================
+			val n = e as Num // Explicit Cast (But is not yet considered idiomatic Kotlin)
+			=================================================================================

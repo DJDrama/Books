@@ -1,0 +1,25 @@
+2.4.4 Using "in" to check collection and range membership
+	- use "in" operator to check whether a value is in a range <-> opposite is "!in"
+		ex)
+			======================================================
+			fun isLetter(c: Char) = c in 'a'..'z' || c in 'A'..'Z'
+			fun isNotDigit(c: Char) = c !in '0'..'9'
+			======================================================
+
+	- you can also use in when expressions
+		ex)
+			======================================================
+			when(c){
+				in '0'..'9' -> "digit"
+				in 'a'..'z' -> "alphabet"
+				else -> "i don't know"
+			}
+			======================================================
+	
+	- also use with collections
+		ex) set example
+			======================================================
+			println("Kotlin" in setOf("Java", "Scala"))
+			======================================================
+	
+

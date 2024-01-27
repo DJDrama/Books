@@ -1,0 +1,11 @@
+2.2.1 Associating data with a class and making it accessible: properties
+	- getters -> val
+	- getters and setters -> var
+
+		ex)
+			========================================================================
+			class Student(
+				val name: String, // only getters
+				var isStudent: Boolean // getters and setters
+			)
+			========================================================================

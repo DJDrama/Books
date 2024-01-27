@@ -1,0 +1,36 @@
+2.3.8 Blocks as branches of "if" and "when"
+
+	- Both "if" and "when" can have blocks as branches.
+		-> the last expression in the block is the result.
+
+		ex) The last expression in the block is what will be returned!
+			========================================================================
+			fun evalWithLogging(e: Expr): Int = 
+				when(e){
+					is Num -> {
+						println("num: ${e.value}")
+						e.value
+					}
+					is Sum -> {
+						val left = evalWithLogging(e.left)
+						val right = evalWithLogging(e.right)
+						println("Sum: $left + $right")
+						left + right
+					}
+					else -> throw IllegalArgumentException("Unknown Expression")
+				}
+
+			fun main(){
+				println(evalWithLogging(Sum(Sum(Num(1), Num(2), Num(4)))))
+				// num: 1
+				// num: 2
+				// Sum: 1 + 2
+				// num: 4
+				// Sum: 3 + 4
+
+				// 7
+			}
+			========================================================================
+
+	* Rule : "The last expression in a block is the result" -> holds in all cases where a block can be used and a result is expected.
+		-> same rule workds for the "try" body and "catch" clauses.

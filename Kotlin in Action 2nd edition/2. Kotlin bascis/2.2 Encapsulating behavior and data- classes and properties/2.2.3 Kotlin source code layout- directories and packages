@@ -1,0 +1,6 @@
+2.2.3 Kotlin source code layout: directories and packages
+	- star import (also called wildcard import)
+		ex)
+			import something.*
+
+	

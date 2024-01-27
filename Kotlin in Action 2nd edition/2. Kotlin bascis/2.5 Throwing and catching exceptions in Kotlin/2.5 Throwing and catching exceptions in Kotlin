@@ -1,0 +1,14 @@
+2.5 Throwing and catching exceptions in Kotlin
+	- Kotlin doesnt' have "new" keyword.
+
+	- If the throw construct is an exrepssion, and can be used as a part of other expressions:
+		ex)
+			================================================================================
+			val percentage = if(number in 0..100){
+				number
+			}else{
+				throw IllegalArgumentException("
+					A percentage value must be between 0 and 100: $number
+				")
+			}
+			================================================================================

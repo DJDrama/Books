@@ -1,0 +1,11 @@
+3.2 Making functions easier to call
+
+	- joinToString
+		ex)
+			==============================================
+			val list = listOf(1, 2, 3)
+			println(joinToString(list, "; ", "(", ")"))
+			// (1; 2; 3)
+			==============================================
+
+			--> fun <T> joinToString(collection: Collection<T>, separator: String, prefix: String, postfix: String){...}

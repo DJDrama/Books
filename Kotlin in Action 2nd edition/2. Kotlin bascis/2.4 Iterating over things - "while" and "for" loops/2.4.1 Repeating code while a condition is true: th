@@ -1,0 +1,15 @@
+2.4.1 Repeating code while a condition is true: the "while" loop
+	- For nested loops, Kotlin allows you to specify a "label", which you can then reference when using break or continue.
+	- A label is an identifier followed by the @ sign:
+		ex)
+			==================================================
+			outer@ while(outerCondition){
+				while(innerCondition){
+					if(shouldExitInner) break
+					if(shouldSkipInner) continue
+
+					if(shouldExit) break@outer
+					if(shouldSkip) continue@outer
+				}
+			}
+			==================================================
