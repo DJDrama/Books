@@ -1,0 +1,15 @@
+3.3.5 Extension properties
+	- You can also specify extension properties!
+		* they can't have any state, because there's no proper place to store it: it's not possible to add extra fields to existing instances of Java objects.
+			ex)
+				===========================================================================
+				val String.lastChar: Char
+					get() = this.get(this.length-1)
+
+				// StringBuilder is var: because the contents of a StringBuilder can be modified.
+				var StringBuilder.lastChar: Char
+					get() = this.get(length-1)
+					set(value){
+						this.setCharAt(length-1, value)
+					}
+				===========================================================================

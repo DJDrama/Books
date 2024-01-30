@@ -1,0 +1,21 @@
+3.3 Adding methods to other people’s classes: extension functions and properties
+	- "extension function"
+		-> a function that can be called as a member of a class but is defined outside of it.
+			ex)
+				==========================================================================================
+				fun String.lastChar(): Char = this.get(this.length-1)
+
+				fun main(){
+					println("Hello".lastChar()) // String is the receiver type, and "Hello" is the receiver object.
+				}
+				==========================================================================================
+				-> first "String": Receiver
+				- "this": Receiver Object
+
+	- In the extension function, you can directly access the methods and properties of the class you're extending, as in methods defined in the class itself.
+
+	* extension functions don't allow you to break encapsulation.
+	* extension functions don't have access to private or protected members of the class.
+
+
+	* On the callsite, extension functions are indistinguishable from members, and often it doesn't matter whether the particular method is a member or an extension.

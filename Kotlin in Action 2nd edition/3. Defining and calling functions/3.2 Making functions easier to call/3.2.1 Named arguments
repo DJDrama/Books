@@ -1,1 +1,14 @@
 3.2.1 Named arguments
+	- when calling a function written in Kotlin, you can specify the names of some of the arguments that you're passing to the function.
+		ex)
+			===============================================
+			joinToString(
+				postFix = ".",
+				separator = " ",
+				collection = collection,
+				prefix = " "
+			)
+			===============================================
+
+	- IntelliJ IDEA and Android Studio can keep explicitly written argument names up to date if you rename the parameter of the function being called.
+	

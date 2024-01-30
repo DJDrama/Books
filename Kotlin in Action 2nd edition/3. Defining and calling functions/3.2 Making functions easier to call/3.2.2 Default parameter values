@@ -1,0 +1,29 @@
+3.2.2 Default parameter values
+	- In Kotlin, you can avoid creating overloads because you can specify default values for parameters in function declaration.
+		ex)
+			================================================
+			fun <T> joinToString(
+				prefix: String = "",
+				collection: Collection<T>,
+				postfix: String="",
+				separator: String=", ",
+			)
+
+			fun main(){
+				joinToString(list, ", ", "", "") // 1, 2, 3
+				joinToString(list) 				 // 1, 2, 3
+				joinToString(list, ";")			 // 1; 2; 3
+			}
+			================================================
+
+			-> If you use named arguments, you can omit some arguments from the middle of the list and specify only the ones you need, in any order you want:
+				ex)
+					================================================
+					joinToString(list, suffix = ";", prefix="# ")
+					// # 1, 2, 3;
+					================================================
+
+	* Java doesn't have the concept of default parameter values!
+
+	- you can use the @JvmOverloads annotation for overloading
+	

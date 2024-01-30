@@ -1,1 +1,4 @@
 1.4.4 Kotlin is interoperable, allowing reuse of existing Java code to the highest degree
+	- Kotlin focuses on interoperability
+		-> use of existing JAVA libraries to the largest degree possible.
+			ex) Kotlin's collections rely almost entirely on Java standard library classes, extending them with additional functions for more convenient use in Kotlin.

@@ -1,0 +1,28 @@
+3.4.3 Working with pairs: infix calls and destructuring declarations
+
+	- to create maps, you use the mapOf function
+		ex)
+			========================================================
+			val map = mapOf(1 to "one", 2 to "two")
+
+			infix fun Any.to(other: Any) = Pair(this, other)
+
+			fun <K, V> mapOf(varargs values: Pair<K, V>): Map<K, V>
+			========================================================
+			-> the word "to" is an "infix call".
+			-> 1 to "one" is equal to 1.to("one")
+
+	- you can initialize two variables with the contents of a Pair directly:
+		ex)
+			================================================
+			val (number, name) = 1 to "one"
+			================================================
+			-> destructuring declaration
+
+	- you can also use like below:
+		ex)
+			========================================================
+			for ((index, element) in collection.withIndex()){
+				println("$index: $element")
+			}
+			========================================================

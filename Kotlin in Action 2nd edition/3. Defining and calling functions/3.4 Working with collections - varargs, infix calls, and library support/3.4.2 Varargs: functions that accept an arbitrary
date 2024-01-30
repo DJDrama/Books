@@ -1,0 +1,27 @@
+3.4.2 Varargs: functions that accept an arbitrary number of arguments
+
+	- When you create a list, you can pass any number of arguments to it.
+		ex)
+			===============================================================
+			val list = listOf(2, 3, 5, 7, 11)
+
+			fun listOf<T>(vararg values: T): List<T> { ... }
+			===============================================================
+			-> allows you to pass an arbitrary number of values to a method by packing them in an array : "varargs"
+
+			<-> Java uses "three dots" after the type, while Kotlin uses "vararg" modifier on the parameter.
+
+	- In Kotlin, the syntax of calling the function when arguments you need to pass are already packed in an array.
+		-> In Java, you pass the array as is, whereas Kotlin requires you to explicitly unpack the array so that every array element becomes a separate argument to the function being called.
+			-> This is called "Spread operator" (You are spreading the args array received by the main function to be used as variable arguments of the listOf function:
+				ex)
+					===============================================================
+					fun main(args: Array<String>){
+						val list = listOf("args : ", *args) // putting * character before the corresponding argument
+						println(list)
+					}
+					===============================================================
+					-> spread operator(*) lets you combine the values from an array and some fixed values in a single call.
+			)
+
+	

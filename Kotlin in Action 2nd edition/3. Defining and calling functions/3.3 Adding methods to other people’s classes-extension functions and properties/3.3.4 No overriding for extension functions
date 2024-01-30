@@ -1,0 +1,37 @@
+3.3.4 No overriding for extension functions
+	* You can't override an extension function.
+		ex)
+			=====================================================
+			open class View{
+				open fun click() = println("View clicked")
+			}
+
+			class Button: View{
+				override fun click() = println("Button clicked")
+			}
+
+			fun main(){
+				val view: View = Button()
+				println(view.click()) // "Button clicked"
+
+				view.showOff() // "I'm a view!"
+			}
+
+			fun View.showOff(){
+				println("I'm a view!")
+			}
+
+			fun Button.showOff(){
+				println("I'm a button!")
+			}
+
+			--> JAVA
+			class Demo {
+				public static void main(String[] args){
+					View view = new Button();
+					ExtensionsKt.showOff(view);	// I'm a view!
+				}
+			}
+			=====================================================
+			* member function always takes precedence!
+			

@@ -1,0 +1,4 @@
+3.4.1 Extending the Java Collections API
+	- Many extension functions are declared in the Kotlin standard library
+
+	* You don't have to - any time you need to do something with a collection or any other object, the code completion in the IDE will show you all the possible functions available for that type of object.

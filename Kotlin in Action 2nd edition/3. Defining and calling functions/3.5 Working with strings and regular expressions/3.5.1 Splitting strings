@@ -1,0 +1,28 @@
+3.5.1 Splitting strings
+
+	- In Java, below String array is empty
+		ex)
+			================================
+			String s = "123.4-5.3.1";
+			String[] arr = s.split("."); // empty
+			================================
+			-> Because split takes a regular expression as a parameter.
+			-> "." the dot is a regular expression that denotes any character.
+
+	- In Kotlin, hides the confusing method and provides as replacements several overload extensions named "split" that have different arguments.
+		ex)
+			================================
+			val s = "123.4-5.3.1"
+			val arr = s.split(".")
+			// [123, 4-5, 3, 1]
+			================================
+			-> s.split(".") == s.split("\\.".toRegex())
+
+	- you can also put number of delimiters
+		ex)
+			================================
+			val s = "123.4-5.3.1"
+			val arr = s.split(".", "-")
+			// [123, 4, 5, 3, 1]
+			================================
+

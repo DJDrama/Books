@@ -1,0 +1,55 @@
+3.6 Making your code tidy: local functions and extensions
+	- We don't recommend deeply nested local functions -> hard to read
+
+	* general rule: don't use more than one level of nesting.
+
+	- extract a piece of code into an extension function
+		
+		ex) BEFORE
+			===========================================================================
+			class User(val id: Int, val name: String, val address: String)
+
+			fun validateBeforeSave(user: User){
+				if(user.name.isEmpty()){
+					throw IllegalArgumentException("name is empty")
+				}
+
+				if(user.address.isEmpty()){			// duplicated
+					throw IllegalArgumentException("address is empty")
+				}
+
+				// save to user database
+			}
+
+			fun main(){
+				validateBeforeSave(User(1, "", ""))
+			}
+			===========================================================================
+
+			AFTER
+			===========================================================================================
+			fun User.validateBeforeSave(){
+				// Nested function (Local functions)
+				fun validate(value: String, fieldName: String){
+					if(value.isEmpty()){
+						throw IllegalArgumentException("Can't save user ${user.id} empty $fieldName")
+					}
+				}
+
+				validate(user.name, "Name")
+				validate(user.address, "Address")
+			}
+
+			fun saveUser(user: User){
+				user.validateBeforeSave()
+
+				// save to user database
+			}
+
+			fun main(){
+				saveUser(User(1, "", ""))
+			}
+			===========================================================================================
+			-> used extension function
+			-> you don't want to put above logic inside the "User" class, so extension function is useful.
+

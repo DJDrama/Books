@@ -1,0 +1,17 @@
+3.5.3 Multiline triple-quoted strings
+	- a triple-quoted string can contain line breaks
+		ex)
+			==========================================================================
+			"hello world"
+			-->
+			"""
+				hello world
+			"""
+
+			fun main(args: Array<String>) {
+			    val list = """
+			        !23.4-5.3.1
+			    """.trimIndent() // triple quoted and remove indents in every lines.
+			    println(list.split("\\.".toRegex()))
+			}
+			=========================================================================

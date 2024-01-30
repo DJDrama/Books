@@ -1,0 +1,27 @@
+3.5.2 Regular expressions and triple-quoted strings
+	
+	- Using String extensions for parsing paths
+		ex)
+			========================================================
+			fun parsePath(path: String){
+				val directory = path.substringBeforeLast("/")
+				val fullName = path.substringAfterLast("/")
+
+				val fileName = fullName.substringBeforeLast(".")
+				val extension = fullName.substringAfterLast(".")
+
+				println("Dir : $directory")
+				println("Name: $fileName")
+				println("Extension: $extension")
+			}
+
+			fun main(){
+				parsePath("/Users/yole/kotlin-book/chapter.adoc")
+
+				// Dir: /Users/yole/kotlin-book
+				// Name: chapter
+				// Extension: adoc
+			}
+			========================================================
+
+			

@@ -1,0 +1,13 @@
+3.3.1 Imports and extension functions
+	- When you define an extension function, it doesn't automatically become available across your entire project!
+		-> you must import it!
+
+	- You can change the name of the class or function you're importing using the "as" keyword:
+		ex)
+			========================================================
+			import strings.lastChar as last
+
+			val c = "Kotlin".last()
+			========================================================
+			-> It is useful when you have several functions with the "same name" in different packages and you want to use them in the same file.
+			

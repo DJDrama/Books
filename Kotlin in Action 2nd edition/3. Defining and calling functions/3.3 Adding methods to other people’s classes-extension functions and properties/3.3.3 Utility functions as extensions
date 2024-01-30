@@ -1,0 +1,5 @@
+3.3.3 Utility functions as extensions
+	* Because extension functions are effectively syntactic sugar over static method calls, you can use a more specific type as a receiver type, not only a class.
+
+	* extension functions can't be overriden in subclasses.
+	

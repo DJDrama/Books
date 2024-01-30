@@ -1,0 +1,8 @@
+3.3.2 Calling extension functions from Java
+	- Under the hood, an extension function is a static method
+		-> accepts the receiver object as its first argument.
+
+	* Calling it doesn't involve creating adapter objects or any other runtime overhead!
+
+
+	- Top-level function -> compiled to a "Static" method in Java.
