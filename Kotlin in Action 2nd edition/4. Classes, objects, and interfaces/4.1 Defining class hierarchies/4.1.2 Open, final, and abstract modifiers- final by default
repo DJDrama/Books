@@ -1,1 +1,45 @@
 4.1.2 Open, final, and abstract modifiers: final by default
+	
+	* all classes and methods are final by default.
+		-> Why?
+			- "fragile base class" problem occurs when modifications of a base class can cause incorrect behavior of subclasses because the changed code of the base class no longer matches the assumptions in its subclasses.
+
+			- If the class doesn't provide exact rules for how it should be subclassed, the clients are at risk of overriding the methods in a way the author of the base class didn't expect.
+
+			* the base class is "Fragile" in the sense that any change in it may lead to unexpected changes of behavior in subclasses.
+
+		-> To protect this, Joshua Bloch said "design and document for inheritance or else prohibit it."
+			(meaning: all classes and methods that aren't specifically intended to be overridden in subclasses have to be explicitly marked as final)
+
+	- use "open" modifier to allow the creation of subclasses of a class.
+	- use "open" modifier to every property or method that can be overridden.
+
+
+	* If you override a member of a base class or interface, the overriding member will also be "open" by default.
+	* If you want to forbid the subclasses of your class from overriding your implementation, you can mark it as "final"
+		ex)
+			============================================
+			open class RichButton: Clickable{
+				fun disable(){...}
+				open fun animate(){...}
+				override fun click(){...}
+			}
+
+			--> Forbid "click" method to subclasses
+			open class RichButton: Clickable{
+				final override fun click(){...}
+			}
+
+			class ThemeButton: RichButton(){
+				override fun click(){...} // <-- ERROR! ("click' in 'RichButton' is final and cannot be overridden")
+			}
+			============================================
+
+	- Benefit of classes that are "final" by default
+		-> they enable smart casts in a larger variety of scenarios. (because properties are final by default, you can use smart casts with most properties without thinking about it explicitly.)
+
+
+	- You can also decalre a class as "abstract" -> so the class can't be instantiated.
+		* Abstract members are always open, so you don't need to use an explicit "open" modifier. (just like interface which does not have "open" modifier.)
+
+	
