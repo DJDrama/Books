@@ -1,0 +1,71 @@
+4.1.1 Interfaces in Kotlin
+	- To declare an interface, use "interface" keyword instead of "class"
+
+		ex)
+			=======================================================
+			interface Clickable {
+				fun click()
+			}
+			=======================================================
+			-> declares an interface with a single abstract method named "click" (doesn't return any value)
+			* all non-abstract classes implementing the interface need to provide an implementation of this method.
+
+			-> To mark a button as Clickable, you put the interface name behind a colon after the class name, and provide an implementation for the click function:
+				ex)
+					=======================================================
+					class Button: Clickable {
+						override fun click() = println("I was clicked")
+					}
+					fun main(){
+						Button().click() // I was clicked
+					}
+					=======================================================
+
+	- Kotlin uses the colon(:) after the class name for both 
+		1. "composition"(that is, implementing interfaces) - can implement as many interfaces as it wants
+		2. "inheritance"(that is, subclassing) - can extend only one class
+
+	- "override" modifier: used to mark methods and properties that override those from the superclass or interface. <-> Java: @Override
+
+	* "override" modifier is mandatory in Kotlin.
+
+
+	- An interface can have a default implementation
+		ex)
+			=======================================================
+			interface Clickable{
+				fun click()
+				fun showOff() = println("I'm clickable")
+			}
+			=======================================================
+			-> If you implement this method, you are forced to provide an implementation for "click" method.
+			-> But! you can redefine the behavior of "showOff" method or omit it if you are fine with the default behavior.
+
+	- suppose you have an interface which also defines a "showOff" method
+		ex)
+			=======================================================
+			interface Focusable {
+				fun setFocus(b: Boolean) = println("I ${if(b) "got" else "lost"} focus")
+
+				fun showOff() = println("I'm focusable!")
+			}
+
+			class Button: Clickable, Focusable {
+				override fun click() = println("I was clicked")
+
+				override fun showOff(){  // The compiler forces you to provide your own implementation
+					super<Clickable>.showOff()
+					super<Focusable>.showOff()
+				}
+			}
+
+			fun main(){
+				val button = Button()
+				button.showOff() // I'm clickable  \n I'm focusable!
+				button.setFocus(true) // I got focus
+				button.clikc() // I was clicked
+			}
+			=======================================================
+
+	* The interface only contains declarations, and the class contains all the implementations as "static" methods.
+	
