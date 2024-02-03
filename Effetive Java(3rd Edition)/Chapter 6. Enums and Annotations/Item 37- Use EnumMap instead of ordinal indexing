@@ -1,0 +1,9 @@
+Item 37: Use EnumMap instead of ordinal indexing
+
+	- Don't use ordinals
+		-> it is your responsibility to use the correct "int" value; "int"s do not provide they type safety of enums.
+		-> If you use it with an array you may receive an ArrayIndexOutOfBoundsException.
+
+	- EnumMap constructor takes the "Class" object of the key type: this is a "bounded type token", which provides runtime generic type information.
+
+	
