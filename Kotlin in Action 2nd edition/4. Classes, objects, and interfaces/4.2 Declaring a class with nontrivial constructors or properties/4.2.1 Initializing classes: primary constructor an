@@ -1,0 +1,29 @@
+4.2.1 Initializing classes: primary constructor and initializer blocks
+
+	ex)
+		================================================
+		class User(val nickname: String)
+		================================================
+
+		-> "primary constructor"
+			(purpose)
+				1. specifying constructor parameters
+				2. defining properties that are initialized by those parameters.
+
+	same as below
+	ex)
+		================================================
+		class User constructor(_nickname: String){
+			val nickname: string
+
+			init {
+				nickname = _nickname
+			}
+		}
+		================================================
+		-> "constructor" keyword: begins the declaration of a primary or secondary constructor
+		-> "init" keyword : introduces an initializer block.
+
+
+	- no "new" keyword for constructing an instance.
+	

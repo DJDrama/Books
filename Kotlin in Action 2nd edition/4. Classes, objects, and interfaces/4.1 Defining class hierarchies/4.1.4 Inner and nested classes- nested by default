@@ -1,0 +1,17 @@
+4.1.4 Inner and nested classes: nested by default
+	
+	* Unlike JAVA, Kotlin nested classes don't have access to the outer class instance
+
+	* A nested class in Kotlin with no explicit modifier is the same as a "static" nested class in Java.
+		-> You need "inner" modifier for Kotlin to access outer class reference from inner class.
+
+
+	- write this@Outer to access the Outer class from the Inner class
+		ex)
+			======================================================
+			class Outer{
+				inner class Inner {
+					fun getOuterReference() = this@Outer
+				}
+			}
+			======================================================

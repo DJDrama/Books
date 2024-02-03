@@ -1,0 +1,14 @@
+4.1.3 Visibility modifiers: public by default
+	
+	- Kotlin provides "public", "protected", and "private"
+		-> "public": visible everywhere
+		-> "protected" : visible in subclasses
+		-> "private" visible inside a class, or, in the case of top-level declarations, visible inside a file.
+
+	* not specifying a modifier is -> "public"
+
+	- "internal" : restricting visibility inside a module.
+
+	* Kotlin does not have package private  which is "default" in JAVA
+
+	* extension functions don't get access to its "private" or "protected" members.

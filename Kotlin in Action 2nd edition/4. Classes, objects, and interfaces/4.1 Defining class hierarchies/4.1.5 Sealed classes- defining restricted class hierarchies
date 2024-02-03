@@ -1,0 +1,17 @@
+4.1.5 Sealed classes: defining restricted class hierarchies
+
+	- Sealed classes
+		-> you mark a superclass with the "sealed" modifier, and that restricts the possibility of creating subclasses.
+		-> All direct subclasses of a sealed class must be known at compile time and declared in the same package as the sealed class itself
+		-> all subclasses need to be located within the same module.
+
+	* When using "when" expression with a sealed class, you don't have to provide a default branch(else)
+		-> the compiler can ensure that you've covered all possible branches.
+
+
+	* sealed modifier implies that the class is "abstract"; you don't need an explicit abstract modifier, and can declare abstract members.
+
+	* when you add a new subclass for the sealed class, the when modifier point you to the code that it must be changed!
+
+	- Sealed interface
+		-> follows the same rule as sealed class.
