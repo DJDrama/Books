@@ -1,11 +1,11 @@
 2.3.6 Smart casts: combining type checks and casts
 	ex)
 		=================================================================================
-		interface Expr // Marked Interface
+		interface Expr // Marker Interface
 		class Num(val value: Int): Expr
 		class Sum(val left: Expr, val right: Expr): Expr
 		=================================================================================
-		-> interface Expr = marked interface (provides a common type for different kinds of expressions)
+		-> interface Expr = marker interface (provides a common type for different kinds of expressions)
 
 
 

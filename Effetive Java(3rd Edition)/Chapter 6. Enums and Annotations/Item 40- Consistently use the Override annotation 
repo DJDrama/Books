@@ -1,0 +1,5 @@
+Item 40: Consistently use the Override annotation
+
+	* use the Override annotation on every method declaration that you believe to override a superclass declaration!
+
+	

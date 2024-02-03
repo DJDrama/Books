@@ -1,1 +1,7 @@
 Item 39: Prefer annotations to naming patterns
+
+	- @Test --> "marker annotation" : has no parameters but simply "marks" the annotated element.
+
+	* There is no reason to use "naming patterns" when you can use "annotations" instead.
+
+	* all programmers should use the predefined annotation types that Java provides.

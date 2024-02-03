@@ -6,4 +6,4 @@ Item 37: Use EnumMap instead of ordinal indexing
 
 	- EnumMap constructor takes the "Class" object of the key type: this is a "bounded type token", which provides runtime generic type information.
 
-	
+	* Use EnumMap instead of ordinals.
