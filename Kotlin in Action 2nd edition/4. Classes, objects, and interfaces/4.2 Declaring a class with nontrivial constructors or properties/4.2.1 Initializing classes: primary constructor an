@@ -26,4 +26,11 @@
 
 
 	- no "new" keyword for constructing an instance.
-	
+
+	- If you want to ensure that your class can't be instantiated by code outside the class itself, then you have to make the constructor "private"
+		ex)
+			================================================================================================
+			class Secret private constructor(private val agentName: String){
+				...
+			}
+			================================================================================================

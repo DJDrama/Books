@@ -1,0 +1,15 @@
+4.3.1 Universal object methods
+
+	- In Kotlin, the "==" operator
+		-> compares their values by calling "equals" under the hood.
+		-> thus, if "equals" is overriden in your class, you can safely compare its instances using ==.
+
+		* "===" operator
+			-> checks whehter two references point to the same object in memory.
+
+
+	* "hashCode" method should be always overriden together with "equals".
+
+	* "hashCode" contract
+		- if two objects are equal, they must have the same hash code.
+		

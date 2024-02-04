@@ -1,0 +1,22 @@
+4.2.5 Changing accessor visibility
+
+	- you can set "private" modifier for setters
+		ex)
+			================================================
+			class Something {
+				var hello = "hello"
+					private set
+
+				fun helloWorld(){
+					hello += " world!"
+				}
+			}
+
+			fun main(){
+				// you can't do this
+				val smth = Something()
+				smth.hello = "hello world!" // error(can't access)
+
+				smth.helloWorld() // works because we are calling the function
+			}
+			================================================

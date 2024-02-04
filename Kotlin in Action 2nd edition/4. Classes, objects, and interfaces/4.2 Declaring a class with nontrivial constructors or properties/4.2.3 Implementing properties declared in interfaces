@@ -1,0 +1,32 @@
+4.2.3 Implementing properties declared in interfaces
+	- Kotlin, an interface can contain abstract property declarations.
+		ex)
+			======================================================
+			interface User {
+				val nickname: String
+			}
+			======================================================
+			-> interface does not specify whether the value should be stored in a backing field or obtained through a getter.
+			-> it does not contain any state.
+
+
+	- Interface can contain properties with getters and setters, as long as they don't reference a backing field.
+		ex)
+			======================================================
+			interface EmailUser{
+				val email: String
+				val nickname: String
+					get() = email.substringBefore('@')
+			}
+			======================================================
+			-> "email" property must be overriden in subclasses
+			-> "nickname" property can be inherited.
+
+	- "characteristics" of a class should generally be decalred as a "property"
+	- "behavior" should be decalred as "methods"
+
+	* Kotlin, when to use read-only properties instead of functions.
+		1. doesn't throw exceptions
+		2. cheap to calculate
+		3. returns the same result across multiple invocations if the object state hasn't changed
+
