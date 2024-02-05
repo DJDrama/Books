@@ -1,0 +1,9 @@
+4.4.4 Object expressions: anonymous inner classes rephrased
+	
+	- object: also used for declaring anonymous objects.
+		-> replace Java's use of anonymous inner classes.
+
+	* anonymous objects aren't singletons!
+		-> every time an object expression is executed, a new instance of the object is created.
+
+	

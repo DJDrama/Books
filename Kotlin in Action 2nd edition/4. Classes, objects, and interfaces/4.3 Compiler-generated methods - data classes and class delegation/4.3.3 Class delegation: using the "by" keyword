@@ -1,1 +1,30 @@
 4.3.3 Class delegation: using the "by" keyword
+	
+	- Why Kotlin treates classes as final by default?
+		-> common problem in the design of large object-oriented systems is fragility caused by implementation inheritance.
+
+		-> When you extend a class and override some of its methods, your code becomes dependent on the implementation details of the class you're extending.
+
+		-> when the system evolves and the implementation of the base class changes or new methods are added to it, the assumptions about its behavior that you've made in your class can become INVALID!
+
+	* "final" ensures that only those classes that are designed for extensibility can be inherited from.
+
+	- But sometimes you need to add behavior to another class, even if it wasn't designed to be extended.
+
+	-> "Decorator design pattern" (commonly used way to implement)
+		-> methods of original class doesn't need to be modified.
+
+		* One downside
+			-> it requires a fairly large amount of boilerplate code.
+
+	- Kotlin includes first-class support for delegation as a language feature.
+		-> whenever you're implementing an interface, you can say that you're delegating the implementation of the interface to another object, using the "by" keyword.
+
+			ex)
+				================================================
+				class DelegatingCollection<T>(
+					innerList: Collection<T> = ArrayList<T>()
+				) : Collection<T> by innerList
+				================================================
+				-> all the method implementations in the class are gone.
+				-> the compiler will generate them

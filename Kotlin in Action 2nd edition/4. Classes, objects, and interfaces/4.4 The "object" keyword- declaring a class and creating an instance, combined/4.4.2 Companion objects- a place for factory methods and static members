@@ -1,0 +1,20 @@
+4.4.2 Companion objects: a place for factory methods and static members
+
+	- Classes in Kotlin can't have static members.
+		-> Kotlin doesn't have a "static" keyword like Java does.
+
+	* it's recommended that you use top-level functions.
+		-> But! top-level functions can't access private members of a class.
+
+	- An example of such a function that needs access to private members would be a "factory method".
+		-> Factory methods are responsible for the creation of an object, and as such often need access to its private members.
+
+	- "companion" keyword
+		-> you gain the ability to access the methods and properties of that object directly through the name of the containing class, without specifying the name of the object explicitly.
+
+	* you can't access the companion object's members on an instance of the class.
+
+	* companion object has access to all private members of the class, including the private constructor.
+		-> makes it an ideal candidate to implement the Factory pattern.
+
+	* companion object members can't be overridden in subclasses.

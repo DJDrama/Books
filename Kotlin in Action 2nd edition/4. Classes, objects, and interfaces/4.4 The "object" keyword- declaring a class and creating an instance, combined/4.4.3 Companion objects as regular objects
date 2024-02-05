@@ -1,0 +1,5 @@
+4.4.3 Companion objects as regular objects
+	* class can have only one companion object.
+
+	- Companion object can implement interfaces.
+	
