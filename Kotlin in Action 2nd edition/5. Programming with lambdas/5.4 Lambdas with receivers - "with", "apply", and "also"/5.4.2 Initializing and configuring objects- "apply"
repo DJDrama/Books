@@ -1,0 +1,51 @@
+5.4.2 Initializing and configuring objects: "apply"
+	- "apply" function works almost exactly same as "with" function.
+
+	* "apply" always returns the object passed to it as an argument(receiver object)
+		ex)
+			======================================================
+			fun alphabet() = StringBuilder().apply{
+				for(letter in 'A'..'Z'){
+					append(letter)
+				}
+				append("\nNow I know the alphabet!")
+			}.toString()
+			======================================================
+			-> result of above "apply" is StringBuilder, so you call "toString" to convert it to String afterward.
+
+	* useful when you create an instance of an object and need to initialize some properties right away!
+
+	- "buildString" is a lambda with a receiver, and the receiver is always a StringBuilder
+		ex)
+			======================================================
+			fun alphabet() = buildString{
+				for(letter in 'A'..'Z'){
+					append(letter)
+				}
+				append("\nNow I know the alphabet!")
+			}
+			======================================================
+
+	- Kotlin library also comes with collection builder functions which help you create a read-only List, Set or Map.
+		ex)
+			======================================================
+			val fibonacci = buildList { 
+				addAll(listOf(1, 1, 2))
+				add(3)
+				add(index=0, element=3)
+			}
+
+			val shouldAdd = true
+
+			val fruits = buildSet {
+				add("Apple")
+				if(shouldAdd){
+					addAll(listOf("Apple", "Banana", "Cherry"))
+				}
+			}
+
+			val medals = buildMap<String, Int> {
+				put("Gold", 1)
+				putAll(listOf("Silver" to 2, "Bronze" to 3))
+			}
+			======================================================

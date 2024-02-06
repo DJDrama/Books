@@ -1,0 +1,47 @@
+5.4.1 Performing multiple operations on the same object: "with"
+	ex)
+		================================================
+		fun alphabet(): String{
+			val stringBuilder = StringBuilder()
+
+			return with(stringBuilder){ (this: StringBuilder // omitted)
+				for(letter in 'A'..'Z'){
+					this.append(letter)
+				}
+				this.append("\nNow I know the alphabet!")
+				this.toString()
+			}
+		}
+		================================================
+		-> the "with" function converts its first argument into a "receiver" of the lambda that's passed as a second argument.
+		-> you can access this "receiver" via an explicit "this" reference.
+
+		* also you don't have to specify "this" explicitly inside the "with" lambda.
+			ex)
+				================================================
+				fun alphabet(): String{
+					val stringBuilder = StringBuilder()
+
+					return with(stringBuilder){ 
+						for(letter in 'A'..'Z'){
+							append(letter)
+						}
+						append("\nNow I know the alphabet!")
+						toString()
+					}
+				}
+				================================================
+
+			ex) function returning an expression
+				================================================
+				fun alphabet() = with(StringBuilder()){ 
+						for(letter in 'A'..'Z'){
+							append(letter)
+						}
+						append("\nNow I know the alphabet!")
+						toString()
+					}
+				}
+				================================================
+
+				* the result is the "last" expression in the lambda.

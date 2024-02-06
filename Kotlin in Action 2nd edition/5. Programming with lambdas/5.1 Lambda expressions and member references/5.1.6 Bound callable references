@@ -1,0 +1,15 @@
+5.1.6 Bound callable references
+	
+	ex)
+		================================================
+		fun main(){
+			val seb = Person("Sebastian", 26)
+			val personsAgeFunction = Person::age
+
+			println(personsAgeFunction(seb)) // 26
+
+			val sebsAgeFunction = seb::age
+			println(sebsAgeFunction()) // 26  <-- bound member reference
+		}
+		================================================
+		-> "bound member reference" : takes no arguments, and returns the value of the member belonging to the object it is bound to.

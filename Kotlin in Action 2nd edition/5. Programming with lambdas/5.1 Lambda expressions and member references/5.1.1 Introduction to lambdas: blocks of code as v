@@ -1,0 +1,20 @@
+5.1.1 Introduction to lambdas: blocks of code as values
+	
+	- with Lambda
+		-> you don't need to declare a function
+		-> you can pass a block of code directly as a function parameter.
+
+		* one of the main pillars of functional programming.
+
+
+	- some of the hallmarks of functional programming
+		-> First-class functions
+			= Functions are treated as values.
+			= You can store them in variables, pass them as parameters, or return them from other functions.
+
+		-> Immutability
+
+		-> No side effects
+			= such functions are called "pured"
+
+	

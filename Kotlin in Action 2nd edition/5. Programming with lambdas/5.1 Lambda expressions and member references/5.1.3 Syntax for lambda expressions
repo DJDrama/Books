@@ -1,0 +1,57 @@
+5.1.3 Syntax for lambda expressions
+	- lambda is always surrounded by curly braces, specifies a number of parameters, and provides a body of the lambda which contains the actual logic.
+
+		ex)
+			==============================================
+			{x: Int, y: Int -> x + y }
+			(parameters)	   (body)
+			==============================================
+
+	- you can store a lambda expression in a variable and then treat this variable like a normal function.
+		ex)
+			==============================================
+			fun main(){
+				val sum = {x: Int, y: Int -> x+y }
+
+				println(sum(2, 5)) // 7
+			}
+			==============================================
+
+	- you can call the lambda expression directly
+		ex)
+			==============================================
+			fun main(){
+				{ println(42) }()
+			}
+			==============================================
+
+	- you can use the library function "run" that executes the lambda passed to it:
+		ex)
+			==============================================
+			fun main(){
+				run { println(42) }
+			}
+			==============================================
+
+	- the "run" function becomes especially useful when you need to execute a block of several statements in a place where an expression is expected.
+		ex) top-level variable that performs some setup or does some additional work:
+			==============================================
+			val myFavoriteNumber = run {
+				println("I'm thinking!")
+				println("I'm doing some more work...")
+			}
+			==============================================
+
+	- lambdas can contain multiple statements, and below case, the last expression is the result - no explicit return statement needed:
+		ex)
+			==============================================
+			fun main(){
+				val sum = {x: Int, y: Int ->
+					println("Computing the sum of $x and $y...")
+					x + y
+				}
+				println(sum(1, 2))
+				// Computing the sum of 1 and 2...
+				// 3
+			}
+			==============================================

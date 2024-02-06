@@ -1,0 +1,31 @@
+5.2.1 Passing a lambda as a parameter to a Java method
+
+	- "an instance of Runnable" -> "an instance of an anonymous class implementing Runnable"
+
+		ex)
+			==================================================================================
+			postponeComputation(1000, object: Runnable { // a new instance is created on each invocation.
+				override fun run(){
+					println(42)
+				}
+			})
+			==================================================================================
+			-> when you explicitly declare an object, a new instance is created on each invocation.
+
+			<-> with lambda, if the lambda doesn't access any variables from the function where it's defined, the corresponding anonymous class instance is reused between calls:
+				ex)
+					==================================================================================
+					postponeComputation(1000){ // reused anonymous class instance
+						println(42)
+					}
+					==================================================================================
+
+	* if the labmda captures variables from the surrounding scope; it's no longer possible to reuse the same instance for every invocation. (Compiler creates a new object for every call and stores the values of the captured variables in that object.)
+		ex)
+			=========================================
+			fun handleComputation(id: String){
+				postponeComputation(1000){
+					println(id) // accessing variable -> creates a new object for every call
+				}
+			}
+			=========================================

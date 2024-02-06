@@ -1,0 +1,42 @@
+5.1.5 Member references
+	
+	- In Kotlin, just like Java, you can conver the function to a value using the "::" operator.
+		ex)
+			==============================
+			val age = Person::age
+			==============================
+
+	- "member reference"
+		-> provides a shorter syntax for creating a function value that calls exactly one method or accesses a property.
+
+		ex)
+			============================================================
+			people.maxByOrNull(Person::age)
+
+			people.maxByOrNull{ it.age }
+
+			people.maxByOrNull{ person: Person -> person.age }
+			============================================================
+
+		ex) you can have a reference to a function that's declared at the top level as well
+			============================================================
+			fun salute() = println("Salute!")
+
+			fun main(){
+				run(::salute)
+			}
+			============================================================
+
+
+	- you can store or postpone the action of creating an instance of a class using a "constructor reference"
+		ex)
+			============================================================
+			data class Person(val name: String, val age: Int)
+
+			fun main(){
+				val createPerson = ::Person
+				val p = createPerson("Alice", 29)
+				println(p)
+				// Person("Alice", 29)
+			}
+			============================================================

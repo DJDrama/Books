@@ -1,0 +1,6 @@
+5.2.2 SAM constructors: explicit conversion of lambdas to functional interfaces
+	
+	- "SAM constructor" is a compiler-generated function that lets you perform an explicit conversion of a lambda into an instance of an interface with a single abstract method.
+		-> you can use it in contexts when the compiler doesn't apply the conversion automatically.
+
+	* there is no "this" in a lambda as there is in an anonymous object

@@ -1,0 +1,16 @@
+5.1.2 Lambdas and collections
+	- good programming style -> avoid duplication in your code.
+
+	- "selector logic" 
+		-> receives a collection element as an argument and returns a value to compare.
+			ex)
+				================================================
+				data class Person(val age: Int)
+
+				val list = listOf(Person(1), Person(2), Person(3))
+
+				list.maxByOrNull { it.age } // selector logic
+				================================================
+
+	
+

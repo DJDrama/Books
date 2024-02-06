@@ -1,0 +1,44 @@
+5.1.4 Accessing variables in scope
+	- "foreach": collection-manipulation function.
+
+	* Unlike Java, Kotlin allows you to access non-final variables and even modify them in a lambda.
+		ex)
+			=================================================
+			fun test(list: Collection<String>){
+				// non-final variables
+				var clientErrors=0
+				var serverErrors=0
+
+				list.forEach{
+					if(it.startsWith("4")){
+						clientErrors++
+					}
+					else if(it.startWith("5")){
+						serverErrors++
+					}
+				}
+			}
+			=================================================
+			-> "clientErrors", and "serverErrors" non-final variables(external variables) are accessed from lambda
+			-> "captured" by the lambda.
+
+	* if a local variable is "captured" by the lambda, the code that uses this variable can be stored and executed later.
+		-> when you capture a "final" variable, its value is stored together with the lambda code that uses it.
+
+		-> when you capture a "non-final" variables, the value is enclosed in a special wrapper that lets you change it, and the reference to the wrapper is stored together with the lambda.
+
+	* if a lambda is used as an event handler or is other wise executed asynchronously, the modifications to local variables will occur only when the lambda is executed.
+		ex)
+			=================================================
+			fun countButtonClicks(button: Button): Int {
+				var clicks=0
+				button.onClick{
+					clicks++
+				}
+				return clicks // always return 0
+			}
+			=================================================
+			-> because the onClick handler will be called after the function returns.
+			* you should store the click count not in a local variable in this case, but somewhere accessible outside the function (ex, in a property of a class)
+
+	

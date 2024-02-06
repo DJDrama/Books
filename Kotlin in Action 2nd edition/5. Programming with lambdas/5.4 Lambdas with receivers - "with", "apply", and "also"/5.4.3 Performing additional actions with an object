@@ -1,0 +1,30 @@
+5.4.3 Performing additional actions with an object: "also"
+	- just like "apply", you can also use the "also" function to take a receiver object and perform an action on it and return the receiver object.
+
+	* Main difference
+		-> in "also", you access the receiver object as an argument - either by giving it a name, or by using the default name "it".
+
+	* "also": you can interpret it as executing additional effects: "... and also do the following with the object".
+		ex)
+			======================================
+			val x = listOf(1, 2, 3).also { ... }
+			======================================
+
+	ex)
+		============================================================================
+		fun main(){
+			val fruits = listOf("Apple", "Banana", "Cherry")
+			val uppercaseFruits = mutableListOf<String>()
+			val reversedLongFruits = fruits.map { it.uppercase() }
+				.also { upercaseFruits.addAll(it) }
+				.filter { it.length > 5 }
+				.also { println(it) } // [BANANA, CHERRY]
+				.reversed()
+
+			println(uppercaseFruits) // [APPLE, BANANA, CHERRY]
+
+			println(reversedLongFruits) // [CHERRY, BANANA]
+		}
+		============================================================================
+
+	
