@@ -1,0 +1,77 @@
+6.1.2 Accumulating values for collections: reduce and fold
+	- "aggregate" information from a collection
+		-> given a collection of items, they return a single value.
+
+	* Don't call "reduce" if collection is empty
+		-> starts with the first element.
+
+	- "reduce"
+		-> value is gradually built up in a so-called "accumulator"
+		-> lambda is invoked for each element, needs to return a new accumulator value.
+
+		ex)
+			==================================================
+			fun main(){
+				val list = listOf(1, 2, 3, 4)
+				val summed = list.reduce {acc, element ->
+					acc + element
+				}
+				println(summed) // 10
+
+				val multiplied = list.reduce { acc, element ->
+					acc * element
+				}
+				println(multiplied) // 24
+			}
+			==================================================
+
+	- "fold"
+		-> you can choose an arbitrary start value!
+			ex)
+				==================================================
+				fun main(){
+					val people = listOf(
+						Person("Hello", 20),
+						Person("World", 10)
+					)
+
+					val folded = people.fold(""){ acc, element ->
+						acc + element.name
+					}
+					println(folded) // HelloWorld
+				}
+				==================================================
+				-> similarto "joinToString" function
+
+	- "runningReduce" (retrieive all intermittent values)
+		ex)
+			==================================================
+			fun main(){
+				val list = listOf(1, 2, 3, 4)
+				val summed = list.runningReduce { acc, element ->
+					acc + element
+				}
+				println(summed) // [1, 3, 6, 10]
+
+				val multiplied = list.runningReduce { acc, element -> 
+					acc * element
+				}
+				println(multiplied) // [1, 2, 6, 24]
+			}
+			==================================================
+
+	- "runningFold"
+		ex)
+			==================================================
+			fun main(){
+					val people = listOf(
+						Person("Hello", 20),
+						Person("World", 10)
+					)
+
+					val folded = people.runningFold(""){ acc, element ->
+						acc + element.name
+					}
+					println(folded) // [, Hello, HelloWorld]
+				}
+			==================================================
