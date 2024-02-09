@@ -1,1 +1,21 @@
 6.1.4 Splitting a list to a pair of lists: partition
+
+	- use partition instead of filter and filterNot
+		ex)
+			================================================================================
+			fun main(){
+				val people = listOf(
+					Person("Alice", 26),
+					Person("Bob", 29),
+					Person("Carol", 31)
+				)
+				val predicate = {p: Person -> p.age < 27 }
+				val comeIn = people.filter(predicate) // [Person(Alice, 26)]
+				val stayOut = people.filterNot(predicate) // [Person(Bob, 29), Person(Carol, 31)]
+
+
+				// Change to partition
+				val (comeIn, stayOut) = people.partition(predicate)				
+			}
+			================================================================================
+			-> "partition" divides "true" to first, "false" to second
