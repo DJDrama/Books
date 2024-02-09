@@ -1,0 +1,22 @@
+6.1.7 Replacing elements in mutable collections: replaceAll and fill
+
+	- "replaceAll"
+		-> replaces each element in the list with a result from the labmda you specify
+
+	- "fill"
+		-> replaces all elements with a value
+
+			ex)
+				====================================================================================
+				fun main(){
+					val names = mutableListOf("Martin", "Samuel")
+
+					names.replaceAll { it.uppercase() }
+
+					println(names) // [MARTIN, SAMUEL]
+
+					names.fill { "filled" }
+					
+					println(names) // [ filled, filled ]
+				}
+				====================================================================================
