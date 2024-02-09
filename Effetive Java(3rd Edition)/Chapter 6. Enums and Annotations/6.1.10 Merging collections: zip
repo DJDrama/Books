@@ -1,0 +1,21 @@
+6.1.10 Merging collections: zip
+	- "zip"
+		-> you can use the zip function to create a list of pairs from values at same index from two collections.
+		-> passing a lambda to the function also allows you to specify how the output should be transformed.
+
+		ex)
+			======================================================================
+			fun main(){
+				val names = listOf("Joe", "Mary", "Jamie")
+				val ages = listOf(22, 31, 22, 44, 0)
+				println(names.zip(ages)) // [(Joe, 22), (Mary, 31), (Jamie, 22)]
+
+				println(names.zip(ages){name, age-> Person(name, age)})
+				// [Person(name = Joe, age = 22), Person(name = Mary, age = 31),
+					Person(name = Mary, age = 22)]
+			}
+			======================================================================
+			* elements that don't have a counterpart in the other collection are ignored!
+
+	* the size of the resulting collection is the same as the shorter of the two lists:
+		-> zip only processes items at those indexes that exist in both input collections.
