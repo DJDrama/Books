@@ -1,0 +1,18 @@
+6.2.1 Executing sequence operations: intermediate and terminal operations	
+
+	- operations on a sequence are divided into two categories
+		1) intermediate
+			-> returns another sequence, which knows how to transform the elements of the original sequence.
+		2) terminal
+			-> returns a result, which may be a collection, an element, a number, or any other object that's somehow obtained by the sequence of transformations of the initial collection.
+
+
+	* Intermediate operations are always lazy.
+		-> needs a terminal operation and it causes all the postponed computations to be performed.
+
+	- For sequences
+		-> all operations are applied to each element sequentially
+			-> the first element is processed, then the second element is processed, and so on.
+
+	* As a rule of thumb, earlier you can remove elements from your chain of operations, the more performant your code will be.
+	
