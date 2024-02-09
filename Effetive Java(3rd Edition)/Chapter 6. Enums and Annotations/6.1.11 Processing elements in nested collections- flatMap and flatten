@@ -1,1 +1,39 @@
 6.1.11 Processing elements in nested collections: flatMap and flatten
+
+	ex)
+		======================================================================================================
+		data class Book(
+		    val name: String,
+		    val authors: List<String>
+		)
+
+		fun main() {
+		    val list = listOf(
+		        Book("A", listOf("author a", "aa", "ab")),
+		        Book("B", listOf("author b", "bb")),
+		        Book("C", listOf("author c")),
+		    )
+		    println(list.map { it.authors }) // [[author a, aa, ab], [author b, bb], [author c]]
+		}
+		======================================================================================================
+		-> outcome becomse a nested list.
+	
+	- "flatMap"
+		-> you can compute the set of all the authors in the library, without any nesting!
+			1. first it transforms each element to a collection according to the function given as an argument
+			2. and then it combines (or flattens) these several list into one.
+
+		ex)
+			======================================================================================================
+			fun main() {
+			    val list = listOf(
+			        Book("A", listOf("author a", "aa", "ab")),
+			        Book("B", listOf("author b", "bb")),
+			        Book("C", listOf("author c")),
+			    )
+			    println(list.flatMap { it.authors }) // [author a, aa, ab, author b, bb, author c]
+
+			    // same as --> println(list.map { it.authors }.flatten())
+			}
+			======================================================================================================
+			-> you can use "flatten" when just need to flatten such a collection of collections.
