@@ -1,0 +1,26 @@
+6.1.9 Splitting collections: "chunked" and "windowed"
+
+	- "windowed"
+		-> you can slide the window
+			ex)
+				======================================================================
+				fun main() {
+				   val list = listOf(1, 2, 3, 4, 5)
+				    println(list.windowed(3)) // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+
+				    println(list.windowed(3) { it.sum() / it.size }) // [2, 3, 4]
+				}
+				======================================================================
+
+
+	- "chunked"
+		-> you may want to break the collection into distinct parts of a given size.
+			ex)
+				======================================================================
+				fun main() {
+				    val list = listOf(1, 2, 3, 4, 5)
+				    println(list.chunked(3)) // [[1,2,3], [4,5]]
+				    
+				    println(list.chunked(3) { it.sum() }) // [6, 9]
+				}
+				======================================================================
