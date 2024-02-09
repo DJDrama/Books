@@ -1,0 +1,54 @@
+6.1.6 Transforming collections into maps: associate, associateWith and associateBy:
+
+	- If you want to create a mpa from the elements of a collection without grouping elements, the "associate" function comes into play.
+
+		ex)
+			============================================================
+			data class Person(
+			    val name: String,
+			    val age: Int
+			)
+
+			fun main(){
+				val people = listOf(
+					Person("Joe", 22),
+					Person("Mary", 31)
+				)
+
+				val nameToAge = people.associate { it.name to it.age }
+				println(nameToAge) // {Joe=22, Mary=31}
+
+				println(nameToAge["Mary"]) // 31
+			}
+			============================================================
+
+
+	- "associateWith"
+		-> uses the original elements of your collection as keys.
+
+	- "associateBy"
+		-> uses the original elements of your collection as values
+
+		ex)
+			============================================================
+			data class Person(
+			    val name: String,
+			    val age: Int
+			)
+
+			fun main(){
+				val people = listOf(
+					Person("Joe", 22),
+					Person("Mary", 31)
+				)
+
+				val personToAge = people.associateWith { it.age }
+				println(personToAge) // {Person(name=Joe, age=22)=22, Person(name=Mary, age=31)=31}
+
+				val ageToPerson = people.associateBy { it.age } 
+				println(ageToPerson) // {22=Person(name=Joe, age=22), 31=Person(name=Mary, age=31)}
+			}
+			============================================================
+
+	* keys for maps should be unique!
+		-> associate, associateWith, associateBy does not throw exception, the last result overwrites any previous assignments.
