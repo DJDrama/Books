@@ -1,0 +1,12 @@
+6.1.8 Handling special cases for collections: ifEmpty
+
+	- "ifEmpty", "ifBlank" you can provide a lambda that generates a default value.
+		ex)
+			================================================
+			fun main() {
+			    val hello = " "
+
+			    println(hello.ifEmpty { "empty" }) // " "
+			    println(hello.ifBlank { "world " }) // "world "
+			}
+			================================================
