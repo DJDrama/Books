@@ -1,0 +1,29 @@
+6.2.2 Creating sequences
+	- to create a sequence: you called "asSequence" on a collection.
+
+	- another possibility is to use the "generateSequence" function.
+
+		ex)
+			========================================================================
+			fun main() {
+			    val naturalNumbers = generateSequence(0) { it + 1 }
+			    val numbersTo100 = naturalNumbers.takeWhile { it <= 100 }
+			    println(numbersTo100.sum())
+			}
+			========================================================================
+			-> BOTH SEQUENCES will be postponed until you call the terminal operation(sum in this case)
+
+	- common use case is a sequence of parents.
+		-> if an element has parents of its own type, you may be interested in qualities of the sequence of all of its ancestors.
+
+			ex)	parent folder structure for a given file
+				========================================================================
+				fun File.isInsideHiddenDirectory() =
+				    generateSequence(this) { it.parentFile }.any { it.isHidden }
+				
+				fun main() {
+				    val file = File("/Users/svtk/.HiddenDir/a.txt")
+				    println(file.isInsideHiddenDirectory())
+				    // true
+				}
+				========================================================================
