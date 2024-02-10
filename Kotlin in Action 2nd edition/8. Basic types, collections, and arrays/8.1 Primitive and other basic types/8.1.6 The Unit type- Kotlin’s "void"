@@ -1,0 +1,18 @@
+8.1.6 The Unit type: Kotlin’s "void"
+	
+	- "Unit" type in Kotlin fulfills the same function as "void" in Java.
+
+	* Unlike Java's void, "Unit" can be used as a type argument.
+		ex)
+			========================================================================
+			interface Processor<T>{
+				fun process(): T
+			}
+
+			class NoResultProcessor: Processor<Unit>{
+				override fun process(){
+					// no return type(T is Unit)
+				}
+			}
+			========================================================================
+	

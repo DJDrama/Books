@@ -1,0 +1,15 @@
+8.1.7 The Nothing type: "This function never returns"
+
+	ex)
+		===============================================================
+		fun fail(message: String): Nothing{
+			throw IllegalStateException(message)
+		}
+
+		fun main(){
+			// example
+			val address: String = company.address ?: fail("No address")
+			println(address.city)
+		}
+		===============================================================
+		-> compiler knows that a function with this return type never terminates normally and uses that information when analyzing the code calling the function.

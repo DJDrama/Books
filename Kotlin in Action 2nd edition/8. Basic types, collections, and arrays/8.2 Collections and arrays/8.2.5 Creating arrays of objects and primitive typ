@@ -1,0 +1,14 @@
+8.2.5 Creating arrays of objects and primitive types for interoperability and performance reasons
+
+	ex)
+		================================================================================================
+		val letters = Array(26) { i -> ('a' + i).toString() }
+		println(letters.joinToString("")) // abc...xyz
+		================================================================================================
+
+	- "toTypedArray" : converting collection to an array.
+
+	* "type arguments of array types always become object types"
+		-> if you declare something like an Array<Int>, it will become an array of boxed integers (Integer[] in Java)
+
+		-> use IntArray, CharArray, LongArray, and etc for primitive types if you don't need boxed integers.

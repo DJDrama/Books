@@ -1,0 +1,20 @@
+8.1.4 Kotlin makes number conversions explicit
+
+	- In Kotlin, you need to apply the conversion explicitly.
+		ex)
+			====================================================================================
+			val i = 1
+			val l: Long = i.toLong() // convert explicitly
+			====================================================================================
+
+	* Kotlin requires you to convert the types explicitly so that only values of the same type are compared!
+
+
+	* When conversion fails, you can use "orNull" (rather than throwing NumberFormatException)
+		ex)
+			====================================================================================
+			fun main(){
+				println("seven".toIntOrNull()) // null
+			}
+			====================================================================================
+		

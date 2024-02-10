@@ -1,0 +1,10 @@
+8.2.2 Read-only and mutable collections
+
+	* apart from Java, Kotlin separates interfaces for accessing the data in a collection and for modifying the data.
+		-> kotlin.collection.Collection does not have any methods for "adding" or "removing" elements.
+		-> to "add" or "remove" you need kotlin.collection.MutableCollection.
+
+	* As a general rule, you need to use "read-only" interfaces everywhere in your code.
+		-> use the mutable variants only if the code will modify the collection.
+
+	

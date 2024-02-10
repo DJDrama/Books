@@ -1,0 +1,4 @@
+8.1.5 "Any" and "Any?": the root of the Kotlin type hierarchy
+
+	- In Kotlin, "Any" is a supertype of all types, including the primitive types such as Int.
+	

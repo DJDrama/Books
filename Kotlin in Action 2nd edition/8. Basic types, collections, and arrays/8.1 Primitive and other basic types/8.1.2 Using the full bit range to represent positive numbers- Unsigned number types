@@ -1,0 +1,6 @@
+8.1.2 Using the full bit range to represent positive numbers: Unsigned number types
+
+	* Java virtual machine itself does not specify or provide primitives for unsigned numbers.
+		-> Kotlin can't change that, so it provides its own abstractions on top of the existing signed primitives.
+
+	

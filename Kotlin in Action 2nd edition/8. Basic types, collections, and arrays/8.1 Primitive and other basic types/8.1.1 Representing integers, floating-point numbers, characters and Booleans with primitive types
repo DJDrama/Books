@@ -1,0 +1,20 @@
+8.1.1 Representing integers, floating-point numbers, characters and Booleans with primitive types
+	
+	* In Java, primitive type holds its value directly, while reference type holds a reference to the memory location containing the object.
+		-> Java provides special wrapper types (ex. Integer) that encapsulate primitive types in situations when an object is needed.
+		-> thus, to define a collection of integers, you can't say Collection<int>; you have to use Collection<Integer> instead.
+
+
+	- Kotlin doesn't distinguish between primitive types and wrapper types!
+
+	* At runtime
+		-> Kotlin's Int type is compiled to the Java primitive type "int".
+			+ only case in which this isn't possible is generic classes, such as collections.
+				ex) If the "Int" type is used as a type argument of the collection, then the collection will store instances of Integer, the corresponding wrapper type.
+
+
+	[Kotlin] Full list of types that correspond to Java primitive type
+		- Integer types : Byte, Short, Int, Long
+		- Floating-point number types: Float, Double
+		- Character type : Char
+		- Boolean type: Boolean

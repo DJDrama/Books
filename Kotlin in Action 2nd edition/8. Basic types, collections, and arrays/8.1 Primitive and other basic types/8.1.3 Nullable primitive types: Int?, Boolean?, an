@@ -1,0 +1,6 @@
+8.1.3 Nullable primitive types: Int?, Boolean?, and more
+
+	* Nullable types in Kotlin can't be represented by Java primitive types, because null can only be stored in a variable of a Java reference type.
+		-> when using a nullable version of a primitive type in Kotlin, it's compiled to the corresponding wrapper type.
+
+	
