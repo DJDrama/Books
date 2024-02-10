@@ -1,0 +1,6 @@
+7.1.2 Taking a closer look at the meaning of types
+
+	- you can use "Optional" type introduced in Java 8, to represent values that may or may not be defined.
+		-> DOWNSIDES
+			1. code gets more verbose
+			2. extra wrapper instances affect performance at runtime, and it's not used consistently across the entire ecosystem.

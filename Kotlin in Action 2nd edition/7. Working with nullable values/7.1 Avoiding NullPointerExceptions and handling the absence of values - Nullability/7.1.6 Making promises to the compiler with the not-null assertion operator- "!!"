@@ -1,0 +1,8 @@
+7.1.6 Making promises to the compiler with the not-null assertion operator: "!!"
+
+	- not-null assertion (!!)
+
+	* there are situations when not-null assertions are the appropriate solution for a problem.
+		-> when you check for null in one function and use the value in another function, the compiler can't recognize that the use is safe.
+		-> If you are certain the check is always performed in another function, you may not want to duplicate it before using the value; then you can use a not-null assertion.
+	

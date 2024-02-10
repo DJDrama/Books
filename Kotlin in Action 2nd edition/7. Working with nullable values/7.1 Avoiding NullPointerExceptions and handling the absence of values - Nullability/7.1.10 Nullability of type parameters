@@ -1,0 +1,30 @@
+7.1.10 Nullability of type parameters
+
+	* By default, all type parameters of functions and classes in Kotlin are nullable.
+
+	- T is Any?
+		ex)
+			========================================================================
+			fun <T> printHashCode(t: T){
+				println(t?.hashCode())
+			}
+
+			fun main(){
+				printHashCode(null)
+			}
+			========================================================================
+			-> T is a nullable type, Any?
+
+	- set <T: Any> for non-null values
+		ex)
+			========================================================================
+			fun <T:Any> printHashCode(t: T){
+				println(t.hashCode())
+			}
+
+			fun main(){
+				printHashCode(null) // error
+
+				printHashCode(42)
+			}
+			========================================================================

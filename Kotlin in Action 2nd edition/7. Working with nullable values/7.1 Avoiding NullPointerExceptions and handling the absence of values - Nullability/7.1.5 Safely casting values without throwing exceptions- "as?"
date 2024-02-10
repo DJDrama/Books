@@ -1,0 +1,6 @@
+7.1.5 Safely casting values without throwing exceptions: "as?"
+
+	- "as?" operator (safe cast)
+		-> tries to cast a value to the specified type and returns null if the value doesn't have the proper type.
+
+		-> you can easily check whether the parameter has a proper type, cast it, and return false if the type isn't right.

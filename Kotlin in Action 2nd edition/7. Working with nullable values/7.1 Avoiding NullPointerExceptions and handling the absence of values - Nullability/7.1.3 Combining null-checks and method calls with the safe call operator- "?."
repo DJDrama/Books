@@ -1,0 +1,4 @@
+7.1.3 Combining null-checks and method calls with the safe call operator: "?."
+
+	- "safe-call" operator : "?."
+		-> allows you to combine a null check and a method call into a single operation.

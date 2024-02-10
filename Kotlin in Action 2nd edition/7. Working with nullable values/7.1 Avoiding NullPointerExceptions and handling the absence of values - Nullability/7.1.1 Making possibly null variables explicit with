@@ -1,0 +1,6 @@
+7.1.1 Making possibly null variables explicit with nullable types
+
+	- a type without a question mark -> can't store null references.
+		-> regular types are non-null by default, unless explicitly marked as nullable.
+
+	

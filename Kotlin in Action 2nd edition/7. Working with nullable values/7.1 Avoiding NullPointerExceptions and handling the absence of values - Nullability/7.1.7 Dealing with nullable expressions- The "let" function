@@ -1,0 +1,8 @@
+7.1.7 Dealing with nullable expressions: The "let" function
+
+	- the "let" function makes it easier to deal with nullable expressions.
+		-> ?.let { ... }
+
+	- when to check multiple values for null, use "if" expression rather than nested "let" calls.
+
+	

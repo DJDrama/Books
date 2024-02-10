@@ -1,0 +1,7 @@
+7.1.8 Non-null types without immediate initialization: Late- initialized properties
+
+	- "lateinit" modifier
+		-> instead of using nullable types
+		-> always "var", because you need to be able to change its value outside of the constructor, and val properties are compiled into final fields that must be initialized in the constructor.
+		-> is a "non-null" type
+		

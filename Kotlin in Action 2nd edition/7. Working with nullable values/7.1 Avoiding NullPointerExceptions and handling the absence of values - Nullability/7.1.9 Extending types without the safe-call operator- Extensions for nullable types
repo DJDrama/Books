@@ -1,0 +1,4 @@
+7.1.9 Extending types without the safe-call operator: Extensions for nullable types
+
+	- "isEmptyOrNull"
+	- "isBlankOrNull"

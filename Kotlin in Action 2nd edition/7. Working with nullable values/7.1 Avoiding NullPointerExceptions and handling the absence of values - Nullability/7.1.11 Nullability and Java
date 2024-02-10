@@ -1,0 +1,12 @@
+7.1.11 Nullability and Java
+
+	- Java
+		@Nullable + type = (Kotlin) type?
+
+		@NotNull + type = (Kotlin) type
+
+	- When annotations aren't present, the Java type becomes "platform type" in Kotlin.
+		(Java) Type = (Kotlin) Type? or Type
+
+	- most of the Java libraries aren't annotated
+		-> you may interpret all the types as "non-null"
