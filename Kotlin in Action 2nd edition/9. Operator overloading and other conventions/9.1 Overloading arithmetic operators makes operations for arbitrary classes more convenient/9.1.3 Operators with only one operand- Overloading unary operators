@@ -1,0 +1,8 @@
+9.1.3 Operators with only one operand: Overloading unary operators
+
+	[Overloadable unary arithmetic operators]
+		+a 			: 	unaryPlus
+		-a			: 	unaryMinus
+		!a 			:	not
+		++a, a++ 	: 	inc
+		--a, a--	:	dec

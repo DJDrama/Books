@@ -1,0 +1,9 @@
+9.3.1 Accessing elements by index: the "get" and "set" conventions
+
+	- "get" or "set" just use []
+		ex)
+			================================
+			val arr = IntArray(3)
+			arr[0] = 1
+			println(arr[0]) // 1
+			================================

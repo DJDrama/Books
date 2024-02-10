@@ -1,0 +1,11 @@
+9.4.2 Ignoring destructured values with "_"
+
+	ex) use "_" to ignore the componentN
+		================================
+		val (firstName, _, age) = p
+		================================
+
+
+	* "positional"
+		-> result of a destructuring operation depends entirely on the positions of the arguments.
+		-> "if you change the order of properties in a data class, then the result will differ."

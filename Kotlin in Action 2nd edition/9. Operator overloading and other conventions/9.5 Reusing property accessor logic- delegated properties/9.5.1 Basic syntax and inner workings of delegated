@@ -1,0 +1,18 @@
+9.5.1 Basic syntax and inner workings of delegated properties
+	- general syntax of a delegated property
+		ex)
+			var p: Type by Delegate()
+
+			-> by convention, the "Delegate" class must have getValue and setValue operator functions, although the latter is required only for mutable properties.
+			-> additionally, they can also provide an implementation for the "provideDelegate" function, in which you can perform validation logic or change the way the delegate is instantiated when it is first created.
+
+		ex)
+			======================================================================
+			class Delegate {
+				operator fun getValue(...) { ... }
+
+				operator fun setValue(..., value: Type) { ... }
+
+				operator fun provideDelegate(...): Delegate { ... }
+			}
+			======================================================================

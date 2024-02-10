@@ -1,0 +1,5 @@
+9.2.1 Equality operators: equals ("==")
+
+	* "identity equals operator(===)"
+		-> check whether the parameter to equals is the same object as the one on which equals is called.
+		

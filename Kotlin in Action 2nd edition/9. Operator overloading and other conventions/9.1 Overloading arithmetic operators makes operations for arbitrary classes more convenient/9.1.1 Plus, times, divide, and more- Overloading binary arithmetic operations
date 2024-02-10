@@ -1,0 +1,8 @@
+9.1.1 Plus, times, divide, and more: Overloading binary arithmetic operations
+
+	[Overloadable binary arithmetic operators]
+		times 	:	a*b
+		div 	: 	a/b
+		mod 	: 	a%b
+		plus 	: 	a+b
+		minus 	: 	a-b

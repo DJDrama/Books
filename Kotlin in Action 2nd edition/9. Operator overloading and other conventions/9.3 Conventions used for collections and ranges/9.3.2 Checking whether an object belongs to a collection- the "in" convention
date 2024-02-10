@@ -1,0 +1,17 @@
+9.3.2 Checking whether an object belongs to a collection: the "in" convention
+	
+	* "in" operator: check whether an object belongs to a collection. (contains)
+
+		ex)	
+			============================================================
+			fun main(){
+			   val set = setOf(1, 2, 3)
+			    if(1 in set){
+			        println("1 is in set") // 1 is in set
+			    }
+			    val map = mapOf(1 to "one", 2 to "two")
+			    if(2 in map){
+			        println(map[2]) // two
+			    }
+			}
+			============================================================

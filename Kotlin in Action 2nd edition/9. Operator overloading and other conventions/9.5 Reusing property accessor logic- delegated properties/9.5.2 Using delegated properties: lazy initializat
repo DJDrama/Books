@@ -1,0 +1,8 @@
+9.5.2 Using delegated properties: lazy initialization and "by lazy()"
+
+	- "Lazy initialization"
+		-> common pattern that entails creating part of an object on demand, when it's accessed for the first time.
+
+	- " by lazy { ... } "
+		-> encapsulate both the backing property used to store the value and the logic ensuring that the value is initialized only once.
+		
