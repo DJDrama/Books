@@ -1,0 +1,21 @@
+Item 43: Prefer method references to lambdas
+
+	- "method references"
+		ex)
+			Integer::sum
+
+	* many method references refer to static methods, but there are 4 kinds that do not.
+		1. bound instance method reference
+			-> the receving object is specified in the method reference.
+			(the function object takes the same arguments as the referenced method)
+
+		2. unbound instance method reference
+			-> the receiving object is specified when the function object is applied, via an additional parameter before the method's declared parameters.
+			(often used as mapping and filter functions in stream pipelines)
+
+		3. "constructor references" for classes (serve as factory objects)
+
+		4. "constructor references" for arrays (serve as factory objects)
+
+
+	* method references are shorter and clearer, use them; where they aren't, stcik with lambdas.
