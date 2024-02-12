@@ -5,3 +5,8 @@ Item 44: Favor the use of standard functional interfaces
 
 		* Modern alternative
 			-> provide a static factory or constructor that accepts a function object to achieve the same affect.
+
+
+	* Always annotate your functional interfaces with the "@FunctionalInterface" annotation.
+
+	https://www.baeldung.com/java-8-functional-interfaces
