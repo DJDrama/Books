@@ -1,0 +1,97 @@
+Coroutines under the hood
+
+	<Continuation-passing style>
+		- Kotlin team decided on an option called "continuation-passing style"
+			-> continuations are passed from function to functino as arguments.
+			-> by convention, a continuation takes the last parameter position.
+
+			ex)
+				======================================================================
+				suspend fun getUser(): User?
+				suspend fun setUser(user: User)
+				suspend fun checkAvailability(flight: Flight): Boolean
+
+				// Under the hood is
+				fun getUser(continuation: Continuation<*>): Any?
+				fun setUser(user: User, continuation: Continuation<*>): Any
+				fun checkAvailability(
+					flight: Flight,
+					continuation: Continuation<*>
+				): Any
+				======================================================================
+				* result type under the hood is different from the originally declared one.(Any = COROUTINE_SUSPENDED)
+					-> reason: a suspending function might be suspended, and so it might not return a declared type.
+
+	<A very simple function>
+
+		ex)
+			======================================================================
+			suspend fun myFunction(){
+				println("Before")
+				delay(1000)
+				println("After")
+			}
+
+			// A simplified picture of how myFunction looks under the hood
+			fun myFunction(continuation: Continuation<Unit>): Any {
+				val continuation = continuation as? MyFunctionContinuation
+					?: MyFunctionContinuation(continuation)
+
+				if(continuation.label == 0){
+					println("Before")
+					continuation.label = 1
+					if(delay(1000, continuation) == COROUTINE_SUSPENDED){
+						return COROUTINE_SUSPENDED
+					}
+				}
+				if(continuation.label == 1){
+					println("After")
+					return Unit
+				}
+				error("Impossible")
+			}
+			======================================================================
+			-> when "delay" is suspended, it returns COROUTINE_SUSPENDED, 
+			-> then, myFunction returns COROUTINE_SUSPENDED.
+
+			(what if this "delay" returned Unit?)
+				-> then the program will just move to the next state, and the function would behave like any other.
+
+	<A function with a state>
+
+		- if a function has some state (like local variables or parameters) that needs to be restored after suspension, this state needs to be kept in this function's continuation.
+			ex)
+				======================================================================
+				suspend fun myFunction(){
+					println("Before")
+					var counter=0
+					delay(1000)
+					counter++
+					println("Counter: $counter")
+					println("After")
+				}
+				======================================================================
+				-> "counter" is needed in two states (for a label equal to 0 and 1), so it needs to be kept in the continuation.
+				-> it will be stored right before suspension.
+
+	<A function resumed with a value>
+
+	<The call stack>
+		- when a function a calls function b, the virtual machine needs to store the state of a somewhere, as well as the address where execution should return once b is finished.
+			-> All this is stored in a structure called "call stack"
+
+		- when we suspend, we free a thread; as a result, we clear our call stack.
+			-> thus, the call stack is not useful when we resume.
+			-> INSTEAD, the "continuations" serve as a call stack.
+				
+				-> each continuation keeps the state where we suspended the function's local variables and parameters, and the reference to the continuation of the function that called this function.
+
+				-> One continuation references another, which references another, etc.
+				-> our continuation is like a huge onion: it keeps everything that is generally kept on the call stack.
+
+	<The actual code>
+
+	<The performance of suspending functions>
+		- dividing a function into states is cheap as number comparison and execution jumping costs nearly nothing.
+		- saving a state in a continuation is also cheap.
+		* the only operation that costs something is creating a continuation class, but still not a big deal.

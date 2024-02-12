@@ -1,0 +1,7 @@
+Coroutines: built-in support vs library
+
+	- Built-in language support(kotlin.coroutines) is designed to be minimalistic and give as much freedom as possible.
+		-> suspendCoroutine or Continuation, are supposed to be used by library creators rather than by app developers.
+
+	- use kotlinx.coroutines library
+
