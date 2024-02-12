@@ -3,7 +3,7 @@ Item 41: Use marker interfaces to define types
 	- "marker interface" : interface that has no method declarations but merely designates a class that implements the interface as having some property.
 
 	* 2 Advantages of marker interfaces over marker annotations. (marked annotation ex) @Override)
-		1. marker interfaces deinfe a type that is implemented by instances of the marked class; marker annotations do not.
+		1. marker interfaces define a type that is implemented by instances of the marked class; marker annotations do not.
 			-> allows you to catch errors at compile time that you couldn't catch until runtime if you used a marker annotation.
 		2. they can be targeted more precisely.
 			-> guaranteeing that all marked types are also subtypes of the sole interface to which it is applicable.
@@ -11,6 +11,6 @@ Item 41: Use marker interfaces to define types
 	* Chief advantage of marker annotations over marker interface is that they are part of the larger annotation facility.
 		-> marker annotations allow for "consistency" in annotation-based frameworks.
 
-	- Use marker interface when progarmming element for class and interface. <-> Use marker annotation.
+	- Use marker interface when programming element for class and interface. <-> Use marker annotation.
 
 	* If you do want to define a type, do use an interface.
