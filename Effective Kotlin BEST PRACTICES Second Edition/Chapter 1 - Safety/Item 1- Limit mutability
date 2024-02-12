@@ -1,1 +1,134 @@
 Item 1: Limit mutability
+
+	- State management is hard
+		1) harder to understand and debug a program with many mutating points.
+			-> a class with many mutating points that depend on each other is often really hard to understand and modify.
+
+		2) mutability makes it harder to reason about code.
+			-> state of an immutable element is clear.
+			-> harder to reason about what mutable value is as it might change at any point
+
+		3) mutable state requires proper synchronization in multithreaded programs.
+
+		4) mutable elements are harder to test.
+			-> we need to test every possible state; the more mutability there is, the more states there are to check.
+
+		5) when a state mutates, other classes often need to be notified about this change.
+			-> ex) if we add a mutable element to a sorted list, if the element changes, we need to sort the list again.
+
+
+	<Limiting mutability in Kotlin>
+		- Kotlin is designed to support limiting mutability
+			-> easy to make immutable objects or to keep properties immutable.
+
+			+ Read-only properties : "val"
+			+ Separation between mutable and read-only collections
+			+ "copy" in data classes.
+
+	<Read-only properties>
+		- "val": read-only property
+			-> can hold a mutable object
+				ex)
+					============================================
+					val list = mutableListOf(1, 2, 3)
+					============================================
+				 
+
+			-> can also be defined using a custom getter that might depend on another property
+				ex) 
+					============================================
+					var name: String = "DJ"
+					var surName: String = "LEE"
+
+					val fullName: String
+						get() = "$name $surName"
+					============================================
+
+			* "val" doesn't mean "immutable"
+				-> it can be defined by a getter or a delegate.
+
+				ex)
+					============================================
+					val name: String? = "DJ"
+					val surName: String? = "LEE"
+					val fullName: String?
+					    get() = name?.let { "$it $surName" }
+
+					val fullName2: String? = name?.let { "$it $surName" }
+
+					fun main() {
+					    if (fullName != null) {
+					        // Smart cast to 'String' is impossible, 
+					        // because 'fullName' is a property that has open or custom getter
+					        println(fullName.length)
+					    }
+					    if (fullName2 != null) {
+					        println(fullName2.length)
+					    }
+					}
+					============================================
+					-> "Smart casting" is impossible for "fullName" because it is defined using a getter; so, when checked it might give a different value than it does during use.
+					* non-local properties like "fullName2" can be smart-casted only when they are final and do not have a custom getter.
+
+		- "var": read-write property
+
+	<Separation between mutable and read-only collections>
+		- "Iterable", "Collection", "Set", and "List" interfaces are read-only
+			<-> "MutableIterable", "MutableCollection", "MutableSet", and "MutableList" interfaces allow mutation.
+
+		* down-casting read-only collections to mutable ones should never happen in Kotlin.
+			-> if you need to transform from read-only to mutable, you should use the "List.toMutableList" function, which creates a copy that you can then modify:
+				ex)
+					============================================
+					val list = listOf(1, 2, 3)
+
+					val mutableList = list.toMutableList()
+					mutableList.add(4)
+					============================================
+					-> list won't be modified from outside.
+
+	<Copy in data classes>
+		- Reasons to prefer immutable objects
+			(immutable objects have their own advantages)
+			1) easier to reason about since their state stays the same once they have been created.
+
+			2) easier to parallelize a program as there are no conflicts among shared objects.
+
+			3) references to immutable objects can be cached as they will not change.
+
+			4) we don't need to make defensive copies of immutable objects.
+				-> when we do copy immutable objects, we do not need to make a deep copy.
+
+			5) perfect material to construct other objects, both mutable and immutable.
+				-> we can decide where mutability is allowed
+
+			6) we can add them to sets or use them as keys in maps, unlike mutable objects.
+				-> when we modify an element that is already classified in a hash table, its classification might not be correct anymore, therefore we won't be able to find it.
+
+		ex) Int add, minus returns a new Int object as a result(Int is immutable).
+
+	<Different kinds of mutation points>
+		* one should not create unnecessary ways to mutate a state
+			-> every way to mutate a state is a cost
+			-> every mutation point needs to be understood and maintained
+			-> prefer to limit mutability.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
