@@ -1,0 +1,149 @@
+Sequence builder
+
+	- Kotlin provides a sequence builder - a function used to create a sequence.
+		-> evaluated "lazily" (next element is always calculated on demand, when it is needed)
+			1. do the minimal number of required operations
+			2. can be infinite
+			3. are more memory-efficient
+
+	<Real-life usages>
+		ex) Fibonacci sequence
+			========================================================
+			import java.math.BigInteger
+
+			val fibonacci: Sequence<BigInteger> = sequence {
+			    var first = 0.toBigInteger()
+			    var second = 1.toBigInteger()
+			    while (true) {
+			        yield(first)
+			        val temp = first
+			        first += second
+			        second = temp
+			    }
+			}
+
+			fun main() {
+			    print(fibonacci.take(10).toList())
+			}
+			========================================================
+
+		ex) Generate random numbers
+			========================================================
+			fun randomNumbers(
+			    seed: Long = System.currentTimeMillis()
+			): Sequence<Int> = sequence {
+			    val random = Random(seed)
+			    while(true){
+			        yield(random.nextInt())
+			    }
+			}
+
+			fun main() {
+			    print(randomNumbers().take(3).toList())
+			}
+			========================================================
+
+		ex) Generate random texts
+			========================================================
+			fun randomUniqueStrings(
+			    length: Int,
+			    seed: Long = System.currentTimeMillis()
+			): Sequence<String> = sequence {
+			    val random = Random(seed)
+			    val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+			    while (true) {
+			        val randomString = (1..length)
+			            .map { _ -> random.nextInt(charPool.size) }
+			            .map(charPool::get)
+			            .joinToString("")
+			        yield(randomString)
+			    }
+			}.distinct()
+
+			fun main() {
+			    print(randomUniqueStrings(length = 3).take(3).toList())
+			}
+			========================================================
+
+	<How does suspension work?>
+		- when coroutines are suspended, they return a "Continuation"
+			<-> very different from a thread, which cannot be saved, only blocked.
+
+		- when coroutine is suspended, it does not consume any resources.
+
+		- A Coroutine can be resumed on a different thread, and a continuation can be serialized, deserialized and then resumed.
+
+
+	<Resume>
+		- suspend functions are functions that can suspend a coroutine.
+			-> they must be called from a coroutine (or another suspending function).
+
+		- use "delays" instead of Thread.sleep()
+
+	<Resuming with a value>
+		- when we call "suspendCoroutine", we can specify which type will be returned in its continuation.
+			ex)
+				========================================================
+				suspend fun main() {
+				    val i: Int = suspendCoroutine { // since i is declared as Int, type is omitted.
+				        it.resume(42)
+				    }
+				    println(i) // 42
+
+				    val str = suspendCoroutine<String> {
+				        it.resume("Some text")
+				    }
+				    println(str) // Some text
+
+				    val b = suspendCoroutine<Boolean> {
+				        it.resume(true)
+				    }
+				    println(b) // true
+				}
+				========================================================
+
+
+
+		* recommend using "suspendCancellableCoroutine" instead of "suspendCoroutine"
+
+	<Resume with an exception>
+		ex)
+			========================================================
+			suspend fun requestNews(): News{
+				return suspendCancellableCoroutine<News> { cont ->
+					requestNews(
+						onSuccess = {
+							cont.resume(it)
+						},
+						onError = {
+							cont.resumeWithException(it)
+						}
+					)
+				}
+			}
+			========================================================
+
+
+	<Suspending a coroutine, not a function>
+		* we suspend a coroutine, not a function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
