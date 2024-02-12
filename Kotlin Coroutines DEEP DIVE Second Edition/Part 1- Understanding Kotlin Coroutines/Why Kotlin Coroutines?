@@ -1,0 +1,166 @@
+Why Kotlin Coroutines?
+
+[Coroutines on Android (and other frontend platforms)]
+
+	ex) Android example
+		================================================================
+		fun onCreate(){
+			val news = getNewsFromApi() // Network
+			val sortedNews = news.sortedByDescending { it.publishedAt }
+			view.showNews(sortedNews)
+		}
+		================================================================
+		-> this cannot be done easily.
+		* On Android, each app has only one thread that can modify the view.(the thread should never be blocked.)
+			-> above "getNewsFromApi()" will block it, and app would crash.
+			-> if we then use another thread, app will also crash when we call "showNews" which should run on main thread.
+
+	<Thread Switching>
+		ex) using a thread and switching
+			================================================================
+			fun onCreate(){
+				thread{
+					val news = getNewsFromApi()
+					val sortedNews = news.sortedByDescending { it.publishedAt }
+
+					runOnUiThread {
+						view.showNews(sortedNews)
+					}
+				}
+			}
+			================================================================
+			* Problematic
+				-> there is no mechanism to cancel the thread, so we often face memory leaks.
+					(If you open and quickly close a view, threads still run!)
+				-> making so many threads is costly.
+				-> frequently switching threads is confusing and hard to maintain.
+				-> code will get bigger and complicated.
+
+	<Callbacks>
+		ex) Using a callback
+			================================================================
+			fun onCreate(){
+				getNewsFromApi { news ->
+					val sortedNews = news.sortedByDescending { it.publishedAt }
+					view.showNews(sortedNews)
+				}
+			}
+			================================================================
+			-> Does not support "cancellation"
+
+		ex) nested callback
+			================================================================
+			fun showNews() { getConfigFromApi { config ->
+			      getNewsFromApi(config) { news ->
+			          getUserFromApi { user ->
+			        	  view.showNews(user, news)
+						}
+					} 
+				}
+			}
+			================================================================
+			-> callback architecture doesn't support "parallelism"
+			-> supporting cancellation require a lot of additional effort
+			-> increasing number of indentations make this code hard to read ("Callback hell")
+
+	<RxJava and other reactive streams>
+		- alternative is using reactive streams (or Reactive Extensions): RxJava or its successor Reactor.
+		- all operations happen inside a stream of data that can be started, processed, and observed.
+		* these streams support thread-switching and concurrent processing.(often used to parallelize processing in apps)
+
+		ex) using RxJava
+			================================================================
+			fun onCreate(){
+				disposables += getNewsFromApi()
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainTrhead())
+					.map { news ->
+						news.sortedByDescending { it.publishedAt }
+					}
+					.subscribe { sortedNews ->
+						view.showNews(sortedNews)
+					}
+			}
+			================================================================
+			-> "disposables" are needed to cancel this stream if the user exits the screen.
+			* Better than callbacks: no memory leaks, cancellation is supported, proper use of threads.
+			-> only problem, is that it's complicated.
+
+	<Using Kotlin Coroutines>
+		* Core functionality
+			-> ability to suspend a coroutine at some point and resume it in the future.
+
+		- can be suspended and resumed (concepts like async/await and generators, in Javascript, Rust or Python, also uses coroutines, but their capabilities are very limited.)
+
+		ex) using Corouintes
+			================================================================
+			fun onCreate(){
+				viewModelScope.launch{
+					val news = getNewsFromApi() // Network
+					val sortedNews = news.sortedByDescending { it.publishedAt }
+					view.showNews(sortedNews)
+				}
+			}
+			================================================================
+			-> code runs on the Main thread but it never blocks it.
+			-> suspending the coroutine when we need to wait for data.
+			-> when the coroutine is suspended, the Main thread can go do other things, like drawing progress bar.
+			-> once the data is ready, our coroutine takes the Main thread again and starts from where it previously stopped.
+
+		ex) three api calls
+			================================================================
+			fun showNews() { 
+				viewModelScope.launch {
+					val config = getConfigFromApi() 
+					val news = getNewsFromApi(config) 
+					val user = getUserFromApi() 
+					view.showNews(user, news)
+				} 
+			}
+			================================================================
+			-> these calls happen sequentially(one after another), so if each of them takes 1 second, the whole function will take 3 seconds.
+
+		ex) PARALLEL api calls
+			================================================================
+			fun showNews(){
+				viewModelScope.launch{
+					val config = async { getConfigFromApi() }
+					val news = async{ getNewsFromApi(config.await()) }
+					val user = async{ getUserFromApi()}
+					view.showNews(user.await(), news.await())
+				}
+			}
+			================================================================
+			-> uses async / await pattern.
+
+		ex) all pages will be loaded simultaneously
+			================================================================
+			fun showAllNews(){
+				viewModelScope.launch{
+					val allNews = (0 until getNumberOfPages())
+						.map { page -> async { getNewsFromApi(page) }}
+						.flatMap { it.await() }
+					view.showAllNews(allNews)
+				}
+			}
+			================================================================
+
+		ex) next pages are loaded one after another
+			================================================================
+			fun showPagesFromFirst(){
+				viewModelScope.launch {
+					for (page in 0 until getNumberOfPages()){
+						val news = getNewsFromApi(page)
+						view.showNextPage(news)
+					}
+				}
+			}
+			================================================================
+
+
+	<Coroutines on the backend>
+		* Most often, the default size of the thread stack is 1MB.
+			-> a lot of extra memory is spent just because we create threads.
+			
+
+
