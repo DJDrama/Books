@@ -1,0 +1,6 @@
+10.2.3 Inlining collection operations
+
+	* In Kotlin, the "filter" function is declared as inline.
+		-> bytecode of the "filter" function, together with the bytecode of the lambda passed to it, will be inlined where filter is called.
+
+	* both "filter" and "map" are declared as "inline", so their bodies are inlined, and no extra classes or objects are created.

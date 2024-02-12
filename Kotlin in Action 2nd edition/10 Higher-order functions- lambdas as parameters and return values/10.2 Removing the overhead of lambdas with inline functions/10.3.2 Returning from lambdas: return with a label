@@ -1,0 +1,24 @@
+10.3.2 Returning from lambdas: return with a label
+
+	- you can write a "local" return from a lambda expression as well.
+		-> use "labels"
+
+		ex)
+			========================================================================
+			data class Person(val name: String, val age: Int)
+			val people = listOf(Person("Alice", 29), Person("Bob", 31))
+			fun lookForAlice(people: List<Person>) {
+			    people.forEach label@{ 				// <--
+			        if (it.name == "Alice") {
+			            println("Found!")
+			            return@labels				// <--  or you can also use "return@forEach"
+			        } }
+			    println("Alice is not found")
+			}
+
+			fun main() {
+			    lookForAlice(people)
+			    // Found!
+			    // Alice is not found
+			}
+			========================================================================

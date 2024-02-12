@@ -1,0 +1,19 @@
+10.2.2 Restrictions on inline functions
+	
+	- Not every function that uses lambda can be inlined.
+
+	- When inlined, the body of the lambda expression that's passed as an argument is substituted directly into the resulting code.
+
+	* the parameter can be inlined if it's called directly or passed as an argument to another inline function.
+
+	- If you have a function that expects two or more lambdas as arguments, you may choose to inline only some of them
+		-> when one of the lambdas is expected to contain a lot of code or is used in a way that doesn't allow inlining.
+		-> "noInline" modifier
+			ex)
+				========================================================================
+				inline fun foo(inlined: ()->Unit, noinline notInlined: ()->Unit){
+					...
+				}
+				========================================================================
+
+	

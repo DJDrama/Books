@@ -1,0 +1,7 @@
+10.2.1 Inlining means substituting a function body to each call site
+
+	* lambdas are normally compmiled to anonymous classes.
+		-> every time you use a lambda expression, an extra class is created; and if the lambda captures some variables, then a new object is created on ever invocation.
+		-> runtime overhead, causing an implementation that uses a lambda to be less efficient than a function that executes the same code directly.
+
+	

@@ -1,0 +1,17 @@
+10.2.4 Deciding when to declare functions as inline
+
+	* "inline" keyword is likely to improve performance only with functions that take lambdas as arguments; all other cases require additional investigation, measuring, and profiling of your application.
+
+	* inlining functions with lambda arguments is beneficial.
+		1) you save not only on the call, but also on the creation of the extra class for each lambda and an object for the lambda instance.
+
+		2) JVM currently isn't smart enough to always perform inlining through the call and the lambda.
+
+		3) lets you use features that are impossible to make work with regular lambdas, such as non-local returns
+
+
+	* If the function you want to inline is large, copying its bytecode into every call site could be expensive in terms of bytecode size.
+		-> in that case, you should try to extract the code not related to the lambda arguments into a separate non-inline function.
+
+
+	* inline functions in the Kotlin standard library are always small.

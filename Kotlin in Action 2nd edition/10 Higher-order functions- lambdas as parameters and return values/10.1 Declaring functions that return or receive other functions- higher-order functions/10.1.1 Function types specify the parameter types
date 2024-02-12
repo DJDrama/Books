@@ -1,0 +1,33 @@
+10.1.1 Function types specify the parameter types and return values of a lambda
+
+	- "Higher-order function"
+		-> a function that takes another function as an argument or returns one.
+
+		* In Kotlin, functions can be represented as values either by using lambdas or via function references.
+			-> thus, a higher-order function is any function to which you can pass a lambda a function reference as an argument, or a function which returns one, or both.
+
+				ex)
+					============================================
+					list.filter { x> 0 }
+					============================================
+					-> "filter" standard library function takes a predicate function as an argument and is therefore a higher-order function.
+
+
+	- variables having function types
+		ex)
+			==================================================
+			val sum = { x: Int, y: Int -> x + y }
+			val action = { println(42) }
+			==================================================
+			-> compiler infers that both the sum and action variables have function types.
+
+	- explicit type declaration
+		ex)
+			==================================================
+			val sum: (Int, Int) -> Int = { x, y -> x + y }
+			val action: () -> Unit = { println(42) }
+			==================================================
+
+	* function type declaration
+		-> always require an explicit return type, so you can't omit "Unit"
+		

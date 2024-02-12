@@ -1,0 +1,40 @@
+10.2.5 Using inlined lambdas for resource management with "withLock", "use", and "useLines"
+
+	ex) Lock 
+		===============================================================
+		val l: Lock = ReentrantLock()
+		l.withLock {
+			// access the resource protected by this lock
+		}
+
+		inline fun <T> Lock.withLock(action: ()->T): T {
+			lock()
+			try{
+				return action()
+			}
+			finally {
+				unlock()
+			}
+		}
+		===============================================================
+
+	ex) use
+		===============================================================
+		fun readFirstLineFromFile(fileName: String): String{
+			BufferedReader(FileReader(fileName)).use { br ->
+				return br.readLine()
+			}
+		}
+		===============================================================
+		-> the "use" function is inlined, so its use doesn't incur any performance overhead.
+		-> "use": designed to work with any type of "Closeable"
+
+	ex) useLines : defined for File and Path objects
+		===============================================================
+		fun readFirstLineFromFile(fileName: String): String{
+			Path(fileName).useLines{
+				return it.first()
+			}
+		}
+		===============================================================
+		-> gives the lambda access to a sequence of strings

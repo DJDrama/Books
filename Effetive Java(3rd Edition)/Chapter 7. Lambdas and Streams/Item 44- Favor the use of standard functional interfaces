@@ -1,0 +1,7 @@
+Item 44: Favor the use of standard functional interfaces
+
+	- "Template Method" pattern
+		-> subclass overrides a "primitive" method to specialize the behavior of its superclass, is far less attractive.
+
+		* Modern alternative
+			-> provide a static factory or constructor that accepts a function object to achieve the same affect.

@@ -1,0 +1,67 @@
+10.1.6 Making code more reusable by reducing duplication with lambdas
+
+	ex)
+		============================================================
+		data class SiteVisit(
+			val path: String,
+			val duration: Double,
+			val os: OS
+		)
+
+		enum class OS {
+			WINDOWS, LINUX, MAC, IOS, ANDROID
+		}
+
+		val log = listOf(
+			SiteVisit("/", 34.0, OS.WINDOWS),
+		    SiteVisit("/", 22.0, OS.MAC),
+		    SiteVisit("/login", 12.0, OS.WINDOWS),
+		    SiteVisit("/signup", 8.0, OS.IOS),
+		    SiteVisit("/", 16.3, OS.ANDROID)
+		)
+
+		// 1. HARD-CODED filters
+		val averageWindowsDuration = log
+			.filter { it.OS == OS.WINDOWS }
+			.map(SiteVisit::duration)
+			.average()
+
+		fun main(){
+			println(averageWindowsDuration)
+		}
+
+		// 2. Removing duplicates with a regular function
+		fun List<SiteVisit>.averageDurationFor(os: OS) = 
+			filter { it.os == OS }
+			.map(SiteVisit::duration)
+			.average()
+
+		fun main(){
+			println(log.averageDurationFor(OS.WINDOWS))
+			println(log.averageDurationFor(OS.MAC))
+		}
+
+		// 3. Removing duplication with a higher-order function
+		fun List<SiteVisit>.averageDurationFor(predicate: (SiteVisist)-> Boolean) =
+			filter(predicate)
+			.map(SiteVisit::duration)
+			.average()
+
+		fun main(){
+			println(
+				log.averageDurationFor{
+					it.os in setOf(OS.ANDROID, OS.IOS)
+				}
+			)
+			println(
+				log.averageDurationFor {
+					it.os == OS.IOS && it.path == "/signup"
+				}
+			)
+		}
+		============================================================
+		-> function types can help eliminate code duplication.
+
+		* with lambdas, you can extract not only the data that's repeated, but the behavior as well.
+
+	

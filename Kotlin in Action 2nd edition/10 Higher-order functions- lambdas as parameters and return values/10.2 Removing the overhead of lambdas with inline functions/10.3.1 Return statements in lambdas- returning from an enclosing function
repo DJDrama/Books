@@ -1,0 +1,6 @@
+10.3.1 Return statements in lambdas: returning from an enclosing function
+
+	(Non-local return)
+	* If you use "return" keyword in a lambda, it returns from the function which you called the lambda, not just from the lambda itself.
+
+	* return from the outer function is possible only if the function that takes the lambda as an argument is inlined.
