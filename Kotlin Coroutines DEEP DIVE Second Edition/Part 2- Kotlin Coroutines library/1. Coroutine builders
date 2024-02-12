@@ -1,0 +1,172 @@
+Coroutine builders
+
+	- three essential "coroutine builders" provided by the kotlinx.coroutines library
+		1) launch
+		2) async
+		3) runBlocking
+
+	<launch builder>
+		- an extension function on the CoroutineScope interface.
+		- part of an important mechanism called "structured concurrency"
+
+		- daemon thread: low-priority thread that runs in the background.
+
+		* maintaining a blocked thread is always costly, while maintaining a suspended coroutine is almost free.
+
+	<runBlocking builder>
+		* general rule: coroutines should never block threads, only suspend them.
+
+		- runBlocking: blocks the thread it has been started on whenever its coroutine is suspended.
+			-> delay(1000L) inside runBlocking will behave like Thread.sleep(1000L)
+
+		* Common usecases
+			1) block the main thread, because otherwise the program will end.
+			2) unit tests, where we need to block the thread for the same reason.
+				-> but in modern programming, we use "runTest" instead, which makes coroutines operate in virtual time.
+
+	<async builder>
+		- similar to "launch", but designed to produce a value.
+			-> value needs to be returned by the lambda expression.
+
+			ex)
+				================================================
+				fun main() = runBlocking {
+					val deferred: Deferred<Int> = GlobalScope.async {
+						delay(1000L)
+						42
+					}
+
+					// do other stuff...
+					val result: Int = deferred.await()
+					println(result) 					// 42
+
+					println(deferred.await()) 			// 42
+				}
+				================================================
+
+		- just like "launch" builder, "async" starts a coroutine immediately when it is called.
+
+		* async builder is often used to parallelize two processes, such as obtaining data from two different places, to combine them together.
+			ex)
+				================================================
+				scope.launch {
+					val news = async {
+						newsRepo.getNews()
+							.sortedByDescending { it.date }
+					}
+					val newsSummary = newsRepo.getNewsSummary()
+
+					view.showNews(
+						newsSummary,
+						news.await()
+					)
+				}
+				================================================
+
+	<Structured Concurrency>
+
+		- If a coroutine is started on GlobalScope, the program won't wait for it.
+			ex)
+				=======================================================
+				fun main() = runBlocking {
+				    GlobalScope.launch {
+				        delay(1000L)
+				        println("World!")
+				    }
+				    GlobalScope.launch {
+				        delay(2000L)
+				        println("World!")
+				    }
+				    println("Hello,")
+				    //    delay(3000L)
+				}
+				=======================================================
+				-> without the last "delay" we can't see the "World!" printed.
+
+		- with use of "launch", it becomes a child of runBlocking.
+		- parental responsibility is to wait for all their children, so runBlocking will suspend until all its children are finished.
+			ex)
+				=======================================================
+				fun main() = runBlocking {
+				    launch {
+				        delay(1000L)
+				        println("World!")
+				    }
+				    launch {
+				        delay(2000L)
+				        println("World!")
+				    }
+				    println("Hello,")
+				    //    delay(3000L)
+				}
+				=======================================================
+				-> A parent provides a scope for its children, and they are called in this scope.
+				* this builds a relationship that is called a "structured concurrency."
+
+		* Most important effects of the parent-child relationship:
+			1) children inherit context from their parent
+			2) parent suspends until all the children are finished
+			3) when the parent is cancelled, its child coroutines are cancelled too
+			4) when a child raises an error, it destroys the parent as well.
+
+	<The bigger picture>
+		- suspending functions need to be called from other suspending functions.
+			-> this all needs to start with a coroutine builder. (Except for runBlocking)
+
+		* builders need to be started on CoroutineScope.
+			-> once the first builder is started on a scope, other builders can be started on the scope of the first builder, and so on.
+
+		* passing scope as an argument is not a good solution.
+			-> Instead, we should use the coroutineScope function, which is a suspending function that creates a scope for builders.
+
+	<Using coroutineScope>
+		- to create a scope out of a suspending function, we use the "coroutineScope" function
+			ex)
+				=======================================================
+				suspend fun getArticlesForUser(
+					userToken: String?,
+				): List<ArticleJson> = coroutineScope {
+					val articles = async { articleRepository.getArticles() }
+					val user = userService.getUser(userToken)
+					articles.await()
+						.filter { canSeeOnList(user, it) }
+						.map { toArticleJson(it) }
+				}
+				=======================================================
+				-> coroutineScope is just a suspending function that creates a scope for its lambda expression.
+				-> the function returns whatever is returned by the lambda expression.
+
+		* coroutineScope 
+			-> a standard function we use when we need a scope inside a suspending function.
+
+		* we can use "coroutineScope, which is a modern alternative to using the main function with "runBlocking"
+			ex)
+				=======================================================
+				suspend fun main(): Unit = coroutineScope {
+					launch {
+						delay(1000L)
+						println("World")
+					}
+					println("Hello")
+				}
+				=======================================================
+				-> since launch is just a function, and the block is suspend function, hello prints first and due to structured concurrency, World will be printed after.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
