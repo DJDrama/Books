@@ -1,0 +1,133 @@
+Item 2: Eliminate critical sections
+	
+	* when multiple threads modify a shared state, it can lead to unexpected results.
+
+	<The problem with threads and shared state>
+		* "time slicing"
+			-> the operating system run multiple threads concurrently by running one thread for a short period of time, then switching to another thread.
+
+		- in modern computers we have multiple cores, so operating systems can actually run many operations on different threads at the same time.
+
+		* Biggest problem
+			-> we don't know when the operating system will switch from executing one thread to executing another.
+
+		* whenever you have a shared state that might be modified by multiple threads, you neeed to ensure that all the operations on this state are executed correctly.
+
+	<Synchronization in Kotlin/JVM>
+		- "synchronization"
+			-> mechanism that allows us to ensure that only one thread can execute a given block of code at the same time.
+				
+				-> based on "synchronized" function, which requires a lock object and a lambda expression with ecode that should be synchronized.
+
+				-> the mechanism guarantees that only one thread can enter a synchronization block with the same lock at the same time.
+
+				-> if a thread reaches a synchronization block but a different thread is already executing a synchronization block with the same lock, this thread will wait until the other thread finishes its execution.
+
+				ex)
+					=======================================================
+					val lock = Any()
+					var num = 0
+					for(i in 1..1000){
+						thread {
+							Thread.sleep(10)
+							synchronized(lock){
+								num += 1
+							}
+						}
+					}
+					Thread.sleep(1000)
+					print(num) // 1000
+					=======================================================
+
+				ex) In real-life cases, we often wrap all the functions in a class that need to be synchronized with a synchronization block.
+					=======================================================
+					class Counter {
+						private val lock = Any()
+						private var num = 0
+
+						fun inc() = synchronized(lock){
+							num += 1
+						}
+
+						fun dec() = synchronized(lock){
+							num-=1
+						}
+
+						fun get(): Int = num
+					}
+					=======================================================
+					* in some classes, we have multiple locks for different parts of a state, but this is much harder to implement correctly, so it's much less common.
+
+	<Atomic objects>
+		- AtomicInteger, AtomicLong, AtomicBoolean, AtomicReference...
+			-> each of these offers methods that are guaranteed to be executed atomically.
+
+				ex) AtomicInteger offers an "incrementAndGet" method that increments a value and returns the new value.
+					=======================================================
+					val num = AtomicInteger(0)
+					for (i in 1..1000){
+						thread{
+							Thread.sleep(10)
+							num.incrementAndGet()
+						}
+					}
+					Thread.sleep(5000)
+					print(num.get()) // 1000
+					=======================================================
+					* we cannot use atomic objects to synchronize multiple operations on multiple objects.
+						-> we need to use a syncrhonization block.
+
+	<Concurrent collections>
+		- ConcurrentHashMap (thread-safe version of HashMap)
+			-> when we iterate over it, we get a snapshot of the state at the moment of iteration, therefore we will never get a "ConcurrentModificationException" exception.
+
+		- ConcurrentHashMap.newKeySet<Int>()
+			-> when we need a concurrent set
+
+		- ConcurrentLinkedQueue
+			-> when we need a concurrent collection that allows duplicates.
+
+	<Do not leak mutation points>
+		* upcast mutable objects to read-only types
+			ex) MutableList -> upcast -> List
+
+		- two ways of dealing
+			1) return a copy of an object instead of a real reference. (Defensive copying)
+			2) use "toList" method
+
+				ex)
+					=======================================================
+					class UserRepository {
+						private var users: List<User> = listOf()
+						private val lock = Any()
+
+						fun loadAll() : List<User> = users
+
+						fun add(user: User) = synchronized(lock){
+							users = users + user
+						}
+					}
+					=======================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
