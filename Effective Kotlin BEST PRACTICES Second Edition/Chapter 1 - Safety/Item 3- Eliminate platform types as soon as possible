@@ -1,0 +1,14 @@
+Item 3: Eliminate platform types as soon as possible
+	- @Nullable -> String?
+	- @NotNull -> String
+
+	- what if type is not annotated with either of above annotations?
+		-> we should treat it as "nullable" (everything is nullalbe in Java)
+
+
+	- "platform type"
+		-> a type that comes from another language and has unknown nullability.
+
+		-> since they are dangerous, we should eliminiate as soon as possible and not let them propagate.
+
+		* it's good to specify types using annotations that specify nullability for exposed Java constructors, methods and fields.
