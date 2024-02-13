@@ -1,1 +1,14 @@
 Item 4: Minimize the scope of variables
+
+	* When we tighten a variable's scope, it is easier to keep our programs simple to track and manage.
+
+	* It is easier to track how mutable properties change when they can only be modified in a small scope.
+
+	* variables with a wide scope might be overused by another developer.
+
+	* whether a variable is read-only or read-write, we always prefer it to be initialized when it is defined.
+
+
+	<Capturing>
+		- we should be aware of problems with unintentional capturing.
+			-> to prevent them, we should avoid mutability and prefer a narrower scope for variables.
