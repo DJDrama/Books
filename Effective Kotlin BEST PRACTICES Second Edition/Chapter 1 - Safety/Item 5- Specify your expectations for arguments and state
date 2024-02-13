@@ -1,0 +1,115 @@
+Item 5: Specify your expectations for arguments and state
+	
+	- "require"
+		-> a universal way to specify expectations for arguments.
+
+	- "check"
+		-> a universal way to specify expectations for state.
+
+	- "error"
+		-> a universal way to signal that app reached an unexpected state.
+
+	- Elvis operator with "return" or "throw"
+
+		ex)
+			=====================================================================
+			// part of Stack<T>
+
+			fun pop(num: Int = 1): List<T> {
+				require(num <= size){
+					"Cannot remove more elements than current size"
+				}
+
+				check(isOpen){
+					"Cannot pop from closed stack"
+				}
+
+				val ret = collection.take(num)
+				collection = collection.drop(num)
+				return ret
+			}
+			=====================================================================
+
+		* Such declarative checks have many advantages.
+			1) expectations are visible even to programmers who have not read the documentation.
+
+			2) if they are not satisfied, a function throws an exception instead of leading to unexpected behavior.
+
+			3) code is self-checking to some degree.
+				-> less need for unit-testing when these conditions are checked in the code.
+
+			4) all checks listed above work with smart casting, therefore less casting is required.
+
+	<Arguments>
+		- require
+			-> checks requirement and throws "IllegalArgumentException" if it's not satisfied.
+
+			-> highly visible because it is declared at the very beginning of functions.
+
+			-> cannot be ignored because it throws an exception when the predicate is not satisfied.
+
+			ex) sometimes use in init block of data classes
+				=====================================================================
+				data class User(
+					val name: String,
+					val email: String,
+				) {
+					init {
+						require(name.isNotEmpty())
+						require(isValidEmail(email))
+					}
+				}
+				=====================================================================
+
+	<State>
+		- check
+			-> similar to require but throws "IllegalStateException"
+
+			-> we place it at the beginning, generally after the "require" blocks.
+
+	<Nullability and smart casting>
+		- requireNotNull
+
+		- checkNotNull
+
+	<The problems with the non-null assertion !!>
+		* The non-null assertion !! is a lazy option.
+
+		* explicit errors say much more than generic NPEs and they should nearly always be preferred.
+
+		* we should avoid using the non-null assertion !!.
+
+		* "lateinit" is good practice when we are sure that a property will be initialized before the first use.
+			-> "isInitialized" property
+				ex) something::isInitialized
+
+	<Using Elvis operator>
+		- popular to use the Elvis operator with throw or return on the right side.
+			ex) 
+				=====================================================================
+				val email = person.email ?: return
+				=====================================================================
+
+		- we canwrap return or throw into the run function.
+			ex)	
+				=====================================================================
+				val email = person.email ?: run {
+					log("Email not sent, no email address")
+					return
+				}
+				=====================================================================
+
+	<error function>
+		- throws IllegalStateException
+			-> often used to handle a situation that we don't expect to ever take place, like an unexpected value type.
+
+			ex)
+				=====================================================================
+				fun handleMessage(message: Message) = when(message){
+					is TextMessage -> showTest(message.text)
+					is ImageMessage -> showImage(message.image)
+					else -> error("Unknown message type")
+				}
+				=====================================================================
+
+
