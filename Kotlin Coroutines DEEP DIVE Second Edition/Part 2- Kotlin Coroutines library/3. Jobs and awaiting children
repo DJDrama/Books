@@ -1,0 +1,361 @@
+Jobs and awaiting children
+
+	- parent-child relationship
+		1. children inherit context from their parent.
+		2. parent suspends until all the children are finished
+		3. when the parent is cancelled, its child coroutines are also cancelled
+		4. when a child is destroyed it also destroys the parent.
+
+
+	<What is Job?>
+		- cancellable thing with a lifecycle.
+
+		- Job is an interface, but it has a concrete contract and state. (similarly treated to an abstract class)
+
+		[Job Diagram]
+			(New) -> (Active) -> (Completing) -> (Completed)
+
+			(Active) -> cancel / fail -> (Cancelling) -> (Cancelled)
+
+			* In "Active" state, we can start child coroutines.
+
+			* Most of coroutines will start in the "Active" State.
+
+			* Only those that are started "lazily" will start with the "New" state.
+
+			1. "Active": when a coroutine is executing it's body.
+			2. "Completed": Once all children are done (terminal one)
+			3. "Cancelling": if a job cancels or fails when running
+					-> we have last chance to clean-up, like closing connections or freeing resources.
+					-> then will move to "Cancelled" state.
+
+		- "state" is displayed in job's "toString"
+
+		ex) Job in different states.
+			=============================================================================
+			import kotlinx.coroutines.*
+
+			suspend fun main() = coroutineScope {
+			    val job = Job()
+			    println(job)    // JobImpl{Active}@443b7951
+
+			    job.complete()
+			    println(job)    // JobImpl{Completed}@443b7951
+
+			    val activeJob = launch {
+			        delay(1000)
+			    }
+			    println(activeJob)  // StandaloneCoroutine{Active}@5a42bbf4
+
+			    activeJob.join()
+			    println(activeJob)  // StandaloneCoroutine{Completed}@5a42bbf4
+
+			    val lazyJob = launch(start = CoroutineStart.LAZY){
+			        delay(1000)
+			    }
+			    println(lazyJob)    // LazyStandaloneCoroutine{New}@bd4b7c0
+
+			    lazyJob.start()
+			    println(lazyJob)    // LazyStandaloneCoroutine{Active}@bd4b7c0
+
+			    lazyJob.join()
+			    println(lazyJob)    // LazyStandaloneCoroutine{Completed}@bd4b7c0
+			}
+			=============================================================================
+
+		(optional initial state)
+			* New
+
+		(default initial state)
+			* Active
+
+		(transient state)
+			* Completing
+			* Cancelling
+
+		(final state)
+			* "Cancelled" -> isCompleted=true, isCancelled=true
+			* "Completed" -> isCompleted=true, isCancelled=false
+
+	<Coroutine builders create their jobs based on their parent job>
+		- launch : returns Job
+		- async : returns Deffered<T> (Deffered also implements Job interface.)
+
+		* Job is a coroutine context.
+			-> we can access it using coroutineContext[Job]
+
+		* Job is the only coroutine context that is not inerited by a coroutine from a coroutine.
+			-> Every coroutine creates its own Job, and the job from an argument or parent coroutine is used as a parent of this new job.
+
+			ex)
+				=============================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val name = CoroutineName("Some name")
+				    val job = Job()
+
+				    launch(name + job) {
+				        val childName = coroutineContext[CoroutineName]
+				        println(childName == name)      // true
+
+				        val childJob = coroutineContext[Job]
+				        println(childJob == job)        // false
+				        println(childJob == job.children.first())   // true
+				    }
+				}
+				=============================================================================
+
+		- the parent can reference all its children, and the children can refer to the parent.
+			-> this parent-child relationship (Job reference storing) enables the implementation of cancellation and exception handling inside a coroutine's scope.
+				ex)
+					=============================================================================
+					import kotlinx.coroutines.*
+
+					fun main(): Unit = runBlocking {
+					    val job: Job = launch {
+					        delay(1000)
+					    }
+					    val parentJob: Job = coroutineContext.job // or coroutineContext[Job]!!
+					    println(job == parentJob)   // false
+
+					    val parentChildren: Sequence<Job> = parentJob.children
+					    println(parentChildren.first() == job)  // true
+					}
+					=============================================================================
+
+		* Structured concurrency mechanisms won't work if a new Job context replaces the one from the parent.
+			ex)
+				=============================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    launch(Job()){
+				        delay(1000)
+				        println("Will not be printed")
+				    }
+				}
+				=============================================================================
+				-> Prints nothing.
+
+				-> Parent does not wait for its children because it has no relation with them.
+				-> child uses the job from the argument as a prarent, so it has no relation to the runBlocking.
+
+			* when a coroutine has its own (independent) job, it has nearly no relation to its parent.
+				-> it only inherits other contexts, but other results of the parent-child relationship won't apply.
+				-> this cause us to lose structured concurrency, which is a problematic situation that should be avoided.
+
+	<Waiting for children>
+		- "join" method: suspending function that suspends until a concrete job reaches a final state(either Cancelled or Completed)
+			ex)
+				=============================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val job1 = launch {
+				        delay(1000)
+				        println("Test1")
+				    }
+
+				    val job2 = launch {
+				        delay(2000)
+				        println("Test2")
+				    }
+				    job1.join()
+				    job2.join()
+				    println("All tests are done")
+				}
+				=============================================================================
+
+		- The Job interface also exposes a children property that lets us reference all its children.
+			-> we might as well use it to wait until all children are in a final state.
+				ex)
+					=============================================================================
+					import kotlinx.coroutines.*
+
+					fun main(): Unit = runBlocking {
+					    val job1 = launch {
+					        delay(1000)
+					        println("Test1")
+					    }
+
+					    val job2 = launch {
+					        delay(2000)
+					        println("Test2")
+					    }
+
+					    val children = coroutineContext[Job]?.children
+
+					    val childrenNum = children?.count()
+					    println(childrenNum)        // 2
+
+					    children?.forEach {
+					        it.join()
+					    }
+					    println("All tests are done")
+					}
+					=============================================================================
+
+	<Job Factory Function>
+		* Common mistake is to create a job using the Job() factory function, use it as a parent for some coroutines, and then use "join" on the job.
+			-> such program will never end because Job is still in an active state, even when all its children are finished.
+				-> because this context is still ready to be used by other coroutines.
+					ex)
+						=============================================================================
+						import kotlinx.coroutines.*
+
+						suspend fun main(): Unit = coroutineScope {
+						    val job = Job()
+						    launch(job){
+						        delay(1000)
+						        println("Text 1")
+						    }
+						    launch(job){
+						        delay(2000)
+						        println("Text 2")
+						    }
+						    job.join()
+						    println("This will not be printed")
+						}
+						=============================================================================
+
+				-> better approach is to join all the current children of the job.
+					ex)
+						=============================================================================
+						import kotlinx.coroutines.*
+
+						suspend fun main(): Unit = coroutineScope {
+						    val job = Job()
+						    launch(job){
+						        delay(1000)
+						        println("Text 1")
+						    }
+						    launch(job){
+						        delay(2000)
+						        println("Text 2")
+						    }
+						    job.children.forEach { it.join() }
+						    println("This will be printed")
+						}
+						=============================================================================
+						-> "This will be printed" will be printed
+
+		* Job
+			[ public fun Job(parent: Job? = null): CompletableJob ]
+				
+				-> "CompletableJob" interface extends the functionality of the Job interface by providing two additional methods.
+					1) complete(): Boolean
+						-> use to complete a job.
+						-> all the child coroutines will keep running until they are all done, but new coroutines cannot be started in this job.
+						-> result is "true" if this job was completed as a result of this invocation; otherwise, it is false (if it was already completed.)
+
+						ex)
+							=============================================================================
+							import kotlinx.coroutines.*
+
+							fun main() = runBlocking {
+							    val job = Job()
+							    launch(job) {
+							        repeat(5) { num ->
+							            delay(200)
+							            println("Rep$num")
+							        }
+							    }
+							    launch {
+							        delay(500)
+							        job.complete()
+							    }
+							    job.join()
+
+							    launch(job) {
+							        println("Will not be printed")
+							    }
+							    println("Done")
+							}
+							=============================================================================
+							(stdout)
+								Rep0
+								Rep1
+								Rep2
+								Rep3
+								Rep4
+								Done
+
+					2) completeExceptionally(exception: Throwable): Boolean
+						-> completes this job with a given exception.	
+						-> all children will be cancelled immediately (with CancellationException wrapping the exception provided as an argument).
+							ex)
+								=============================================================================
+								import kotlinx.coroutines.*
+
+								fun main() = runBlocking {
+								    val job = Job()
+								    launch(job) {
+								        repeat(5) { num ->
+								            delay(200)
+								            println("Rep$num")
+								        }
+								    }
+								    launch {
+								        delay(500)
+								        job.completeExceptionally(Error("Some error"))
+								    }
+								    job.join()
+
+								    launch(job) {
+								        println("Will not be printed")
+								    }
+								    println("Done")
+								}
+								=============================================================================
+								(stdout)
+									Rep0
+									Rep1
+									Done
+
+					* "complete" function is often used after we start the last coroutine on a job.
+						-> we can wait for the job completion using the "join" function.
+
+					* you can pass a reference to the parent as an argument of the Job function.
+						-> such a job will be cancelled when the parent is.
+							ex)
+								=============================================================================
+								import kotlinx.coroutines.*
+
+								fun main() = runBlocking {
+								    val parentJob = Job()
+								    val job = Job(parentJob)
+								    launch(job){
+								        delay(1000)
+								        println("Text 1")
+								    }
+								    launch(job){
+								        delay(2000)
+								        println("Text 2")
+								    }
+								    delay(1100)
+								    parentJob.cancel()
+								    job.children.forEach { it.join() }
+								}
+								=============================================================================
+								(stdout)
+									Text 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
