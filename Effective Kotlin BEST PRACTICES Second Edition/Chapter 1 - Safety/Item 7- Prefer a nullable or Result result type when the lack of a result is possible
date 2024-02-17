@@ -1,0 +1,81 @@
+Item 7: Prefer a nullable or Result result type when the lack of a result is possible
+
+	(situations)
+		- problem with the internet connection
+		- no such element
+		- malformatted object in text when parsing.
+
+	(mechanisms)
+		- return null or Result.failure
+		- throw an exception
+
+	* All exceptions indicate incorrect, special situations and should be treated this way.
+	* We should use exceptions only for exceptional conditions.
+		-> (resons)
+				1. exceptions are not very readable and easily be missed in code.
+				
+				2. in Kotlin, all exceptions are "unchecked"
+					-> Users are not forced or even encouraged to handle them
+					-> they are often not well documented
+
+				3. exceptions are designed for exceptional circumstances
+					-> little incentive for JVM implementers to make them as fast as explicit tests.
+
+				4. placing code inside a try-catc block inhibits certain optimizations that the compiler might otherwise perform.
+
+	* We should prefer to return null or Result.failure when an error is expected and we should throw an exception when an error is not expected.
+
+	<Using Result result type>
+		* We use Result instead of nullable type in functions that need to pass additional info in the case of Failure.
+			ex) we can pass the information about the error rather than returning null.
+
+		(API of methods)
+			- "isSuccess" and "isFailure" properties
+			
+			- "onSuccess" and "onFailure" methods
+				-> which call their lambda expressions when the result is a success or a failure.
+
+			- "getOrNull"
+
+			- "getOrThrow"
+
+			- "getORDefault"
+
+			- "getOrElse"
+
+			- "exceptionOrNull"
+
+			- "map"
+
+			- "recover"
+				-> method for transforming a throwable value into a success value.
+
+			- "fold"
+				-> method for handling both success and failure in a single method.
+
+		- "runCatching"
+			-> use it to transform a function that throws exceptions into one that returns Result
+				ex)
+					========================================================
+					fun get(): Result<T> = runCatching { getAThrowing() }
+					========================================================
+
+	<Using null result type>
+		* we use nullable type instead of Result in functions that do not need to pass additional information.
+			-> in the case of failure, where the meaning of null is clear.
+
+		* For all functions that return null, the meaning of null should be clear.
+
+	<Null is our friend, not an enemy>
+		* In Java, "Return empty arrays or collections, not nulls"
+			<-> BUT In Kotlin, null is our friend, not an enemy. 
+					-> lets us express what is nullable and what is not, and it forces us to handle nulls consciously.
+
+	<Defensive and offensive programming>
+		(Defensive programming)
+			* exceptions should not be part of our regular program execution flow;
+				-> when fetching data from a db or network, you should use "Result" or nullable types.
+
+		(Offensive programming)
+			- when a developer makes a mistake, like calling a method with incorrect arguments or calling a method on an object in an inccorect state, silencing such a situation would be dangerous!
+				-> like throwing exceptions. (handling unexpected situations)
