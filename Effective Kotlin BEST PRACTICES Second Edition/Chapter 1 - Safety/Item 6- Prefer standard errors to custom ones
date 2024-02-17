@@ -1,0 +1,28 @@
+Item 6: Prefer standard errors to custom ones
+	
+	- you should use exceptions from the standard library instead of defining your own.
+
+	(Common Exceptions)
+		- IllegalArgumentException
+			-> indicates that an argument passed to a method is invalid.
+			-> typically use "require", "requireNotNull"
+
+		
+		- IllegalStateException
+			-> state is invalid.
+				ex) when a variable is not initialized yet
+			-> typically use "check", "checkNotNull"
+
+		- UnsupportedOperationException
+			-> declared method is not supported by the object.
+			-> typically throw using "TODO" function from Kotlin stdlib.
+
+		- IndexOutOfBoundsException
+
+		- ConcurrentModificationException
+
+		- NoSuchElementException
+			-> element does not exist.
+				ex) Iterable, and the client asks for "next" when there are no more elements.
+
+		
