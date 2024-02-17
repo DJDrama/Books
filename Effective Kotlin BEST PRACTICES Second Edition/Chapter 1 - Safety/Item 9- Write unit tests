@@ -1,0 +1,20 @@
+Item 9: Write unit tests
+
+	- With unit tests, we typically check
+
+		1) Common use cases (the happy path)
+		2) Common error cases or potential problems
+		3) Edge cases and illegal arguments
+
+	(Advatages)
+		- reliable
+		- not afraid to refactor it
+			-> if not tested, developers are scared of touching legacy code
+		- much faster to check if something works correctly using unit tests rather than checking it manually.
+
+	(Disadvantages)
+		- It takes time (HOWEVER! good unit tests probably save time as we spend less time debugging and looking for bugs later.)
+		- Everyone needs to learn how to properly unit test their code.
+
+	
+
