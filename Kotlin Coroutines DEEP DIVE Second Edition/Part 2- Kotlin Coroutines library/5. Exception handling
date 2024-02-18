@@ -1,0 +1,154 @@
+Exception handling
+	
+	- exception propagation is bi-directional
+		-> exception is propagated from child to parent, and when those parents are cancelled, they cancel their children.
+
+	<Stop breaking my coroutines>
+		- wrapping a coroutine builder with a try-catch is not helpful at all
+			ex)
+				================================================================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+
+				fun main(): Unit = runBlocking {
+				    // Don't wrap in a try-catch. will be ignored.
+				    try {
+				        launch {
+				            delay(1000)
+				            throw Error("Some error")
+				        }
+				    } catch (e: Throwable) {
+				        println("Will not be printed")
+				    }
+				}
+				================================================================================
+
+	<SupervisorJob>
+		- generally used as part of a scope in which we start multiple coroutines.
+			ex)
+				================================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val scope = CoroutineScope(SupervisorJob())
+				    scope.launch {
+				        delay(1000)
+				        throw Error("Some error")
+				    }
+				    scope.launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+				    delay(3000)
+				    println("Ended")
+				}
+				================================================================================
+				(Stdout)
+					Exception in thread "DefaultDispatcher-worker-1" java.lang.Error: Some error
+					Will be printed
+					Ended
+
+	<supervisorScope>
+		- another way to stop exception propagation is to wrap coroutien builders with supervisorScope.
+			ex)
+				================================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    supervisorScope {
+				        launch {
+				            delay(1000)
+				            throw Error("Some error")
+				        }
+				        launch {
+				            delay(2000)
+				            println("Will be printed")
+				        }
+				    }
+				    delay(1000)
+				    println("Done")
+				}
+				================================================================================
+				(Stdout)
+					Exception in thread "main" java.lang.Error: Some error
+					Will be printed
+					Done
+
+		* SupervisorJob cannot be replaced with "withContext(SupervisorJob())"
+			-> SupervisorJob is a parent of withContext coroutine.
+			-> when a child has an exception, it propagates to coroutine coroutine, cancels its Job, cancels children, and throws an exception.
+
+	<Await>
+
+	<CancellationException does not propagate to its parent>
+		- if an exception is a subclass of CancellationException, it will not be propagated to its parent.
+			-> it will only cause cancellation of the current coroutine.
+
+			ex)
+				================================================================================
+				import kotlinx.coroutines.*
+
+				object MyNonPropagatingException : CancellationException()
+
+				suspend fun main(): Unit = coroutineScope {
+				    launch {
+				        launch {
+				            delay(2000)
+				            println("Will not be printed")
+				        }
+				        throw MyNonPropagatingException
+				    }
+				    launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+				}
+				================================================================================
+				-> when throwing MyNonPropagatingException, the builder cancels itself, and also cancels its children.
+				-> below "launch" is not affected.
+
+	<Coroutine exception handler>
+		- define what should happen in the case of an exception.
+			ex)
+				================================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val handler = CoroutineExceptionHandler { ctx, exception ->
+				        println("Caught $ctx $exception")
+				    }
+				    // won't propagate exception since SupervisorJob()
+				    val scope = CoroutineScope(SupervisorJob() + handler)
+				    scope.launch {
+				        delay(1000)
+				        throw Error("Some error")
+				    }
+
+				    scope.launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+				    delay(3000)
+				}
+				================================================================================
+				(Stdout)
+					Caught java.lang.Error: Some error
+					Will be printed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
