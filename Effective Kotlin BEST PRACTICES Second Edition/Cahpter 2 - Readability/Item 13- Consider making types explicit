@@ -1,0 +1,28 @@
+Item 13: Consider making types explicit
+
+	* Type should be specified if it is not clear
+		ex)
+			===============================================================
+			val data = getSomeData() // Unclear
+
+			val data: UserData = getSomeData() // Clear (Explicit type)
+			===============================================================
+
+	- we specify explicit types to improve not only readability but also safety.
+
+	* Type might be important information for both a developer and the compiler.
+	* Whenever it is, do not hesitate to specify it. It costs little and can help a lot.
+
+		-> Important for readability.
+
+
+
+	<Explicit API mode for library authors>
+		- Kotlin forces us to specify types and visibility modifiers for all declarations that are part of our public API
+
+		[build.gradle.kts file]
+			(strict mode)
+				"explicitApi()"
+
+			(warning mode)
+				"explicitApiWarning()"

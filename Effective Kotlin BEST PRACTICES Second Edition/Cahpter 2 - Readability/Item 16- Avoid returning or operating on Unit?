@@ -1,0 +1,4 @@
+Item 16: Avoid returning or operating on Unit?
+
+	* Unit? should be replaced by "Boolean"
+		-> avoid returning or operating on "Unit?"

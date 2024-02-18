@@ -1,0 +1,31 @@
+Item 17: Consider naming arguments
+
+	<When snould we use named arguments?>
+		1) name indicates which value is expected.
+		2) safer because they are independent of order.
+
+	<Parameters with default arguments>
+		* when a parameter has a default argument, we should nearly always use it by name!
+
+	<Many parameters with the same type>
+		* When parameters have different types, we are generally safe from placing an argument in an incorrect position.
+
+	<Parameters with function types>
+		ex)
+			========================================================================
+			observable.getUsers()
+				.subscribeBy(
+					onNext = { users: List<User> -> 
+						// ...
+					},
+					onError = { throwable: Throwable? ->
+						// ...
+					},
+					onCompleted = {
+						// ...
+					}
+				)
+			========================================================================
+
+	* Named arguments
+		-> increase safety

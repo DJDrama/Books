@@ -1,0 +1,9 @@
+Item 14: Consider referencing receivers explicitly
+
+	<Many receivers>
+		- use explicit receivers like "this.name" instead of "name"
+
+
+	* Do not change a scope's receiver just because you can.
+		-> might be confusing to have too many receivers that all give us methods we can use.
+			(An explicit argument or reference is generally better)

@@ -1,0 +1,63 @@
+Item 15: Properties should represent a state, not a behavior
+	
+	- Unlike Java, Kotlin we can have properties that have custom setters and getters.
+		ex)
+			============================================================================
+			var name: String? = null
+				get() = field?.uppercase()
+				set(value){
+					if(!value.isNullOrBlank)
+						field = value
+				}
+			============================================================================
+
+		ex) read-only val property
+			============================================================================
+			val fullName: String
+				get() = "$name $surname"
+			============================================================================
+
+	* properties represent accessors, not fields.
+
+	* We should not use them to represent algorithmic behavior!
+
+		ex) DON'T DO THIS!
+			============================================================================
+			val Tree<Int>.sum: Int
+				get() = when(this){
+					is Leaf -> value
+					is Node -> left.sum + right.sum
+				}
+			============================================================================
+			-> make it to a function instead!
+				ex)
+					====================================================================
+					fun Tree<Int>.sum(): Int{
+						return when(this){
+							is Leaf -> value
+							is Node -> left.sum + right.sum
+						}
+					}
+					====================================================================
+
+
+	(Generic rule)
+		* We should use properties only to represent or set a state, and no other logic should be invoked.
+
+		[Typical situations when we should use functions instead of properties]
+			1) An operation is computationally expensive or has computational complexity higher than O(1)
+
+			2) An operation throws an exception
+
+			3) involves business logic
+
+			4) it is not deterministic
+
+			5) it is a conversion, such as Int.toDouble()
+				-> convention: conversions are methods.
+
+			6) Getters should not change property state
+
+
+	* Property -> describes and set states.
+	* Function -> describes a behavior.

@@ -1,0 +1,12 @@
+Item 11: An operator’s meaning should be consistent with its function name
+
+	<Unclear cases>
+		- infix fun
+
+	<When is it fine to break this rule?>
+		- for Domain Specific Language.
+
+
+	* Avoid cases where oprator meaning is unclear.
+
+	* If you wish to have a more operator-like syntax, then use the "infix" modifier or a top-level function.

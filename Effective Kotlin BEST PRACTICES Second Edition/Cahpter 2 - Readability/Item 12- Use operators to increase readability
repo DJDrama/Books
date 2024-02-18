@@ -1,0 +1,5 @@
+Item 12: Use operators to increase readability
+
+	- classic way : "conatains" -> in Kotlin "in" operator.
+
+	
