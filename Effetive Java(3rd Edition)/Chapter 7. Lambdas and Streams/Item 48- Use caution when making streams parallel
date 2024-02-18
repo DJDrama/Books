@@ -1,0 +1,26 @@
+Item 48: Use caution when making streams parallel
+
+	* parallelizing a pipeline is unlikely to increase its performance if the source is from "Stream.iterate", or the intermediate operation "limit" is used.
+
+	* Do not parallelize stream pipelines indiscrminately.
+
+	* performance gains from parallelism are best on streams over ArrayList, HashMap, HashSet, and ConcurrentHashMap instances; arrays; int ranges; and long ranges.
+
+
+	- Best terminal operations for parallelism are "reductions"
+		(Stream's reduce methods, or prepackaged reductions such as min, max, count, and Sum)
+
+		(Short-circuiting operations)
+			-> anyMatch, allMatch, and noneMatch are also amenable to parallelism.
+
+		<Stream's collect method - known as mutable reductions>
+			-> are not good candidates for parallelism because the overhead of combining collections is costly.
+
+	* Not oly can parallelizing a stream lead to poor performance, including liveness failures; it can lead to incorrect results and unpredictable behavior.
+		
+		(safety failures)
+			-> result from parallelizing a pipeline that uses mappers, filters, and other programmer-supplied function objects that fail to adhere to their specifications.
+
+
+	* If your code remains correct and these experiments bear out your suspicion of increased performance, then and only then parallelize the stream in production code.
+	

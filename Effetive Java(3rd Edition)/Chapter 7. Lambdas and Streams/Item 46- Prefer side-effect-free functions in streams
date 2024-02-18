@@ -1,0 +1,24 @@
+Item 46: Prefer side-effect-free functions in streams
+
+	- "Pure function"
+		-> result depends only on its input: does not depend on any mutable state, nor does it update any state.
+
+	* Any function objects that you pass into stream operations, both intermediate and terminal, should be free of side-effects.
+
+	* "forEach" operation should be used only to report the result of a stream computation, not to perform the computation.
+
+
+	["Collector"]
+		- "reduction strategy"
+			-> combining the elemnts of a stream into a single object.
+				(object produced by a collector is typically a collection)
+
+		(three such collectors)
+			1. "toList()"
+
+			2. "toSet()"
+
+			3. "toCollection(collectionFactory)"
+
+
+		- "groupingBy", "joining", and etc
