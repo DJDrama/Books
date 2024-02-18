@@ -1,0 +1,90 @@
+Item 45: Use streams judiciously
+	
+	- API provides 2 key abstractions.
+		1) "stream"
+			-> represents a finite or infinite sequence of data elements
+
+		2) "stream pipeline"
+			-> represents a multistage computation on these elements.
+
+	- elements in stream can come from anywhere.
+		-> collections, arrays, files, regular expression pattern matchers, pseudorandom number generators, and other streams.
+
+	- data elements in a stream can be object references or primitive values.
+		-> three primitive types are supported: int, double, long
+
+	- stream pipeline consists of a source stream followed by zero or more "intermediate operations" and one "terminal operation".
+		-> "intermediate operations" all transform one stream into another.
+
+		-> "terminal operation" performs a final computation on the stream resulting from the last intermediate operation
+
+	[Features]
+		* Stream pipelines are evaluated lazily: 
+			-> evaluation doesn't start until the terminal operation is invoked, and data elements that aren't required in order to complete the terminal operation are never computed.
+
+			-> possible to work with infinite streams.
+
+		* Streams API is fluent:
+			-> allow all of the calls that comprise a pipeline to be chained into a single expression.
+
+		* Stream pipelines run sequentially.
+			-> invoke "parallel" method on any stream in the pipeline -> making a pipeline execute in parallel.
+
+	
+	* Overusing streams makes programs hard to read and maintain!
+
+	* in the absence of explicit types, careful naming of lambda parameters is essential to the readability of stream pipelines.
+		ex)	
+			============================================================
+			list.filter(asdf -> ... ) // DONT DO THIS
+
+			list.filter(listItem -> ... ) // naming important for readability
+			============================================================
+
+
+	- Java does not have 'char' streams.
+		ex)
+			============================================================
+			"Hello World".chars().forEach(System.out::print);
+			============================================================
+			-> it prints 72101108...033
+				(because the elements of the stream are int values -> int overloading of print is invoked.)
+
+			[FIX] (casting)
+			==============================================================
+			"Hello World".chars().forEach(x -> System.out.print((char) x);
+			==============================================================
+
+		* HOWEVER! refrain from using streams to process char values!
+
+	- Refactor existing code to use streams and use them in new code only where it makes sense to do so.
+
+	[Code block vs function objects]
+		<Code Block>
+			(From a code block)
+				-> you can read or modify any local variable in scope.
+					<-> (From a lambda) you can only read final or final variables and can't modify any local variables.
+
+			(From a code block)
+				-> you can return from the enclosing method, break or continue an enclosing loop, or throw any checked exception
+					<-> (From a lambda) you can't do above
+
+
+		<Stream>
+			-> Uniformly transform sequences of elements
+			-> Filter sequences of elements
+			-> Combine sequences of elements using a single operation
+			-> Accumulate sequences of elements into a collection
+			-> Search a sequence of elements for an element satisfying some criterion
+
+	(1 thing that is hard to do with streams)
+		-> access corresponding elements from multiple stages of a pipeline simultaneously.
+			-> once you map a value to some other value, the original value is lost.
+
+			* invert the mapping when you need access to the earlier-stage value.
+
+
+	* If you are not sure whether a task is better served by streams or iteration, try both and see which works better.
+
+
+
