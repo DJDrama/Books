@@ -1,0 +1,16 @@
+Item 10: Design for readability
+	
+	* Programming is mostly about reading, not writing.
+
+	<Reducing cognitive load>
+		...
+
+	<Do not get extreme>
+
+		- many reasonable cases for "let"
+			ex)
+				-> to move an operation after its argument calculation
+				-> to use it to wrap an object with a decorator.
+
+	<Conventions>
+		...
