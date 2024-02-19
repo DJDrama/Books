@@ -1,0 +1,62 @@
+Item 49: Check parameters for validity
+
+	* failure to validate parameters
+		-> result in a violation of "failure atomicity"
+
+	- use the Javadoc "@throws" tag to document the exception that will be thrown if a restriction on parameter values is violated.
+
+		ex)
+			=================================================================
+			/**
+			* ...
+			* @throws ArithmeticException if m is less than or equal to 0
+			* /
+			public BigInteger mod(BigInteger m){
+				if (m.signum() <= 0)
+					throw new ArithmeticException("Modulus <= 0: " + m);
+
+				... // Do the computation
+			}
+			=================================================================
+
+
+	* "Objects.requireNonNull" method, added in Java 7
+		-> flexible and convenient, so there's no reason to perform null checks manually anymore.
+			
+			ex)
+				=================================================================
+				this.strategy = Objects.requireNonNull(strategy, "strategy");
+
+
+	- can check prameters using assertions:
+		ex)
+			=================================================================
+			private static void sort(long a[], int offset, int length){
+				assert a!=null;
+				assert offset>=0 && offset <= a.length;
+				assert length>=0 && length <= a.length - offset;
+
+				... // Do the computation.
+			}
+			=================================================================
+			-> assertions throw AssertionError if they fail.
+
+	* indiscriminate reliance on implicit validity checks can result in the loss of failure atomicity.
+
+	- you should use the "exception translation" idiom, to translate the natural exception into the correct one.
+
+	* you should think about what restrictions exist on its parameters when writing a method or a constructor.
+		-> document these restrictions and enforce them with explicit checks at the beginning of the method body.
+
+
+
+(Questions)
+
+1) "failure atomicity" (실패 원자성)
+	- if a method threw an exception, the object should still be usable afterwards.
+		-> generally, the object should be in the same state as it was before invoking the method.
+
+2) "exception translation" idiom (exception chaining)
+	-> higher level should always catch lower-level exceptions and in their place, throw exceptions that can be explained in terms of the higher-level abstraction.
+	
+	-> lower-level exception might be helpful to someone debugging the problem that caused by the higher-level exception.
