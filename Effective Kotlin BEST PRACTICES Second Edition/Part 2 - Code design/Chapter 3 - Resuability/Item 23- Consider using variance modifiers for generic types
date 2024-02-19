@@ -1,0 +1,27 @@
+Item 23: Consider using variance modifiers for generic types
+
+	1) "in" variance modifier
+		-> a type parameter can only be used as an input
+
+	2) "out" variance modifier
+		-> a type parameter can only be used as an output.
+
+	(Simple heuristic)
+		-> if a type parameter is used only as an output (public result types)
+			: should be marked as "out"
+
+		-> if it is used only as an input (public parameter types)
+			: should be marked as "in"
+
+
+		ex)
+			=============================================================================
+			fun interface ReadOnlyProperty<in T, out V> {
+				operator fun getValue(
+					thisRef: T,
+					property: KProperty<*>
+				): V
+			}
+			=============================================================================
+			-> T is used only as an input (in T)
+			-> V is a return type(used only as an output) (out V)
