@@ -1,0 +1,22 @@
+Item 21: Use generics when implementing common algorithms
+
+	- Generics were introduced to classes and interfaces to allow the creation of collections with only concrete types, like "List<String>" or "Set<User>"
+
+	* types are lost during compilation, but compiler forces us to pass only elements of the correct type.
+
+	<Generic constraints>
+		- type parameters can be constrained to be a subtype of a concrete type.
+			ex)
+				============================================================
+				fun <T: Comparable<T>> Iterable<T>.sorted(): List<T> {
+					/* ... */
+				}
+				============================================================
+
+		- In rare cases, we might need to set more than one upper bound, we can use "where" to set more constraints:
+			ex)
+				============================================================
+				fun <T> pet(animal: T) where T: Animal, T: GoodTempered {
+					/* ... */
+				}
+				============================================================
