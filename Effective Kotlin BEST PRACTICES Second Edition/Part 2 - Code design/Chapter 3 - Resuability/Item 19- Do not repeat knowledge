@@ -4,3 +4,29 @@ Item 19: Do not repeat knowledge
 		<-> WET : We enjoy typing
 
 	<Knowledge>
+		- Logic : how we expect our program to behave and what it should look like.
+		- Common algorithms : Implementation of algorithms to achieve the desired behavior.
+
+		(difference)
+			-> business logic changes a lot over time, while common algorithms generally do not change once they are defined!
+			-> algorithms themselves are generally stable.
+
+	<Everything can change>
+		* The biggest enemy of change is knowledge repetition.
+
+	<When should we allow code repetition?>
+		* Are they more likely to change together or separately?
+		* it is easier to change them both at the same time, but harder to change only one usage.
+
+	<The Single Responsibility Principle>
+		- "A class should have only one reason to change"
+			-> there should be no situations in which two actors need to change the same class.
+			(situation in which two actors edit the same piece of code is especially dangerous!)
+
+		* SRP teaches us two things.
+			1) Knowledge from two different sources is very likely to change independently, so we should treat these sources as two different types of knowledges.
+
+			2) We should separate two different types of knowledge because otherwise it is tempting to reuse parts of our code that should not be reused.
+
+
+	
