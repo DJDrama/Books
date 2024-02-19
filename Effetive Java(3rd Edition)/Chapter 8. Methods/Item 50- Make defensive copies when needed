@@ -1,0 +1,35 @@
+Item 50: Make defensive copies when needed
+	* You must program defensively, with the assumption that clients of your class will do their best to destroy its invariants.
+
+
+	* Date is mutable.
+	* Date is obsolete and should no longer be used in new code.
+		-> use "Instant" (or Local-DateTime or ZonedDateTime)
+
+	* it is essential to make a defensive copy of each mutable parameter to the constructor.
+
+	* defensive copies are made before checking the validity of the parameters, and the vailidity check is performed on the copies rather than on the originals.
+
+		- "window of vulnerability"
+		- "TOCTOU" attack (time-of-check / time-of-use)
+
+	* Date is "nonfinal"
+		-> clone: it could return an instance of an untrusted subclass that is specifically designed for malicious mischief.
+
+		* Do not use the "clone" method to make a defensive copy of a parameter whose type is subclassable by untrusted parties.
+
+	- Generally better off using a constructor or static factory to copy an instance.
+
+	- there may be a performance penalty associated with defensive copying and it isn't always justified.
+		-> class documentation should make it clear that the caller must not modify the affected parameters or return values.
+
+	- there are some methods and constructors whose invocations indicates an explicit "handoff" of the object referenced by a parameter.
+		-> when invoking such a method, the client promises that it will no longer modify the object directly.
+			-> must make this clear in its documentation.
+
+
+(Questions)
+1) Date is "nonfinal"
+	-> is extensible (subtypes)
+
+2) explicit "handoff"
