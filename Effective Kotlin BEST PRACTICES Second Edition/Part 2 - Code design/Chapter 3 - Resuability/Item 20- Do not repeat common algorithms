@@ -1,0 +1,53 @@
+Item 20: Do not repeat common algorithms
+
+	- "coerceIn"
+		ex)
+			====================================================
+			val percent = numberFromUser.coerceIn(0, 100)
+
+			// Dont' repeat below code!
+			val percent = when {
+				numberFromUser > 100 -> 100
+				numberFromUser < 0 -> 0
+				else -> numberFromUser
+			}
+			====================================================
+
+	(Advantages of algos)
+		1. programming is fater
+		2. they are named, we can recognize by name instead of by reading its implementation.
+		3. we eliminate noise, making it easier to notice something atypical.
+		4. they can be optimized once, and we profit from this optimization everywhere we use these functions.
+
+
+	<Learn the standard library(stdlib)>
+		- when you can use "map" function, then use it instead of "forEach"
+
+	<Implementing your own utils>
+		- Sometimes we need some algorithms that are not in the stdlib
+			-> good to define it as a universal "utility-function"
+				
+				ex)
+					====================================================
+					fun main() {
+					    val a = listOf(1, 23, 412)
+					    println(a.product())
+					}
+
+					fun Iterable<Int>.product() =
+					    fold(1) { acc, i -> acc * i }
+					====================================================
+
+		* Extension functions are a really good choice
+			1) Functions do not hold states
+				-> they are perfect for representing behavior, especially if it has no side effects.
+
+			2) They are suggested only on objects with concrete types.
+
+			3) More intuitive to modify an extension receiver than an argument.
+
+			4) Easier to find among hints since they are suggested on objects (compared to comapnion object or static methods)
+				ex)
+					"String".isEmpty() is easier to find than TextUtils.isEmpty("String")
+
+			5) easy to confuse a top-level function with a method from the class or superclass, but their behavior is very different.
