@@ -1,0 +1,52 @@
+Item 22: Avoid shadowing type parameters
+
+	ex) A local parameter can shadow an outer scope property.
+		======================================================================
+		class Forest(val name: String){
+
+			fun addTree(name: String){
+				// ...
+			}
+
+		}
+		======================================================================
+
+
+	ex) shadow a class type parameter with a function type parameter.
+		======================================================================
+		interface Tree
+		class Birch: Tree
+		class Spruce: Tree
+
+		class Forest<T: Tree>{
+
+			fun <T: Tree> addTree(tree: T){
+				// ...
+			}
+		}
+		======================================================================
+		-> "Forest" and "addTree" type parameters are now independent of each other:
+			ex)
+				======================================================================
+				val forest = Forest<Birch>()
+				forest.add(Spruce()) // should not happen because Spruce type is not equal to Birch type
+				forest.add(Birch())
+				======================================================================
+
+		(Fix)
+			ex)
+				======================================================================
+				interface Tree
+				class Birch: Tree
+				class Spruce: Tree
+
+				class Forest<T: Tree> {
+
+					fun addTree(tree: T){
+						// ...
+					}
+
+				}
+				======================================================================
+
+	* Avoid shadowing type parameters, and be careful when you see that a type parameter is shadowed.
