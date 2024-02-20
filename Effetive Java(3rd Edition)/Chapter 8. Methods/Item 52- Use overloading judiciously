@@ -1,0 +1,53 @@
+Item 52: Use overloading judiciously
+	
+	* the choice of which overloading to invoke is made at compile time.
+
+	* Selection among overloaded methods is static, while selection among overriden methods is dynamic.
+		-> overriden method is chosen at "runtime".
+
+	* "most specific" overriding method always gets executed.
+
+	* use "instanceOf" to replace all overloadings when using List, Set, Collection -> to Collection.
+		ex)
+			===========================================
+			if(input instanceOf Set){
+				// do something with Set
+			}
+			else if(input instanceOf List){
+				// do something with List
+			}else{
+				// it's a colelction
+			}
+			===========================================
+
+	* avoid confusing uses of overloading.
+
+	* A safe, conservative policy is never to export two overloadings with the same number of parameters.
+		-> You can always give methods different names instead of overloading them.
+
+	* Set remove vs List remove
+		-> set.remove(Object o)
+		-> list.remove(int index) && list.remove(Object o) <Method Overloading - confusing>
+			(If we use Integer than Integer will autobox to int which becomes index)
+
+	- "Inexact method reference" : System.out::println
+		* Do not overload methods to take different functional interfaces in the same argument position.
+
+	* just because you can overload methods doesn't mean you should!
+
+
+(Questions)
+1) selection among overloaded methods is static, while selection among overridden methods is dynamic
+	-> "static" binding happens at compile time.
+	-> "dynamic" binding happens at runtime.
+
+	* at compile time, the compiler selects signature by "name of the method", "type of variables holding arguments"
+		BUT!, when it comes to runtime, "Dynamic Binding" happens and responsible for finding and invoking code of method selected by static binding at compilation time.
+			-> it will try to find code of method in type of "actual instance" held by variable.
+				ex)
+					===========================================
+					Animal a = new Cat();
+					a.makeSound(); // will print "mew"
+					===========================================
+					-> at runtime JVM will search and invoke code of "makeSound" starting from "Cat" class.
+					-> if implementation will not be provided in that class, JVM will search for it in ancestor(s) until it finds one from which it was inherited.
