@@ -1,1 +1,205 @@
 Coroutine scope functions
+	
+	<Approaches that were used before coroutine scope functions were introduced>
+		* GlobalScope is just a scope with "EmptyCoroutineContext"
+
+		- IF we call "async" on a "GlobalScope", we will have no relationship to the parent coroutine.
+			1) cannot be cancelled (if the parent is cancelled, functions inside async still run)
+				-> wasting resources until they are done
+
+			2) does not inherit a scope from any parent(It will always un on the default dispatcher and will not respect any context from the parent)
+
+			(Consequences)
+			1) potential memory leaks and redundant CPU usage
+			2) tools for unit testing coroutines will not work here, so thesting this function is very hard.
+
+		(DO NOT DO THESE!!!!)
+			ex)
+				============================================================
+				suspend fun getUserProfile(
+					scope: CoroutineScope
+				): UserProfileData{
+					val user = scope.async { ... }
+
+					return user.await()
+				}
+
+				suspend fun CoroutineScope.getUserProfile(): UserProfileData{
+					val user = async { ... }
+
+					return user.await()
+				}
+				============================================================
+				-> requires scope to be passed from function to function.
+				* If there is an exception in one "async", the whole scope will be shut down.
+
+	<coroutineScope>
+		-> suspending function that starts a scope.
+		-> formally creates a new coroutine, but it suspends the previous one until the new one is finished.
+
+			ex)
+				============================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.runBlocking
+
+				fun main() = runBlocking {
+				    val a = coroutineScope {
+				        delay(1000)
+				        10
+				    }
+				    println("a is calculated")
+
+				    val b = coroutineScope {
+				        delay(1000)
+				        20
+				    }
+				    println(a)
+				    println(b)
+				}
+				============================================================
+				(Stdout)
+					a is calculated
+					10
+					20
+
+				-> the provided scope inherits its coroutineContext from the outer scope, but overrides the context's Job.
+
+					1) inherits a context from its parent
+					2) waits for all its children before it can finish itself
+					3) cancels all its children when the parent is cancelled.
+
+		- If there is an exception in coroutineScope, it cancels all other children and rethrows it.
+
+	<Coroutine scope functions>
+		- supervisorScope : uses SupervisorJob
+
+	<withContext>
+		- additionally allows some changes to made to the scope.
+
+		* withContext(EmptyCoroutineContext) and coroutineScope() behave in exactly the same way.
+
+	<supervisorScope>
+		- it overrides the context's Job with SupervisorJob
+			-> it is not cancelled when a child raises an exception.
+
+		- mainly used in functinos that start multiple independent tasks.
+			ex)
+				============================================================
+				suspend fun notifyAnalytics(actions: List<UserAction>) = 
+					supervisorScope {
+						actions.forEach { action ->
+							launch {
+								notifyAnalytics(action)
+							}
+						}
+					}
+				============================================================
+
+		* When we call "await" and the "async" coroutine finishes with an exception, then "await" wil rethrow it.
+			-> we should wrap "await" calls with a try-catch block.
+
+		* Don't use withContext(SupervisorJob())
+			-> withContext is still using a regular "Job", and the SupervisorJob() becomes its parent
+			-> when one child rasies an exception, the other children will be cancelled as well.
+
+			ex)
+				============================================================
+				import kotlinx.coroutines.*
+
+				fun main() = runBlocking {
+				    println("Before")
+
+				    withContext(SupervisorJob()) {
+				        launch {
+				            delay(1000)
+				            throw Error()
+				        }
+				        launch {
+				            delay(2000)
+				            println("Done")
+				        }
+				    }
+				    println("After")
+				}
+				============================================================
+				(Stdout)
+					Before
+					Exception in thread "main" java.lang.Error
+
+	<withTimeout>
+		- sets a time limit for its body execution.
+		* if it takes too long, it cancels this body and throws TimeoutCancellationException (a subtype of CancellationException)
+			ex)
+				============================================================
+				import kotlinx.coroutines.*
+
+				suspend fun main() = coroutineScope {
+				    try {
+				        test()
+				    } catch (e: TimeoutCancellationException) {
+				        println("Cancelled")
+				    }
+				    delay(1000)
+				}
+
+				suspend fun test(): Int = withTimeout(1500) {
+				    delay(1000)
+				    println("Still thinking")
+				    delay(1000)
+				    println("Done!")
+				    42
+				}
+				============================================================
+				(Stdout)
+					Still thinking
+					Cancelled
+
+		* withTimeout throws TimeoutCancellationException, which is subtype of CancellationException
+			-> so when this exception is thrown in a coroutine builder, it only cancels it and does not affect its parent.
+
+		* withTimeoutOrNull
+			-> does not throw exception, and just return null if time is exceeded.
+
+	<Connecting coroutine scope functions>
+		- to set a dispatcher and a timeout, you can use withTimeoutOrNull inside withContext.
+			ex)
+				============================================================
+				suspend fun calculateAnswerOrNull(): User? = 
+					withContext(Dispatchers.Default){
+						withTimeoutOrNull(1000){
+							calculateAnswer()
+						}
+					}
+				============================================================
+
+	<Additional operations>
+		- When you have an additional (non-essential) operation that should not influence the main process, it is better to start it on a separate scope.
+			ex)
+				============================================================
+				val analyticsScope = CoroutineScope(SupervisorJob())
+
+				class ShowUserDataUseCase(
+					private val repo: UserDataRepository,
+					private val view: UserDataView,
+					private val analyticsScope: CoroutineScope
+				) {
+					suspend fun showUserData() = coroutineScope {
+						val name = async { repo.getName() }
+						val friends = async { repo.getFriends() }
+						val profile = async { repo.getProfile() }
+						val user = User(
+							name = name.await(),
+							friends = friends.await(),
+							profile = profile.await()
+						)
+						view.show(user)
+						analyticsScope.launch {
+							repo.notifyProfileShown()
+						}
+					}
+				}
+				============================================================
+
+
+
