@@ -1,0 +1,75 @@
+Item 26: Use abstraction to protect code against changes
+
+	<Constant>
+		ex)	extract into a constant
+			=============================================================
+			fun isPasswordValid(text: String): Boolean{
+				if(text.length < 7) return false
+				// ...
+			}
+
+			// Instead extract into a constant
+			const val MIN_PASSWORD_LENGTH = 7
+			fun isPasswordValid(text: String): Boolean {
+				if(text.length < MIN_PASSWORD_LENGTH) return false
+				// ...
+			}
+			=============================================================
+			-> easier to modify the minimum password size.
+			-> we don't need to understand the validation logic; we can just change this constant.
+
+		* Extracting a constant:
+			1) Names it
+			2) Helps us change its value in the future.
+
+
+	<Functions>
+		- a function does not hold a state.
+		- changes in a function signature often influence all usages.
+		* A more powerful way to abstract away implementation is by using classees.
+
+	<Classes>
+		- classes are powerful than functions is that they can hold a state and expose many functions (class member functions are called methods).
+
+		* still have limitations.
+			-> when a class is final, we know what exact implementation is under its type.
+			* abstraction is still strongly bound to this class though!
+
+			-> to get more freedom, we can make our implementation even more abstract and hide this class behind an interface.
+
+
+	<Interfaces>
+		- By hiding objects behind an interface, we abstract away any actual implementation and we force users to depend only on this abstraction.
+			-> We reduce coupling.
+
+		* interface faking for testing is simpler than class mocking, and it does not need a mocking library:
+			ex)
+				=============================================================
+				val messageDisplay: MessageDisplay = TestMessageDisplay()
+				=============================================================
+
+		- delcaration is more decoupled from the usage, so we have more freedom in changing actual classes.
+
+	<Next ID>
+
+	<Abstractions give freedom>
+
+		(common ways to introduce abstraction)
+			- extracting constants
+			- wrapping behaviors into functions
+			- wrapping functions into classes
+			- hiding classes behind interfaces
+			- wrapping universal types into context-specific types
+
+		(more options)
+			- using generic type parameters
+			- extracting inner classes
+			- restricting creation, for instance by forcing object creation via factory methods.
+
+	<Problems with abstraction>
+		- Abstractions can hide a lot.
+		* On the one hand, it is easier to do development when there is less to think about; on the other hand, it becomes harder to understand the consequences of our actions when we use too many abstractions.
+
+	<How to find a balance?>
+
+	* Having too few abstractions is not ideal.
