@@ -1,0 +1,41 @@
+Item 25: Each function should be written in terms of a single level of abstraction
+
+	<The single level of abstraction principle>
+		* Each function should be written in terms of a single level of abstraction.
+
+		(generic rule)
+			- functions should be small and have a minimal number of responsibilities.
+				-> if one of these functions is too complex, we should extract intermediary abstractions.
+				(We should end up with many small and readable functions, all located at a single level abstraction.)
+
+			ex)
+				======================================================================
+				// Instead of complex operations
+				fun makeCoffee(){
+					val ingredients = listOf(...)
+					val water = 0L
+					if(water == 0L){
+						// ...
+					}
+					if(ingredients[0] == ...){
+						...
+					}else{
+						...
+					}
+				}
+
+				// separate them
+				fun makeCoffee(){
+					boilWater()
+					brewCoffee()
+					pourCoffee()
+					pourMilk()
+				}
+				======================================================================
+
+	<Abstraction levels in program architecture>
+		* Separate modules can hide layer-specific elements.
+
+		- views in the frontend, HTTP request handlers on the backend are lower-layer modules.
+		- representing use cases and business logic are "higher-level" layers.
+
