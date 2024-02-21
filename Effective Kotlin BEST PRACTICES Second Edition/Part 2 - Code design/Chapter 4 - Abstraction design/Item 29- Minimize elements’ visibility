@@ -1,0 +1,30 @@
+Item 29: Minimize elements’ visibility
+
+	* It is easier to learn and maintain a smaller interface.
+
+	* When we want to make changes, it is way easier to expose something new than to hide an existing element.
+
+	* A class cannot be responsible for its own state when properties that represent this state can be changed from the outside.
+
+	* It is easier to track how a class changes when it has more restricted visibility.
+
+	<Using visibility modifiers>
+		(4 visibility modifiers)
+			1) public (default)
+				-> visible everywhere
+			2) private
+				-> visible inside the class only
+			3) protected
+				-> visible inside the class and subclasses
+			4) internal
+				-> visible inside this module for clients who see the declaring class.
+
+		(Top-level elements have 3 visibility modifiers)
+			1) public (default)
+				-> visible everywhere
+			2) private
+				-> visible inside the same file only
+			3) internal
+				-> visible inside this module
+
+	* Element's visibility should be as restrictive as possible.
