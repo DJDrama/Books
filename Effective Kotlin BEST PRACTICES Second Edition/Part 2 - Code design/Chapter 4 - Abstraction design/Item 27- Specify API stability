@@ -1,0 +1,50 @@
+Item 27: Specify API stability
+
+	- In programming, we much prefer stable and possibly standard Application Programming Interfaces (API)
+		(reasons)
+			1. when an api changes and developers get the update, they will need to manually update their code.
+			2. Users need to learn a new API.
+				-> they need to update knowledge that has changed.
+
+	- Semantic Versioning (Sem Ver)
+		-> MAJOR, MINOR, PATCH
+			1. MAJOR version when you make incompatible API changes.
+			2. MINOR version when you add functionality in a backward compatible manner.
+			3. PATCH version when you make backward-compatible bug fixes.
+
+		ex)	 v1.0.0 (MAJOR.MINOR.PATCH)
+			 v0.1.1 (not stable api since MAJOR version is 0)
+
+	- "Experimental" meta-annotation : warn it is not yet stable.
+		-> we can set "level" annotation property.
+			ex)
+				=================================================================
+				@Experimental(level = Experimental.Level.WARNING)
+				annotation class ExperimentalNewApi
+
+				@ExperimentalNewApi
+				suspend fun getUsers(): List<User> {
+					//...
+				}
+				=================================================================
+
+	- Deprecated
+		-> help users deal with this transition:
+			ex)
+				=================================================================
+				@Deprecated("Use suspending getUsers instead")
+				fun getUsers(callback: (List<User>) -> Unit) {
+					//...
+				}
+				=================================================================
+
+	- ReplaceWith
+		-> allow the IDE to make an automatic transition:
+			ex)
+				=================================================================
+				@Deprecated("Use suspending getUsers instead")
+				ReplaceWith("getUsers()"))
+				fun getUsers(callback: (List<User>) -> Unit) {
+					//...
+				}
+				=================================================================
