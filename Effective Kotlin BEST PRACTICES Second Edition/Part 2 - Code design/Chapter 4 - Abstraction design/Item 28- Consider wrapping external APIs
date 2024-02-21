@@ -1,0 +1,58 @@
+Item 28: Consider wrapping external APIs
+
+	- we often wrap potentially unstable external library APIs in our own project.
+		1. we only need to change a single usage inside the wrapper.
+		2. we can adjust the API to our project's style and logic.
+		3. we can replace it with a different library if problems arise with this one
+		4. we can change the behavior of these objects if we need to
+
+		ex)
+			============================================================
+			fun showSomething(){
+				...
+				Picasso.get()
+					.load(url1)
+					.into(imageView1)
+
+				...
+				Picasso.get()
+					.load(url2)
+					.into(imageView2)
+				...
+			}
+
+			------------------------------------------------------------
+
+			// Instead wrap it into our own function
+			fun ImageView.loadImage(url: String){
+				Picasso.get()
+					.load(url)
+					.into(this)
+			}
+
+			fun showSomething(){
+				...
+				imageView1.loadImage(url1)
+				...
+				imageView2.loadImage(url1)
+				...
+			}
+
+			// then we can change "loadImage" function 
+			// when need to change to a different image loading library
+
+			fun ImageView.loadImage(url: String){
+				Glide.with(context)
+					.load(url)
+					.into(this)
+			}
+			============================================================
+			-> Wrappers protect us not only from the pain of changing to an entirely different library
+			-> but also from changes in the API of the library we are using and from changes in our own logic.
+
+	* Wrapping an external API is a great way to protect our project from changes in this API.
+		-> also gives us a lot of freedom in adjusting the API to our needs.
+
+	* Good idea to wrap APIs that we use heavily because it gives us more freedom in adjusting them to our needs.
+
+	* WE should always consider wrapping external APIs because it's often worth it.
