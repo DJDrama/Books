@@ -1,0 +1,23 @@
+Item 30: Define contracts with documentation
+
+	<Contracts>
+		* Without knowing what users can and cannot do, they'll depend on implementation details instead.
+		* A creator who doesn't know what users depend on would be either blocked or would risk breaking users implementations.
+
+	<Defining a contract>
+		1. Names
+		2. Comments and documentation
+			-> most powerful way
+		3. Types
+
+	<Do we need comments?>
+		* comments are now often used to automatically generate documentation, which generally is treated as a source of truth in projects.
+
+		- do not write comments that only describe what is clearly expressed by a function name and parameters.
+
+	<The type system and expectations>
+		- Liskov substitution principle
+			-> if a class promises something, all of its subclasses should guarantee that too.
+
+			* "if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering any of the desirable properties of the program."
+		
