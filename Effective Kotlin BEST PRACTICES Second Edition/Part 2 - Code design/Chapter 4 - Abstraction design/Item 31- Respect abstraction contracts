@@ -1,0 +1,7 @@
+Item 31: Respect abstraction contracts
+
+	* When you break the contract, it is your problem when the implementation changes and your code stops working.
+
+	<Contracts are inherited>
+		- repsect the expectations on the functions you override.
+			ex) class should have both "hashcode" and "equals" when need to implement one of them.
