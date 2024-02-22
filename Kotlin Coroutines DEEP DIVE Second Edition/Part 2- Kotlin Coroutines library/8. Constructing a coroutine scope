@@ -1,0 +1,47 @@
+Constructing a coroutine scope
+
+	<CoroutineScope factory function>
+		- we can make a class implement CoroutineScope interface and just directly call coroutine builders in it.
+			ex)
+				======================================================
+				class SomeClass: CoroutineScope {
+					override val coroutineContext: CoroutineContext
+						= Job()
+
+					fun onStart(){
+						launch {
+							// ...
+						}
+					}
+				}
+				======================================================
+				HOWEVER!
+					-> this approach is not ver popular.
+
+		- we generally prefer to hold a coroutine scope as an object in a property and use it to call coroutine builders.
+			ex)
+				======================================================
+				class SomeClass {
+					val scope: CoroutineScope = ...
+
+					fun onStart(){
+						scope.launch {
+
+						}
+					}
+				}
+				======================================================
+
+	<Constructing a scope on Android>
+
+	<viewModelScope and lifecycleScope>
+
+	<Constructing a coroutine on the backend>
+
+	<Constructing a scope for additional calls>
+		ex)
+			==================================================
+			val analyticsScope = CoroutineScope(
+				SupervisorJob() + Dispatchers.IO
+			)
+			==================================================
