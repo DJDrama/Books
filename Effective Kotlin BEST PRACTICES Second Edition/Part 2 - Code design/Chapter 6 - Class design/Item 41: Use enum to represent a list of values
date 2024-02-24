@@ -1,0 +1,75 @@
+Item 41: Use enum to represent a list of values
+
+	- each enum is an instance of the enum class, it can hold values that are always item-specific.
+		(Each enum constant is an object)
+
+	- constant values can be attached during the creation of each item using the primary constructor
+
+	* In Kotlin, it is more convenient to use a primary constructor parameter of functional type
+		ex)
+			====================================================================================
+			// Instead of below use Function types
+			enum class PaymentOption{
+				...
+				abstract fun startPayment(transaction: Transaction)
+			}
+
+			// Usage of function types
+			enum class PaymentOption(
+				val startPayment: (Transaction) -> Unit
+			) {
+				CASH(::showCashPaymentInfo),
+				CARD(::moveToCardPaymentPage),
+				Transfer({
+					showMoneyTransferInfo()
+					setupPaymentWatcher(it)
+				})
+			}
+			====================================================================================
+			-> We can change it to extension functions.
+				ex)
+					====================================================================================
+					enum class PaymentOption {
+						CASH,
+						CARD,
+						TRANSFER
+					}
+
+					fun PaymentOption.startPayment(transaction: Transaction){
+						when(this){
+							CASH -> showCashPaymentInfo(transaction)
+							CARD -> moveToCardPaymentPage(transaction)
+							TRANSFER -> {
+								showMoneyTransferInfo()
+								setupPaymentWatcher(it)
+							}
+						}
+					}
+					====================================================================================
+
+	* The power of enum
+		-> items are specific and constant.
+
+		- "values()", "enumValueOf" function.
+		- "valueOf(String)" or "enumValueOf(String)"
+
+		- all enums are a subtype of Enum<T>
+
+	* Enum
+		-> hashCode
+		-> equals
+		-> toString
+		-> ordinal property
+		-> implements the "Comparable" interface
+		-> serialization and deserialization
+		-> companion object methods (values() and valueOf(String))
+		-> get enum values by the type using the enumValues() and enumValueOf(String) functions.
+		* set of possible values <-> (Sealed classes: set of classes)
+
+	<Enum or a sealed class?>
+		* For just a set of values, enum should be preferred!
+			-> Sealed classes cannot be automatically serialized or deserialzed!
+			-> not easy to iterate over (although we can do it with reflection)
+			-> they do not have a natural order.
+
+		* When we need to transform objects into classes at some point, prefer sealed classes.
