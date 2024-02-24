@@ -1,0 +1,56 @@
+Item 36: Prefer composition over inheritance
+
+	<Simple behavior reuse>
+		(Donwisde of abstract classes)
+			1. we can only extend one class
+				-> to huge "BaseXXX" classes that accumulate many functionalities.
+
+			2. When we extend, we take everything from a class.
+				-> classes will have functionalities and mtehotds they don't need (Violation of Interface Segregation Principle)
+
+			3. Using superclass functionality is much less explicit.
+				-> bad sign when a developer reads a method and needs to jump into superclasses many times to understand how this method works.
+
+	<Taking the whole pakcage>
+		- Interface segregation principle (ex. abstract class)
+			-> if a class needs a method, than it should modify the superclass behavior.
+
+		* Multiple inheritance is not supported in Kotlin
+
+	<Inheritance breaks encapuslation>
+		- if super class changes, all classes which inherit super class should change.
+
+		- "forwarding methods"
+			-> override methods that are provided from super class
+
+		* Kotlin's interface delegation
+			ex)
+				========================================================================
+				class CounterSet<T>(
+					private val innerSet: MutableSet<T> = mutableSetOf()
+				) : MutableSet<T> by innerSet {
+
+					var elementAdded: Int = 0
+						private set
+
+					override fun add(element: T): Boolean {
+						elementAdded++
+						return innerSet.add(element)
+					}
+
+					override fun addAll(elements: Collection<T>): Boolean {
+						elementAdded + = elements.size
+						return innerSet.addAll(elements)
+					}
+				}
+				========================================================================
+
+	<Restricting overriding>
+		- keep final for preventing inheritance.
+
+		- In Kotlin, use "open" for inheritance.
+
+
+	* WE should use inheritance when there is a definite "is a" relationship.
+		-> all unit tests writeen for superclasses should also pass for their subclasses
+		-> and every usage in production code should be exchangeable (Liskov substitution principle)

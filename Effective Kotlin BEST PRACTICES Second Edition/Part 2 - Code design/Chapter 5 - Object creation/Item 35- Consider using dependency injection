@@ -1,7 +1,19 @@
 Item 35: Consider using dependency injection
 
 	* In Kotlin, the most popular way to do depdency injection is to use "constructor-based dependency injection".
-	
+
 	* IOC(Inversion of Control)
 		- Instead of creating instances of the classes your class needs to compose, you specify the types of these dependencies in the constructor of your class.
 			-> instead of creating its dependencies on its own, a class receives them from the outside.
+
+	(Advantages)
+		- Makes dependencies explicit.
+			-> when you look at the constructor of a class, you know what dependencies it has.
+
+		- Makes testing easier.
+			-> you can easily mock dependencies and test your class in isolation
+
+		- Makes your code more reusable
+			-> if you define your dependency with an interface, you can reuse your class in different contexts by providing different implementations of dependencies.
+
+	
