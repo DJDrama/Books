@@ -1,0 +1,177 @@
+Item 32: Consider factory functions instead of secondary constructors
+
+	* Unlike constructors, functions have names.
+
+	* Unlike constructors, functions can return an object of any subtype of their return type.
+
+	* Unlike constructors, functions are not required to create a new object each time they're invoked.
+
+	* Factory functions can provide objects that might not yet exist.
+
+	* When we define a factory function outside an object, we can control its visibility.
+
+	* Factory functions can be inlined, so their type parameters can be reified.
+
+	* A constructor needs to immediately call a constructor of a superclass or a primary constructor. When we use factory functions, we can postpone constructor usage.
+
+	<Companion Object Factory Functions>
+		- factory functions in companion objects
+
+		- "Named constructor Idiom"
+			-> similar to a constructor, but with a name
+
+		- needs to be defined in a companion object, while a top-level function can be defined anywhere.
+
+		(Naming conventions for companion object factory functions)
+			1. from
+				ex) Date.from(instant)
+
+			2. of
+				ex) EnumSet.of(JACK, QUEEN, KING)
+
+			3. valueOf
+				ex) BigInteger.valueOf(Integer.MAX_VALUE)
+
+			4. instance or getInstance
+				ex) StackWalker.getInstance(options)
+
+			5. createInstance or newInstance
+				ex) Array.newInstance(classObject, arrayLen)
+
+			6. get{type}
+				ex) Files.getFileStore(path)
+
+			7. new{type}
+				ex) Files.newBufferedReader(path)
+
+		* Companion objects can implement interfaces and extend class
+
+
+	<Top-level factory functions>
+		- popular way to create an object is by using top-level factory functions.
+			ex) listOf, setOf, and mapOf ...
+
+		- perfect choice for small and commonly created objects like List or Map
+			-> listOf(1,2,3) is more readable than List.of(1, 2, 3)
+
+		(Disadvantage)
+			-> they are available everywhere, it is easy to clutter up the developer's IDE tips.
+			-> when top-level functions have the same names as class methods and therefore get confused with them.
+
+		* Should be named wisely!
+
+	<Builders>
+		- important kind of top-level factory function is "builders"
+			ex)
+				========================================
+				val list = buildList {
+					add(1)
+					add(2)
+					add(3)
+				}
+				println(list) // [1, 2, 3]
+
+				val s = sequence {
+					yield("A")
+					yield("B")
+					yield("C")
+				}
+				println(s.toList()) // [A, B, C]
+				========================================
+
+	<Conversion methods>
+		- conversion methods are used to convert from one type to another.
+			(named "to{Type}" or "as{Type}")
+
+			ex)
+				========================================
+				val sequence = list.asSequence()
+
+				val double = i.toDouble()
+
+				val flow = observable.asFlow()
+				========================================
+
+		* "to" : newly created object
+		* "as" : newly created object is a wrapper or an extracted part of the original object.
+
+
+	<Copying methods>
+		- define a copying method instead of defning a copying constructor.
+			-> "copy"
+
+		- Data classes support the copy method.
+
+
+	<Fake constructors>
+		- functions start with Capital letter and acts like a constructor.
+			ex)
+				================================================================================
+				public inline fun <T> List(
+					size: Int,
+					init: (index: Int) -> T
+				): List<T> = MutableList(size, init)
+
+				public inline fun <T> MutableList(
+					size: Int,
+					init: (index: Int) -> T
+				): MutableList<T> {
+					val list = ArrayList<T>(size)
+					repeat(size) { index -> list.add(init(index)) }
+					return list
+				}
+
+				// usage
+				List(4) { "User$it" } // [User0, User1, User2, User3]
+				================================================================================
+
+		(Main reason why choose "fake constructors")
+			1. To have a "constructor" for an interface
+			2. To have reified type parameters.
+
+	<Methods on factory classes>
+		- classes can have a state! (functions can't)
+
+		- In practice, we most often extract factory classes when object creation requires multiple services or repositories.
+		- Extracting object creation logic helps us better organize our code.
+			ex)
+				================================================================================
+				class UserFactory(
+					private val uuidProvider: UuidProvider,
+					private val timeProvider: TimeProvider,
+					private val tokenService: TokenService,
+				) {
+
+					fun create(newUserData: NewUserData): User {
+						val id = uuidProvider.next()
+						return User(
+							id = id,
+							creationTime = timeProvider.now(),
+							token = tokenService.generateToken(id),
+							name = newUserData.name,
+							surname = newUserData.surname,
+							// ...
+						)
+					}
+				}
+				================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
