@@ -1,0 +1,7 @@
+Item 40: Prefer class hierarchies instead of tagged classes
+
+	<Tagged classes re not the same as classes using the state pattern>
+		- "State pattern"
+			-> allows an object to alter its behavior when its internal state changes.
+
+		* In Kotlin, we use sealed classes instead of tagged classes.
