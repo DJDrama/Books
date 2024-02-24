@@ -1,0 +1,40 @@
+Item 34: Consider defining a DSL for complex object creation
+
+	<Defining your own DSL>
+
+		(few examples of function types)
+			1. () -> Unit : Function with no arguments that returns Unit
+
+			2. (Int) -> Unit : Function that takes Int and returns Unit
+
+			3. (Int) -> Int : Function that takes Int and returns Int
+
+			4. (Int, Int) -> Int : Function that takes two arguments of type Int and returns Int.
+
+			5. (Int)->() -> Unit : Function that takes Int and returns another function. Another function has no arguments and returns Unit
+
+			6. (()->Unit) -> Unit : Function that takes another function and returns Unit. This other function has no arguments and returns Unit.
+
+		(Basic ways of creating instances of function types are)
+			1. Lambda expressions
+			2. Anonymous functions
+			3. Function references
+
+				ex)
+					========================================================================
+					val plus1: (Int, Int) -> Int = { a, b -> a + b }
+					val plus2: (Int, Int) -> Int = fun(a, b) = a + b
+					val plus3: (Int, Int) -> Int = Int::plus
+
+					val plus4 = { a: Int, b: Int -> a + b }
+					val plus5 = fun(a: Int, b: Int) = a + b
+					========================================================================
+
+	<When should we use DSLs?>
+		- complicated data structures
+		- hierarchical structures
+		- huge amount of data
+
+		* DSLs are about boilerplate elimination of such structures.
+
+	
