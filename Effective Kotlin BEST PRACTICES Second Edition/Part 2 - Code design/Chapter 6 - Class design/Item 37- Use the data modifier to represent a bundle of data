@@ -1,0 +1,29 @@
+Item 37: Use the data modifier to represent a bundle of data
+
+	<The methods that data modifier overrides>
+		- "data" modifier
+			1. toString
+			2. equals and hashcode
+			3. copy
+			4. componentN (for destructuring objects)
+
+		* "copy"
+			-> shallow copy of an object (but not a problem because when the object is immutable, we don't need deep copies for such objects.)
+
+		* componentN
+			-> position based destructuring.
+
+	<When and how should we use destructuring?>
+		- On the other hand, position-based destructuring is dangerous.
+
+		* Destructuring a single value in lambda is very confusing.
+
+	<Prefer data classes instead of tuples>
+		- Kotlin had support for tuples when it was in beta version!
+			-> but less readable, and Pair and Triple are left.
+
+		- When using data classes instead of Pair or Triple
+			-> return type of function is more clear
+			-> shorter and easier to pass forward
+
+		* Classes are cheap in Kotlin! so don't be afraid to use them in your projects.
