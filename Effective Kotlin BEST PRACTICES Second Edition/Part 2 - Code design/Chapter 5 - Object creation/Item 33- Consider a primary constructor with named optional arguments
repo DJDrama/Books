@@ -1,0 +1,33 @@
+Item 33: Consider a primary constructor with named optional arguments
+
+	<Telescoping constructor pattern>
+		- nothing more than a set of constructors for different possible sets of arguments.
+
+		-> In Kotlin, we can use default arguments instead and also "named arguments"
+
+			1. we can define a subset of parameters with the default arguments we want.
+			2. we can provide arguments in any order.
+			3. we can explicitly name arguments to make it clear what each value means.
+
+	<Builder pattern>
+		- Builder Pattern is useful in JAVA
+			1. name parameters,
+			2. specify parameters in any order
+			3. have default values
+
+		- IN Kotlin, don't have to use a builder pattern
+			-> just use named arguments and default arguments.
+
+			(Advantages)
+			1. Named parameters are shorter
+			2. Named parameters are cleaner
+			3. Named parameters offer simpler usage
+				-> developers can forget calling "build()" at last when using builder pattern.
+			4. Named parameters have no problems with concurrence
+				-> (properties in most builders are mutable -> Harder to implement thread-safe build function)
+
+		* DSL builders are preffered over the classic Builder pattern.
+			-> more flexibility
+			-> cleaner notation
+
+	* We generally prefer either a primary constructor with default arguments or an expressive DSL builder.
