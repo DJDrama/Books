@@ -1,0 +1,21 @@
+Item 39: Use sealed classes and interfaces to express restricted hierarchies
+	
+	* Sealed classes and interfaces
+		-> represent restricted hierarchies
+		-> concrete set of classes that is known in advance.
+
+
+	* Sealed classes are "asbtract classes"
+		(additional restrictions on their subclasses)
+			1. they need to be defined in the same package and module where the sealed class is defined.
+			2. they can't be local or anonymous objects.
+
+		-> no one can quietly add a local class or object expression that extend this class.
+		-> the hierarchy of subclasses is restricted.
+
+	<Sealed classes and when expressions>
+		- "Exhaustive" checks for sealed subclasses
+			-> very convenient to check for all possible types.
+
+
+	* We use "Asbtract" mainly when we design for inheritance.
