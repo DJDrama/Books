@@ -1,0 +1,53 @@
+Item 38: Use function types or functional interfaces to pass operations and actions
+
+	- SAM(Single Abstract Method)
+
+	- Kotlin supports
+		1. function types
+		2. functional interface
+
+		ex)
+			=======================================================================
+			// Function type usage
+			fun setOnClickListener(listener: (View) -> Unit) {
+				...
+			}
+
+			// Functional interface declaration
+			fun interface OnClick{
+				fun onClick(view: View)
+			}
+
+			// Functional interface usage
+			fun setOnClickListener(listener: OnClick){
+				...
+			}
+
+			=======================================================================
+
+		* We consider function types as the standard way to represent operations and actions as objects.
+
+
+	<Using function types with type aliases>
+		ex)
+			=======================================================================
+			typealias OnClick = (View) -> Unit
+
+			// Using generics
+			typealias OnClick<T> = (T) -> Unit
+			=======================================================================
+			-> "typealias" provides another name for a type that is like a nickname.
+
+
+	<Reasons to use functional interfaces>
+		1. they define a new named type
+		2. handler functions can be named differently(in a function type, handler name is always invoke)
+		3. interoperability with other languages is better
+
+	<main resons to prefer functional interfaces>
+		1. Java interoperability
+		2. optimization for primitive types
+		3. to help us represent not merely a function but an interface with a contract.
+
+	<Avoid expressing actions using interfaces with multiple abstract methods>
+		
