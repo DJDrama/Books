@@ -1,0 +1,141 @@
+Testing Kotlin Coroutines
+
+	<Testing time dependencies>
+
+	<TestCoroutineScheduler and StandardTestDispatcher>
+		- "TestCoroutineScheduler"
+			-> makes "delay" operate in virtual time, which is fully simulated and does not depend on real time.
+
+		- to use "TestCoroutineScheduler" on coroutines, we should use a dispatcher that supports it.
+			-> Standard option is "StandardTestDispatcher"
+
+		- "advanceUntilIdle"
+			-> which advances virtual time and invokes all the operations that would be called during that time if this were real time.
+
+		- StandardTestDispatcher creates TestCoroutineScheduler by default	
+			-> we can access it with the "scheduler" property
+				ex) 
+					============================================================
+					dispatcher.scheduler.advanceUntilIdle()
+					============================================================
+
+		* StandardTestDispatcher does not advance time by itself.
+			-> otherwise our coroutine will never be resumed.
+
+		- Another way to push time is using "advanceTimeBy" with a concrete number of milliseconds.
+			-> we need to additionally invoke the "runCurrent" function.
+				ex)
+					============================================================
+					testDispatcher.scheduler.advanceTimeBy(2)
+					testDispatcher.scheduler.runCurrent()
+					============================================================
+		
+		- we could use "TestScope"
+			-> which does the same (and it collects all exceptions with CoroutineExceptionHandler)
+			-> can also use "advanceUntilIdle", "advanceTimeBy", "currentTime" property
+
+
+	<runTest>
+		- most commonly used function from kotlinx-coroutines-test
+			-> starts a coroutine with "TestScope" and immediately advances it until idle.
+			* within its coroutine, the scope is of type TestScope, so we can check "currentTime" at any point.
+
+		- runTest > TestScope > StandardTestDispatcher > TestCoroutineScheduler (includes)
+
+	<Background scope>
+		- "runTest"
+			-> awaits the completion of its children.
+
+		- "runTest" offers "backgroundScope"
+			-> also operates on virtual time, but runTest will not await its completion.
+
+		- we use "backgroundScope" to start all the processes we don't want our test to wait for.
+			ex)
+				============================================================
+				@Test
+				fun `should increment counter`() = runTest{
+					var i=0
+					backgroundScope.launch{
+						while(true){
+							delay(1000)
+							i++
+						}
+					}
+
+					delay(1001)
+					assertEquals(1, i)
+					delay(1000)
+					assertEquals(2, i)
+				}
+				============================================================
+
+	<Testing cancellation and context passing>
+
+	<UnconfinedTestDispatcher>
+		- immediately invokes all the operations before the first delay on started coroutines, which is why the code below prints "C"
+			ex)
+				============================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.test.StandardTestDispatcher
+				import kotlinx.coroutines.test.UnconfinedTestDispatcher
+
+				fun main() {
+				    CoroutineScope(StandardTestDispatcher()).launch {
+				        print("A")
+				        delay(1)
+				        print("B")
+				    }
+				    CoroutineScope(UnconfinedTestDispatcher()).launch {
+				        print("C")
+				        delay(1)
+				        print("D")
+				    }
+				}
+				// C
+				============================================================
+
+	<Using mocks>
+		* generally prefer to use fakes.
+			-> if an interface changes, you can just change few classes implementing that interface.
+			(But using mocks, you should find all possible codes mocking the interface)
+
+	<Testing functions that change a dispatcher>
+
+	<Testing what happends during function execution>
+		- using explicit functions like "advanceTimeBy" is considred more readable than using "delay"
+
+	<Testing functions that launch new coroutines>
+
+	<Replacing the main dispatcher>
+		- there is no main function in unit tests.
+		* "kotlinx-coroutines-test" library provides the "setMain" extension function on Dispatchers instead.
+
+		- We often define main in a setup function (function with @Before or @BeforeEach) in a base class extended by all unit tests.
+			-> we are always sure we can run our coroutines on Dispatchers.Main.
+
+		* We should also reset the main dispatcher to the initial state with "Dispatchers.resetMain()".
+
+	<Testing Android functions that launch coroutines>
+		ex)
+			============================================================
+			private lateinit var testDispatcher
+
+			@Before
+			fun setUp(){
+				testDispatcher = StandardTestDispatcher()
+				Dispatchers.setMain(testDispatcher)
+			}
+
+			@After
+			fun tearDown(){
+				Dispatchers.resetMain()
+			}
+			============================================================
+
+	<Setting a test dispatcher with a rule>
+		- @get:Rule
+
+		- In JUnit5 -> we define an extension
+			-> to use it use @JvmField and @RegisterExtension annotation.
