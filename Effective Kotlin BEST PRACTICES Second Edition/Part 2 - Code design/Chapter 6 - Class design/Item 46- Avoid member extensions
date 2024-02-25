@@ -1,0 +1,13 @@
+Item 46: Avoid member extensions
+
+	* do not define extensions as members just to restrict visibility!
+		-> member extension functions do not restrict visibility.
+
+	- you should restrict an extension's visibility by using a visibility modifier, not by making it a member.
+
+	<Why to avoid extension functions>
+		1. Reference is not supported
+		2. Implicit access to both receivers might be confusing
+
+	<Avoid, not prohibit>
+		
