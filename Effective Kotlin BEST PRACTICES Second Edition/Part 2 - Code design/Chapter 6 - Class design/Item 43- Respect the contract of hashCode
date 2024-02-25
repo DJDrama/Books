@@ -1,0 +1,21 @@
+Item 43: Respect the contract of hashCode
+	- hashCode function is used in a popular data structure called a "hash table"
+
+	<Hash Table>
+		- assign a number to each element.(hash function)
+		(hash function)
+			1. is Fast
+			2. returns different values for unequal elements
+
+	<The problem with mutability>
+		- we should not use mutable elements for sets or as keys for maps
+
+	<The contract of hashCode>
+		1. hashCode should be consistent.
+		2. hashCode always needs to be consistent with equals, and equal elements must have the same hash code.
+
+	<Implementing hashCode>
+		- typical way
+			-> every time we add the enext one we multiply the result by the number 31.
+
+			(We can use Kotin/JVM's Objects.hash(...) function)

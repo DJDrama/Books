@@ -43,3 +43,5 @@ Item 42: Respect the contract of equals
 
 		* make classes with custom equals final, or beware that subclasses should not change how equality behaves. (Some say it is impossible)
 			-> this is why data classes are final.
+
+	
