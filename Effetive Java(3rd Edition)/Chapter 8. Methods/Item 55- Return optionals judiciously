@@ -1,0 +1,35 @@
+Item 55: Return optionals judiciously
+
+	* Never return a null value from an Optional-returning method
+
+	- if a method returns an oprtional, the client gets to choose what action to take if the method can't return a value.
+		ex)
+			========================================================================
+			// Using an optional to provide a chosen default value
+			String lastWordInLexicon = max(words).orElse("No words...");
+
+			// Using an optional to throw a chosen exception
+			Toy myToy = max(toys).orElseThrow(TemperTantrumException::new);
+
+			// your code will throw a NoSuchElementException is optional is empty
+			Element lastNobleGas = max(Elements.NOBLE_GASES).get();
+			========================================================================
+
+	- Optional provides a method that takes a "Supplier<T>" and invokes it only when necessary.
+		-> "orElseGet"
+
+	- several Optional methods for dealing with more specialized use cases:
+		-> "filter"
+		-> "map"
+		-> "flatMap"
+		-> "ifPresent"
+		(From Java 9)
+		-> "or"
+		-> "ifPresentOrElse"
+
+	* When to declare a method to return Optional<T> rather than T?
+		-> you should declare a method to return Optional<T> if it might not be able to return a result and clients will have to perform special processing if no result is returned.
+
+	* You should never return an optional of a boxed primitive type.
+		-> because library provides OptionalInt, OptionalLong, and OptionalDouble.
+			(minor primitive types: Boolean, Byte, Character, Short, and Float not supported!)
