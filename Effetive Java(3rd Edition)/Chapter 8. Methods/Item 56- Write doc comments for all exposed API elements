@@ -1,0 +1,20 @@
+Item 56: Write doc comments for all exposed API elements
+	
+	* To document your API properly, you must precede every exported class, interface, constructor, method, and field declaration with a doc comment.
+		-> error-prone to use an API with missing documentation comments.
+
+
+	* The doc comment for a method should describe succintly the contract between the method and its client.
+
+	* doc comments should be readable both in the source code and in the generated documentation.
+
+	* no two members or constructors in a class or interface should have the same summary description.
+		-> be aware and pay attention to overloadings (same sentence not acceptable in doc comments)
+
+	* When documenting a generic type or method, be sure to document all type parameters.
+
+	* When documenting an enum type, be sure to document the constants as well as the type and any public methods.
+
+	* When documenting an annotation type, be sure to document any members as weel as the type itself.
+
+	* Whether or not a class or static method is thread-safe, you should document its thread-safety.
