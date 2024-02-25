@@ -1,0 +1,20 @@
+Item 53: Use varargs judiciously
+	- "varargs" : variable arity
+		-> accept zero or more arguments of a specified type.
+
+		(Problems)
+			* if the client invokes the method with no arguments, it fails at runtime rather than compile time!.
+				ex) 
+					========================================
+					static int min(int ... args) {
+						// ...
+					}
+					========================================
+			* It is ugly!
+
+	* Every invocation of a varargs method causes an array allocation and initialization!
+
+
+(Question)
+1. The static factories for EnumSet use this technique to reduce the cost of creating enum sets to a minimum. This was appropriate because it was critical that enum sets provide a performance-competitive replacement for bit fields (Item 36).
+	-> EnumSet use what techinque?
