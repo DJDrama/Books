@@ -1,0 +1,166 @@
+The problem with shared state
+
+	<Blocking synchronization>
+		-  "syncrhonized" block
+			-> inside syncrhonized block, we cannot use suspending functions.
+			-> block is blocking threads when a coroutine is waiting for its turn.
+
+	<Atomics>
+		- their operations are implemented at a low level without locks.
+			ex) AtomicInteger
+
+		- we often use atomics to secure a single primitive or a single reference, but for more complicated cases we still need better tools.
+
+	<A dispatcher limited to a single thread>
+		- using "limitedParallelism(1)""
+			ex) Dispatchers.IO.limitedParallelism(1)
+
+		(Approaches)
+			* "coarse-grained thread confinement"
+				-> we just wrap the whole function with "withContext", with a dispatcher limited to a single thread.
+				(BUT we lose multithreading capabilities of the whole function.)
+
+			* "fine-grained thread confinement"
+				-> we wrap only those statements which modify the state.
+
+		- In most cases, using a dispatcher with a single thread is not only easy, but also efficient.
+			-> standard dispatchers share the same pool of threads.
+
+	<Mutext>
+		- ONLY one coroutine will be between lock and unlock
+			ex)
+				==============================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.sync.Mutex
+
+				suspend fun main() = coroutineScope {
+				    repeat(5) {
+				        launch {
+				            delayAndPrint()
+				        }
+				    }
+				}
+
+				val mutex = Mutex()
+				suspend fun delayAndPrint() {
+				    mutex.lock()
+				    delay(1000)
+				    println("Done")
+				    mutex.unlock()
+				}
+				==============================================================
+				(Stdout) (each 1 second delay)
+					Done
+					Done
+					Done
+					Done
+					Done
+
+		* It can lead to "deadlock" (serious problem)
+
+		- "withLock" function 
+			-> which starts with lock but calls unlock on the finally block so that any exceptions thrown inside the block will successfully release the lock.
+				ex)
+					==============================================================
+					suspend fun delayAndPrint() {
+					    mutex.withLock {
+					        delay(1000)
+					        println("Done")
+					    }
+					}
+					==============================================================
+
+		(Advantage over synchronized block)
+			-> we suspend a coroutine instead of blocking a thread.
+			
+		- (BUT! deadlock can happen)
+			ex) Coroutine cannot get past the lock twice.
+				==============================================================
+				import kotlinx.coroutines.sync.Mutex
+				import kotlinx.coroutines.sync.withLock
+
+				suspend fun main() {
+				    val mutex = Mutex()
+				    println("Started")
+				    mutex.withLock {
+				        mutex.withLock {
+				            println("Will never be printed!")
+				        }
+				    }
+				}
+				==============================================================
+				(Stdout)
+					Started
+					(runs forever)
+
+
+		- (mutex is that it is not unlocked when a coroutine is suspended.)
+			ex)
+				==============================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.sync.Mutex
+				import kotlinx.coroutines.sync.withLock
+				import kotlin.system.measureTimeMillis
+
+				class MessageRepository {
+				    private val messages = mutableListOf<String>()
+				    private val mutex = Mutex()
+
+				    suspend fun add(message: String) = mutex.withLock {
+				        delay(1000) // simulate a network call
+				        messages.add(message)
+				    }
+				}
+
+				suspend fun main() {
+				    val repo = MessageRepository()
+
+				    val timeMillis = measureTimeMillis {
+				        coroutineScope {
+				            repeat(5) {
+				                launch {
+				                    repo.add("Message$it")
+				                }
+				            }
+				        }
+				    }
+				    println(timeMillis)
+				}
+				==============================================================
+				(Stdout)
+					5116
+
+		* Fine-grained thread confinement (wrapping only the place where we modify the shared state) would help, but would prefer to use a dispatcher with limitedParallelism(1), limited to a single thread.
+
+	<Semaphore>
+		- has functions "acqure", "release", and "withPermit" (Mutex is just a single lock)
+			ex)
+				==============================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.sync.Semaphore
+				import kotlinx.coroutines.sync.withPermit
+
+				suspend fun main() = coroutineScope {
+				    val semaphore = Semaphore(2)
+				    repeat(5){
+				        launch{
+				            semaphore.withPermit {
+				                delay(1000)
+				                print(it)
+				            }
+				        }
+				    }
+				}
+				==============================================================
+				(Stdout)
+					01234
+					-> 01 (1sec) 23 (1sec) 4
+		
+
+
