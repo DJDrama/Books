@@ -1,0 +1,22 @@
+Item 54: Return empty collections or arrays, not nulls
+
+	- return same immutable empty collection repeatedly, as immutable objects may be
+		-> Collections.emptyList
+		-> Collections.emptySet
+		-> Collections.emptyMap
+
+	- for arrays, return zero-length array repeatedly because all zero-length arrays are immutable.
+		ex)
+			======================================================================
+			private static final Cheese[] EMPTY_CHEESE_ARRAY = new Cheese[0];
+
+			public Cheese[] getCheeses(){
+				return cheesesInStock.toArray(EMPTY_CHEESE_ARRAY);
+			}
+			======================================================================
+
+
+(Reference)
+https://shipilev.net/blog/2016/arrays-wisdom-ancients/
+
+Bottom line: toArray(new T[0]) seems faster, safer, and contractually cleaner, and therefore should be the default choice now. Future VM optimizations may close this performance gap for toArray(new T[size]), rendering the current "believed to be optimal" usages on par with an actually optimal one. Further improvements in toArray APIs would follow the same logic as toArray(new T[0]) — the collection itself should create the appropriate storage.
