@@ -1,0 +1,45 @@
+Item 42: Respect the contract of equals
+
+	<Equality>
+		(two types of equality)
+			1. Structural equality
+				-> equals method
+				-> "==" operator
+
+			2. Referential equality
+				-> "===" operator (when both sides point to the same object)
+
+	<Why do we need equals?>
+		* We rarely need to implement equality ourselves in Kotlin. (just use data classes)
+
+		(We implement equals oursevles when)
+			1. need logic to differ from the default logic
+			2. compare only a subset of properties
+			3. don't want our object to be a data class, or the properties we need to compare are not in the primary constructor.
+
+	<The contract of equals>
+		1. Reflexive
+			-> for any non-null values, x.equals(x) should be true
+
+		2. Symmetric
+			-> for any non-null values, x.equals(y) and y.equals(x) should be true
+
+		3. Transitive
+			-> for any non-null values, x.equals(y) and y.equals(z) is true, then x.equals(z) should be true
+
+		4. Consistent
+			-> for any non-null values, x.equals(y) should consistently return true or consistently return false
+
+		5. Never equal to null
+			-> for any non-null values, x.equals(null) should return false.
+
+
+		* When a result is not consistent, we cannot trust it.
+
+		* Object equality should be symmetric.
+
+	<Implementing equals>
+		* always consider your equals implementation is reflexive, symmetric, transitive, and consistent.
+
+		* make classes with custom equals final, or beware that subclasses should not change how equality behaves. (Some say it is impossible)
+			-> this is why data classes are final.
