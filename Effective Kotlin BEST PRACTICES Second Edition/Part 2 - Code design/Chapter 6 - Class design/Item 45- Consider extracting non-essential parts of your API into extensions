@@ -1,0 +1,28 @@
+Item 45: Consider extracting non-essential parts of your API into extensions
+	
+	- Consider extracting non-essential parts of your API into extensions
+
+	- difference between members and extensions
+		-> extensions need to be imported separately
+		-> we can have many extensions with the same name on the same type (won't have a conflict)
+
+		* The compiler always chooses member functions over extensions!
+			-> so having two extensions with the same name but with different behavior would be dangerous
+
+		-> extensions are not virtual
+			-> they cannot be redefined in derived classes. (We should not use extensions for elements that are designed for inheritance!)
+
+	* We define extensions on types, not on classes!
+		-> we can define an extension on a nullable or generic type
+
+	* Extensions are not listed as members in the class reference!
+
+	[Summary]
+		(important differences between members and extensions)
+			1. extensions need to be imported
+			2. extensions are not virtual
+			3. members have higher priority
+			4. extensions are on a type, not on a class
+			5. extensions are not listed in the class reference.
+
+		- Extensions do not support inheritance or annotation processing.
