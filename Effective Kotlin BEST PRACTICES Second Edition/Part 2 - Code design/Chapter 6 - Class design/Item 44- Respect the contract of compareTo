@@ -1,0 +1,69 @@
+Item 44: Respect the contract of compareTo
+	
+	- Comparable<T>
+		(Orders)
+			1. Antisymmetric
+				-> if a>=b and b>=a then a==b
+
+			2. Transitive
+				-> if a>=b and b>=c, then a>=c
+				-> if a>b and b>c, then a>c
+
+			3. Connex
+				-> there must be a relationship between every two elements: either a>=b or b>=a
+					(if there is no relationship between two elements, we cannot use sorting algorithms like quicksort or insertion sort)
+
+	<Do we need a compareTo?>
+		- Don't do this!
+			print("Kotlin" > "Java") // true
+
+			-> most people who see a comparison sign between two strings will be confused.
+
+		- When you are not sure about whether your object has a natural order, use comparators instead.
+			ex)
+				===============================================================
+				class User(val name: String, val surname: String){
+					// ...
+					companion object{
+						val DISPLAY_ORDER = 
+							compareBy(User::surname, User::name)
+					}
+				}
+
+				val sorted = names.sortedWith(DISPLAY_ORDER)
+				===============================================================
+
+	<Implementing compareTo>
+		- if all you need is to compare two values, you can use the "compareValues" function
+			ex)
+				===============================================================
+				class User(
+					val name: String,
+					val surname: String
+				) : Comparable<User> {
+
+					override fun compareTo(other: User): Int = 
+						compareValues(surname, other.surname)
+				}
+				===============================================================
+
+		- if you need to use more values, then use "compareValuesBy" function
+			ex)
+				===============================================================
+				class User(
+					val name: String,
+					val surname: String
+				): Comparable<User> {
+
+					override fun compareTo(other: User): Int = 
+						compareValuesBy(this, other,
+							{ it.surname },
+							{ it.name }
+						)
+
+				}
+				===============================================================
+
+		-> 0 if the receiver and other qre equal
+		-> positive number if the receiver is greater than other
+		-> negative number if the receiver is smaller than other
