@@ -1,0 +1,40 @@
+Item 47: Avoid unnecessary object creation
+	
+	- Boxed primitives are also reused in JVM when they are small
+		(by default, the Integer Cache holds numbers in the range from -128 to 127)
+			ex)
+				===============================================================
+				val i1: Int? = 1
+				val i2: Int? = 1
+				print(i1==i2) // true
+				print(i1===i2) // true, because i2 was taken from cache
+				===============================================================
+
+		* However if we use a number smaller than -128 or bigger than 127, different objects will be created
+			ex)
+				===============================================================
+				val i1: Int? = 1234
+				val i2: Int? = 1234
+				print(i1 == i2) // true
+				print(i1 === i2) // false
+				===============================================================
+				-> Nullable type is used to force Integer instead of int under the hood.
+				-> When we use Int, it is generally compiled to the primitive int, but if we make it nullable or when we use it as a type argument, Integer is used instead. (primitive cannot be null)
+
+	<Is object creation expensive?>
+		1. Objects take additional space
+
+		2. Access requires an additional function call when elements are encapsulated.
+
+		3. Objects need to be created and allocated in memory, references need to be created, etc.
+
+	<Using primitives>
+		- use Int instead of Int?
+			ex)
+				==========================================
+				val i: Int? = null // wrapped to Integer
+
+				val i: Int = 0 // int primitive type
+				==========================================
+
+	
