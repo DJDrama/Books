@@ -1,0 +1,73 @@
+Item 49: Use caching when possible
+	
+	* Caching is the most powerful way to speed up applications.
+
+	- we can use a map to cache
+		
+		ex) Simple implementation of a cache.
+			======================================================================
+			class CachedWebUserRepository(
+				val userClient: UserClient
+			) : UserRepository {
+
+				private val users = ConcurrentHashMap<Int, User>()
+
+				override suspend fun getUser(id: Int): User = 
+					users.getOrPut(id) { userClient.fetchUser(id) }
+			}
+			======================================================================
+
+		(HOWEVER! 2 problems with cache)
+			1) if we cahce data that changes, our cache can become stale.
+				-> use caching library (like Caffeine or Ehcache) that allows us to specify how long a certain record should be considered valid.
+
+				ex) use of Caffeine
+					======================================================================
+					class CachedWebUserRepository(
+						val userClient: UserClient
+					) : UserRepository {
+
+						private val users = Caffeine.newBuilder()
+								.expireAfterWrite(1, TimeUnit.MINUTES)
+								.buildSuspending<Int, User>()
+
+						override suspend fun getUser(id: Int): User = 
+							users.get(id) { userClient.fetchUser(id) }
+					}
+					======================================================================
+
+			2) it essentially means we are buying performance in exchange for memory.
+				-> if we cache too much data, we can run out of memory!
+					(Tricks)
+						[1] expire cache entires that are used less often (Expire after write) or to set a cahce size limit.
+
+						[2] MOST powerful technique is making your cahce use soft or even weak references.
+
+							* In Kotlin, when a variable references a value, it is a strong reference.
+								-> so the existence of this reference prevents the garbage collector from cleaning up the value.
+
+							* JVM offers two other kinds of references.
+								1) Weak reference does not prevent the GC from cleaning up a value.
+									-> so if no other reference is using this value, it will be cleaned up.
+
+								2) Soft reference does not guarantee that a value won't be cleaned up by the GC either, but in most JVM implementations this value won't be cleaned up unless memory is needed.
+
+					ex)
+						======================================================================
+						class CachedWebUserRepository(
+							val userClient: UserClient
+						) : UserRepository {
+
+							private val users = Caffeine.newBuilder()
+									// when size is reached, less used entires are removed
+									.maximumSize(10_000)
+									// When entry is not used for 10 minutes, it is removed.
+									.expireAfterAccess(10, TimeUnit.MINUTES)
+									// Using soft references
+									.softValues() 
+									.buildSuspending<Int, User>()
+
+							override suspend fun getUser(id: Int): User = 
+								users.get(id) { userClient.fetchUser(id) }
+						}
+						======================================================================
