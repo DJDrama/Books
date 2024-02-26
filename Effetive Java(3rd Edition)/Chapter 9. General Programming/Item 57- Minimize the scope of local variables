@@ -1,0 +1,14 @@
+Item 57: Minimize the scope of local variables
+
+	- You increase readability and maintainability of your code and reduce the likelihood of error.
+
+	* The most powerful technique for minimizing the scope of a local variable is to declare it where it is first used.
+
+	* Nearly every local variable declaration should conatin an initializer.
+
+	* Prefer "for" loops to "while" loops. 
+		-> "for" loops are completely independent, so no harm in reusing the element (or iterator) variable name.
+
+		-> "for" loops are shorter, enhances readability.
+
+	* keep methods small and focused.

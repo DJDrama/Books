@@ -1,0 +1,24 @@
+Item 60: Avoid float and double if exact answers are required
+
+	* The float and double types are particularly ill-suited for monetary calculations
+		-> impossible to represent 0.1 as a float or double exactly.
+
+		ex)
+			================================================
+			System.out.println(1.03 - 0.42); // 0.6100...001
+
+			System.out.println(1.00 - 9 * 0.10); // 0.099..9
+			================================================
+
+	* use BigDecimal, int, or long for monetary calculations.
+
+		(two disadvantages using BigDecimal)
+			1. it's a lot less convenient than using a primitive arithmetic type, and it's a lot slower.
+
+			2. irrelevant if you're solving a single short problem
+
+
+	[Summary]
+		* DON"T use "float" or "double" for any calculations that require an exact answer. -> Use "BigDecimal"
+
+		- If not using decimal point, and quantities aren't too big, use "int" or "long"

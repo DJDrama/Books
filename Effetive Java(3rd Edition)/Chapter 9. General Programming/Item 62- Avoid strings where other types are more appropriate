@@ -1,0 +1,24 @@
+Item 62: Avoid strings where other types are more appropriate
+
+	* Strings are poor substitutes for other value types.
+		-> if data is numeric, it should be translated into the appropriate numeric type, such as int, float, or BigInteger.
+
+		-> if it's the answer to a yes-or-no question, it should be translated into an appropriate enum type or a boolean.
+
+	* Strings are poor substitutes for enum types.
+		-> enums are better than String
+
+	* Strings are poor substitutes for aggregate types.
+		ex)
+			===============================================================
+			// Inappropriate use of string as aggregate type
+			String compoundKey = className + "#" + i.next();
+			===============================================================
+			-> to access individual fields, you have to parse the string, which is slow, tedious, and error-prone.
+			-> can't provide equals, toString, or compareTo methods but are forced to accept the behavior that String provides.
+
+	* Strings are poor substitutes for capabilities.
+
+
+	[Summary]
+		* avoid representing objects as strings when better data types exist or can be written.

@@ -1,0 +1,31 @@
+Item 58: Prefer for-each loops to traditional for loops
+
+	- "for-each loop" (aka "enhanced for statement")
+		-> gets rid of the clutter and the opportunity for error by hiding the tierator or index variable.
+
+		ex)
+			================================================
+			for(Element e: elements){
+				... // Do something with e
+			}
+			================================================
+			-> "for each element e in elements" (':' represents "in").
+			-> no performance penalty! operates identical to traditional for loops.
+
+	(Three common situations where you can't use for-each)
+		1) Destructive filtering
+			-> if you need to traverse a collection removing selected elements, then you need to use an explicit iterator so that you can call its "remove" method.
+
+		2) Transforming
+			-> if you need to traverse a list or array and replace some or all of the values of its elements, you need the list iterator or array index in order to replace the value of an element.
+
+		3) Parallel iteration
+			-> when need to traverse multiple collections in parallel, you need explicit control over the iterator or index variable so that all iterators or index variables can be advanced in lockstep.
+
+
+	[Summary]
+		-> for-each loop provides advantages
+			1) clarity
+			2) flexibility
+			3) bug prevention (with no performance penalty)
+		

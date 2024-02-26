@@ -1,0 +1,24 @@
+Item 61: Prefer primitive types to boxed primitives
+	- primtive types(int, double, and boolean ...)
+	- reference types(String, List ...)
+
+	- Every primitive type has a corresponding reference type, called a "boxed primitive". (Integer, Boolean, Double ...)
+
+	(Three major differences between primitivew and boxed primitives)
+		1) primtives have only their values, whereas boxed primitives have identities distinct from their values.
+			-> two boxed primitive instances can have the same value and different identities.
+
+		2) primitive types have only fully functional values, whereas each boxed primitive type has one nonfunctional value, which is "null".
+
+		3) primitives are more time- and space- efficient than boxed primitives. 
+
+	* Applying the == operator to boxed primitives is almost always wrong.
+
+	* When you mix primitives and boxed primitives in an operation, the boxed primitive is auto-unboxed.
+		-> If a null object reference is auto-unboxed, you get a NullPointerException.
+
+	(When to use boxed primitives?)
+		1. elements, keys, and values in collections.
+			-> you can't put primitives in collections.
+
+		2. when making reflective method invocations.

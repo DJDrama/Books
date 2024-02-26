@@ -1,0 +1,29 @@
+Item 59: Know and use the libraries
+
+	(Advantages)
+		1) By using a standard library, you take advantage of the knowledge of the experts who wrote it and the experience of those who used it before you.
+
+			- As of Java 7, you should no lognger use "Random"
+			* For most uses, the random number generator of choice is now "ThreadLocalRandom".
+				-> produces higher quality random numbers!
+				-> fast!
+
+				-> For fork join pools and parallel streams, use "SplittableRandom"
+
+		2) You don't have to waste your time writing ad hoc solutions to problems that are only marginally related to your work.
+
+		3) standard libraries' performances tend to improve over time, with no effort on your part.
+
+		4) libraries gain functionality over time.
+			-> if a library is missing something, the developer community will make it known, and the missing functionality may get added in a subsequent release.
+
+		5) you place your code in the mainstream.
+			-> such code is more readable, maintainable, and reusable by the multitude of developers.
+
+	* Numerous features are added to the libraries in every major release, and it pays to keep abreast of these additions.
+
+	* every programmer should be familiar with the basics of java.lang, java.util, and java.io, and their subpackages.
+
+	[Summary]
+		- Don't reinvent the wheel.
+
