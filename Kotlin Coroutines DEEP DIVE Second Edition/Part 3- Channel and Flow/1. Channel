@@ -1,0 +1,461 @@
+Channel
+
+	* every value that is sent to a channel is received only once.
+
+	- Channel is an interface that implements two other interfaces:
+		1. SendChannel
+			-> send elements and to close the channel
+
+		2. ReceiveChannel
+			-> receives the elements.
+
+	* Both "send" and "receive" are suspending functions
+		ex)
+			==================================================================
+			interface SendChannel<in E>	{
+				suspend fun send(element: E)
+				fun close(): Boolean
+				// ...
+			}
+
+			interface ReceiveChannel<out E>{
+				suspend fun receive(): E
+				fun cancel(cause: CancellationException?=null)
+				// ...
+			}
+
+			interface Channel<E> : SendChannel<E>, ReceiveChannel<E>
+			==================================================================
+
+		-> when we try to receive and there are no elements in the channel, the coroutine is suspended until the element is available.
+
+		-> send will be suspended when the channel reaches its capacity.
+
+		- you can use "trySend" and "tryReceive" from a non-suspending function.
+			-> both are immediate and return "ChannelResult"(contains info about success or failure of the operation, as well as its result)
+
+			* only use them for channels with limited capacity because they won't work for the rendezvous channel.
+
+		* "produce" function closes the channel whenever the builder coroutine ends in any way (finished, stopped, cancelled)
+			-> we will never forget to call "Close"
+
+			ex)
+				==================================================================
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+
+				suspend fun main(): Unit = coroutineScope {
+				    val channel = produce {
+				        repeat(5) { index ->
+				            println("Producing next one")
+				            delay(1000)
+				            send(index * 2)
+				        }
+				    }
+				    for (element in channel)
+				        println(element)
+				}
+				==================================================================
+				(Stdout)
+					Producing next one
+					0
+					Producing next one
+					2
+					Producing next one
+					4
+					Producing next one
+					6
+					Producing next one
+					8
+
+	<Channel types>
+		1. Unlimited
+			-> unlimited capacity buffer, and "send" never suspends.
+
+		2. Buffered
+			-> channel with concrete capacity size or "Channel.BUFFERED"(which is 64 by default and can be overriden by setting the kotlinx.coroutines.channels.defaultBuffer system property in JVM)
+
+		3. Rendezvous (default)
+			-> capacity 0 or Channel.RENDEZVOUS (which is equal to 0)
+			-> exchange can happen only if sender and receiver meet(so it is like a book exchange spot, instead of a bookshelf)
+
+		4. Conflated
+			-> channel with capacity Channel.CONFLATED which has a buffer of size 1, and each new element replaces the previous one.
+
+
+		ex) Channel.UNLIMITED
+			==================================================================
+			import kotlinx.coroutines.channels.Channel
+			import kotlinx.coroutines.channels.produce
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = produce(capacity = Channel.UNLIMITED) {
+			        repeat(5) { index ->
+			            send(index * 2)
+			            delay(100)
+			            println("Sent")
+			        }
+			    }
+
+			    delay(1000)
+			    for (element in channel) {
+			        println(element)
+			        delay(1000)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				Sent
+				Sent
+				Sent
+				Sent
+				Sent
+				0
+				2
+				4
+				6
+				8
+
+		ex) Concrete size of capacity (produce until the buffer is full, after which the producer will need to start waiting for the receiver)
+			==================================================================
+			import kotlinx.coroutines.channels.produce
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = produce(capacity = 3) {
+			        repeat(5) { index ->
+			            send(index * 2)
+			            delay(100)
+			            println("Sent")
+			        }
+			    }
+
+			    delay(1000)
+			    for (element in channel) {
+			        println(element)
+			        delay(1000)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				Sent
+				Sent
+				Sent
+				0
+				Sent
+				2
+				Sent
+				4
+				6
+				8
+
+		ex) default (Channel.RENDEZVOUS) capacity, the producer will always wait for a receiver.
+			==================================================================
+			import kotlinx.coroutines.channels.Channel
+			import kotlinx.coroutines.channels.produce
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = produce(capacity = Channel.RENDEZVOUS) {
+			        repeat(5) { index ->
+			            send(index * 2)
+			            delay(100)
+			            println("Sent")
+			        }
+			    }
+
+			    delay(1000)
+			    for (element in channel) {
+			        println(element)
+			        delay(1000)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				0
+				Sent
+				2
+				Sent
+				4
+				Sent
+				6
+				Sent
+				8
+				Sent
+
+		ex) Channel.CONFLATED (new elements will replace the previous ones)
+			==================================================================
+			import kotlinx.coroutines.channels.Channel
+			import kotlinx.coroutines.channels.produce
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = produce(capacity = Channel.CONFLATED) {
+			        repeat(5) { index ->
+			            send(index * 2)
+			            delay(100)
+			            println("Sent")
+			        }
+			    }
+
+			    delay(1000)
+			    for (element in channel) {
+			        println(element)
+			        delay(1000)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				Sent
+				Sent
+				Sent
+				Sent
+				Sent
+				8
+
+	<On buffer overflow>
+		- we can control what happens when the buffer is full(onBufferOverflow parameter)
+			1) suspend
+				-> when the buffer is full, suspend on the send method.
+
+			2) DROP_OLDEST
+				-> when the buffer is full, drop the oldest element.
+
+			3) DROP_LATEST
+				-> when the buffer is full, drop the latest element.
+
+
+		ex)
+			==================================================================
+			import kotlinx.coroutines.channels.BufferOverflow
+			import kotlinx.coroutines.channels.Channel
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+			import kotlinx.coroutines.launch
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = Channel<Int>(
+			    	capacity = 2, 
+			    	onBufferOverflow = BufferOverflow.DROP_OLDEST
+			    )
+
+			    launch {
+			        repeat(5) { index ->
+			            channel.send(index * 2)
+			            delay(100)
+			            println("Sent")
+			        }
+			        channel.close()
+			    }
+
+			    delay(1000)
+			    for (element in channel) {
+			        println(element)
+			        delay(1000)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				Sent
+				Sent
+				Sent
+				Sent
+				Sent
+				6
+				8
+
+	<On undelivered element handler>
+		- "onUndeliveredElement"
+			-> called when an element couldn't be handled for some reason.
+				(most often, channel was closed or cancelled)
+				(or "send", "receive", "receiveOrNull", or "hasNext" throw an error)
+
+			-> We generally use it to close resources that are sent by this channel.
+				ex)
+					==================================================================
+					val channel = Channel<Resource>(capacity) { resource ->
+						resource.close()
+					}
+					==================================================================
+
+	<Fan-out>
+		- Multiple coroutines can receive from a single channel
+			-> we should use a "for-loop" to receive them properly.
+
+		ex)
+			==================================================================
+			import kotlinx.coroutines.CoroutineScope
+			import kotlinx.coroutines.channels.ReceiveChannel
+			import kotlinx.coroutines.channels.produce
+			import kotlinx.coroutines.coroutineScope
+			import kotlinx.coroutines.delay
+			import kotlinx.coroutines.launch
+
+			suspend fun main(): Unit = coroutineScope {
+			    val channel = produceNumbers()
+			    repeat(3) { id ->
+			        delay(10)
+			        launchProcessor(id, channel)
+			    }
+			}
+
+			fun CoroutineScope.produceNumbers() = produce {
+			    repeat(10) {
+			        delay(100)
+			        send(it)
+			    }
+			}
+
+			fun CoroutineScope.launchProcessor(
+			    id: Int,
+			    channel: ReceiveChannel<Int>
+			) = launch {
+			    for (msg in channel)
+			        println("#$id received $msg")
+			}
+			==================================================================
+			(Stdout)
+				#0 received 0
+				#1 received 1
+				#2 received 2
+				#0 received 3
+				#1 received 4
+				#2 received 5
+				#0 received 6
+				#1 received 7
+				#2 received 8
+				#0 received 9
+
+			-> elements are distributed fairly
+			-> channel has a FIFO(first-in-first-out) queue of coroutines waiting for an element.
+
+	<Fan-in>
+		- Multiple coroutines can send to a single channel.
+
+		ex)
+			==================================================================
+			import kotlinx.coroutines.channels.Channel
+			import kotlinx.coroutines.channels.SendChannel
+			import kotlinx.coroutines.delay
+			import kotlinx.coroutines.launch
+			import kotlinx.coroutines.runBlocking
+
+			fun main() = runBlocking {
+			    val channel = Channel<String>()
+			    launch { sendString(channel, "foo", 200L) }
+			    launch { sendString(channel, "BAR!", 500L) }
+			    repeat(50) {
+			        println(channel.receive())
+			    }
+			}
+
+			suspend fun sendString(
+			    channel: SendChannel<String>,
+			    text: String, time: Long
+			) {
+			    while (true) {
+			        delay(time)
+			        channel.send(text)
+			    }
+			}
+			==================================================================
+			(Stdout)
+				foo
+				foo
+				BAR!
+				foo
+				foo
+				BAR!
+				foo
+				foo
+				foo
+				BAR!
+				foo
+				foo
+				BAR!
+				foo
+				foo
+				foo
+				BAR!
+				...
+
+		ex) merging multiple channles using the "produce" function:
+			==================================================================
+			fun <T> CoroutineScope.fainIn(
+			    channels: List<ReceiveChannel<T>>
+			): ReceiveChannel<T> = produce {
+			    for (channel in channels) {
+			        launch {
+			            for (elem in channel) {
+			                send(elem)
+			            }
+			        }
+			    }
+			}
+			==================================================================
+
+
+	<Pipelines>
+		- we set two channels such that one produces elements based on those received from another.
+			-> we call it a "pipeline"
+
+			ex)
+				==================================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.channels.ReceiveChannel
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.coroutineScope
+
+				suspend fun main() = coroutineScope {
+				    val numbers = numbers()
+				    val squared = square(numbers)
+				    for (num in squared) {
+				        println(num)
+				    }
+				}
+
+				fun CoroutineScope.numbers(): ReceiveChannel<Int> = produce {
+				    repeat(3) {
+				        send(it + 1)
+				    }
+				}
+
+				fun CoroutineScope.square(numbers: ReceiveChannel<Int>) = produce {
+				    for (num in numbers) {
+				        send(num * num)
+				    }
+				}
+				==================================================================
+				(Stdout)
+				1
+				4
+				9
+
+	<Channels as a communication primitive>
+		* Useful when different coroutines need to communicate with each other!
+			-> they guarantee no conflicts and fairness.
+
+	<Practical usage>
+		- when values are produced on one side, and we want to process them on the other side.
+
+		- in most of cases it's better to use "channelFlow" or "callbackFlow"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
