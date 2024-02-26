@@ -1,0 +1,53 @@
+Item 48: Consider using object declarations
+	
+	- "object declaration" to define a singleton.
+		ex)
+			========================================
+			object Singleton{
+				fun doSomething(){
+					// ...
+				}
+			}
+
+			fun main(){
+				val obj = Singleton
+				obj.doSomething()
+
+				Singleton.doSomething()
+			}
+			========================================
+
+		-> we can be sure that they have only one instance.
+
+	* "Covariant Nothing Object"
+		-> make the type parameter of the supertype class covariant (so, use the out modifier next to T in the StoreMessage declaration), then use "Nothing" as a type argument for the object declaration
+			ex)
+				================================================================================
+				sealed interface StoreMessage<out T>
+				data class Save<T>(val data: T): StoreMessage
+				data object DeleteAll : StoreMessage<Nothing>
+
+				val deleteAllInt: StoreMessage<Int> = DeleteAll
+				val deleteAllString: StoreMessage<String> = DeleteAll
+				================================================================================
+				-> "Nothing" is a subtype of all types in Kotlin
+				-> StoreMessage<Nothing> is a subtype of all StoreMessages<T> types.
+				-> DeleteAll is a subtype of StoreMessage<T> for all T types.
+
+		-> "EmptyList" is an object declaration that is a subtype of "List<Nothing>"
+			-> it is a subtype of all "List<T>" types.
+			-> there is only one instance of an empty list in the whole application.
+
+			ex)
+				================================================================================
+				internal object EmptyList : List<Nothing> {
+					// ...
+				}
+
+				val emptyListInt: List<Int> = EmptyList
+				val emptyListString: List<String> = EmptyList
+				================================================================================
+
+	[Summary]
+		-> Use "Covariant Nothing Object" Pattern to turn classes with generic type parameters into object declarations.
+
