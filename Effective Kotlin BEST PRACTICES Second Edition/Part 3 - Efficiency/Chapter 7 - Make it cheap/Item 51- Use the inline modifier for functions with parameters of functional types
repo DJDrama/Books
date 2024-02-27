@@ -1,0 +1,118 @@
+Item 51: Use the inline modifier for functions with parameters of functional types
+
+	- "inline" modifier
+		-> makes the compiler replace all uses of this function with its body during comiplation.
+		-> all calls of function arguments inside "repeat" are replaced with these functions' bodies.
+			ex)
+				====================================================================
+				repeat(10){
+					println(it)
+				}
+
+				// replaces to below
+				for(index in 0 until 10){
+					println(index)
+				}
+				====================================================================
+
+	* Replacing calls with bodies is a significantly different behavior.
+	(Few advantages of this behavior)
+		1) A type argument can be reified.
+		2) Functions with functional parameters are faster when they are inline.
+		3) Non-local return is allowed.
+
+	<A type argument can be reified>
+		- Generic types are erased during compilation.
+			-> We can't check if an object is List<Int> (because List<Int> compiles to List)
+				ex)
+					====================================================================
+					any is List<Int> // Error (Cannot check for instance of erased type)
+
+					any is List<*> // OK
+					====================================================================
+
+		- type parameters can be replaced with type arguments using the reified modifier
+			ex)
+				====================================================================
+				inline fun <reified T> printTypeName(){
+					print(T::class.simpleName)
+				}
+
+				// Usage
+				printTypeName<Int>() // Int
+				printTypeName<Char>() // Char
+				printTypeName<String>() // String
+				====================================================================
+
+			-> During compilation, the body of printTypeName replaces usages, and the reified type argument replaces the type parameter:
+				ex)
+					====================================================================
+					print(Int::class.simpleName)
+					print(Char::class.simpleName)
+					print(String::class.simpleName)
+					====================================================================
+
+		- "reified" is a useful modifier.
+			-> It is used in "filterIsInstance" from the stdlib to filter only elements of a certain type:
+				ex)
+					====================================================================
+					class Worker
+					class Manager
+
+					val employees: List<Any> = listOf(Worker(), Manager(), Worker())
+
+					val workers: List<Worker> = employees.filterIsInstance<Worker>()
+					====================================================================
+
+	<Functions with functional parameters are faster when they are inlined>
+		- Functions are slightly faster when they are inlined.
+			-> no need to jump with execution and track the backstack.
+				(This is why small functions that are used very often in the stdlib are often inlined.)
+					ex)
+						====================================================================
+						inline fun print(message: Any?){
+							System.out.print(message)
+						}
+						====================================================================
+
+		1) ()-> Unit : Compiles to Function0<Unit>
+		2) () -> Int : Compiles to Function0<Int>
+		3) (Int) -> Int : Compiles to Function1<Int, Int>
+		4) (Int, Int) -> Int : Compiles to Function2<Int, Int, Int>
+
+		* When we capture local variables, the value needs to be wrapped into some object.
+			-> A local variable cannot be used directly in a non-inline lambda.
+
+	<Non-local return is allowed>
+		* "return" is not allowed in no inline function.
+		* But we can "return" inside an inline function.
+
+	<Costs of inline modifiers>
+		* Inline functions cannot use elements that have restricted visibility.
+			ex)
+				====================================================================
+				private class Reader {
+					// ...
+				}
+
+				internal inline fun read(){
+					val reader = Reader() // ERROR
+					// ...
+				}
+				====================================================================
+
+		* Inline functions cannot be recursive.
+
+		* Inline functions make our code grow.
+
+
+	<Crossinline and noinline>
+		- "crossinline"
+			-> function should be inlined but non-local return is not allowed.
+				(We use it when this function is used in another scope where non-local return is not allowed; in another lambda that is not inlined.)
+
+		- "noinline"
+			-> argument should not be inlined at all.
+				(When we use this function as an argument to another function that is not inlined.)
+
+			
