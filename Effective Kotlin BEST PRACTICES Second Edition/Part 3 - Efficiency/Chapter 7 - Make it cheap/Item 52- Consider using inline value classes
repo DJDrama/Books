@@ -1,0 +1,53 @@
+Item 52: Consider using inline value classes
+	- objects holding a single value can also be replaced with "inline"
+
+		ex) define a class with single read-only primary constructor property, a modifier value, and a JvmInline annotation.
+			================================================================
+			@JvmInline
+			value class Name(private val value: String){
+				// ...
+
+				// Methods from such a class will be evaluated as "static methods".
+				fun greet(){
+					print("Hello, I am $value")
+				}
+			}
+
+			// Code
+			val name: Name = Name("Marcin")
+			name.greet()
+
+			// During compilation replaced with code similar to:
+			val name: String = "Marcin"
+			Name.`greet-impl`(name)
+			================================================================
+
+	(Two especially popular uses of inline value classes are)
+		1) To inidicate a unit of measure.
+		2) To use types to protect users from value misuse.
+		3) To optimize for memory usage.
+
+	<Indicate unit of measure>
+
+	<Protect us from value misuse>
+
+	<Optimize for memory usage>
+
+	<Inline value classes and interfaces>
+		* When we present inline value classes through an interface, such classes are not inlined.
+
+	<Typealias>
+		- Naming types is a useful capability that is used especially when we deal with long and repeatable types.
+			ex)
+				================================================================
+				typealias ClickListener = 
+					(view: View, event: Event) -> Unit
+
+				class View{
+					fun addClickListener(listener: ClickListener) {}
+					fun removeClickListener(listener: ClickListener) {}
+					// ...
+				}
+				================================================================
+
+		* type aliases do not protect us in any way from type misuse.
