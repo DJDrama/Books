@@ -1,0 +1,25 @@
+Hot and cold data sources
+	
+	- Channles are a hot stream of values, but we often need a stream that is cold.
+	- Flow and RxJava streams are cold.
+
+	- Collections(List, Set, etc) are hot
+	- Sequence and Java Stream are cold.
+
+	<Hot vs cold>
+		- Hot data streams: Eager, produce elements independently of their consumption, and store the elemnts.
+
+		- Cold data streams: Lazy, perform their operations on-demand, and store nothing.
+
+		* Cold data streams (like Sequence, Stream or Flow)
+			- can be infinite
+			- do a minimal number of operations
+			- use less memory (no need to allocate all the intermediate collections)
+
+			-> Terminal operation does all the work(while intermediate operation just decorates the previous sequence with a new operation)
+
+	<Hot channles, cold Flow>
+		- flows
+			-> production happens on demand.
+				(only definition of how elements should be produced that will be used when a terminal operation is used.)
+				* This is why flow does not need a CoroutineScope.
