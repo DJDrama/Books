@@ -1,0 +1,9 @@
+Item 50: Extract objects that can be reused
+
+	- Extract objects to an outer scope
+		-> improves performance by avoiding unnecessary recalculation.
+
+	
+	<Lazy Initialization>
+		- initialize heavy objects lazily (Can avoid heavy object creation during class initialization)
+			ex) val heavyObject by Lazy { HeavyObject() }
