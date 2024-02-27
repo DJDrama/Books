@@ -1,0 +1,15 @@
+Item 53: Eliminate obsolete object references
+
+	* Manage dependencies properly instead of storing them statically.
+
+	- set "null" in the array when an object is not needed anymore
+
+	- also useful to use Weak references to reference views.
+		ex)
+			===============================================================
+			class BaseActivity: Activity(){
+				private val errorDialog = WeakReference<Dialog?>(null)
+
+				// ...
+			}
+			===============================================================
