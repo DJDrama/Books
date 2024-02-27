@@ -1,0 +1,40 @@
+Flow introduction
+
+	<Comparing flow to other ways of representing values>
+		* Sequences should be used for sources of data whose size might be big(or infinite) and elements might be heavy, so we want to calculate or read them on demand, lazily.
+
+		- Flow
+			-> builder and operations are suspending functions, and it supports structured concurrency and proper exception handling.
+
+	<The characteristics of Flow>
+		- collect
+			-> suspend a coroutine instead of blocking a thread.
+
+	<Flow nomenclature>
+		- typical terminal operation : Collect
+		- intermediate operations (between start and terminal operation)
+
+		ex)
+			=====================================================================
+			suspend fun main(){
+				flow { emit("Message 1") }	// Flow builder
+						// Intermediate operations
+					.onEach { println(it) }
+					.onStart { println("Do something before") }
+					.onCompletion { println("Do something after") }
+					.catch { emit("Error") }
+						// Terminal operation
+					.collect { println("Collected $it") }	
+			}
+			=====================================================================
+
+	<Real-life use cases>
+		1) receiving or sending messages that are communicated through Server-Sent Events, such as WebSockets, RSocket, notifications, etc.
+
+		2) observing user actions, such as text changes or clicks;
+
+		3) receiving updates from sensors or other information about a device, such as its location or orientation
+
+		4) observing changes in databases.
+
+	
