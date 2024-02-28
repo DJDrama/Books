@@ -1,0 +1,14 @@
+Item 65: Prefer interfaces to reflection
+
+	- Reflection allows one class to use another, even if the latter class did not exist when the former was compiled
+		(This power. hoever, comes at a price)
+			1) You lose all the benefits of compile-time checking, including exception checking.
+				-> if you invoke a nonexistent or inaccessible method reflectively, it will fail at runtime.
+
+			2) The code required to perform reflective access is clumsy and verbose.
+				-> It is tedious to write and difficult to read.
+
+			3) Performance sufers.
+				-> Reflective method is much slower than normal method invocation.
+
+	* You can obtain many of the benefits of reflection while incurring few of its costs by using it only in a very limited form. 

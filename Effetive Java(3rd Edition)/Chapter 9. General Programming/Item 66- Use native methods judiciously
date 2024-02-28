@@ -1,0 +1,19 @@
+Item 66: Use native methods judiciously
+	- JNI(Java Native Interface) allows programs to call native methods, which are methods written in native programming languages such as C or C++
+
+	* It is rarely advisable to use native methods for improved performance.
+
+	(Serious Disadvantages when using native methods)
+		-> Native languages are not safe (applications using native methods are no longer immune to memory corruption errors)
+
+		-> Harder to debug. (GC can't automoate, or even track, natvie memory usage)
+
+		-> cost associated with going into and out of native code.
+
+		-> require "glue code" that is difficult to read and tedious to write.
+
+	* Use Native methods to access low-level resources or native libraries, use as little naive code as possible and test it thoroughly.
+
+	* A single bug in the native code can corrupt your entire application.
+
+	

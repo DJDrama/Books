@@ -1,0 +1,16 @@
+Item 67: Optimize judiciously
+
+	* Strive to write good programs rather than fast ones.
+		(pervasive architectural flaws that limit performance can be impossible to fix without rewriting the system.)
+
+	* Strive to avoid design decisions that limit performance.
+
+	* Consider the performance consequences of your API design decisions.
+		- making a public type mutable require a lot of needless defensive copying
+		- using inheritance in a public class ties the class forever to its superclass
+		- using an implementation type rather than an interface ties you to specific implementation (even though fater implementations may be written in the future)
+
+	* It is a very bad idea to warp an API to achieve good performance.
+
+	* measure performance before and after each attempted optimization.
+	
