@@ -1,0 +1,41 @@
+SharedFlow and StateFlow
+
+	<SharedFlow>
+		- everyone can send messages which will be received by every coroutine that is listening.
+
+		- replay parameter (it defaults to 0), the defined number of "last" values will be kept.
+			-> this cache can be reset with "resetReplayCache"
+
+	<shareIn>
+		- turn a "Flow" into a "SharedFlow" is by using "shareIn" function.
+
+		- "SharingStarted.Eagerly"
+			-> immediately starts listening for values and sending them to a flow.
+
+		- "SharingStarted.Lazily"
+			-> starts listening when the first subscriber appears.
+
+		- "WhielSubscribed()"
+			-> starts listening on the flow when the first subscriber appears;
+			-> stops when the last subscriber disappears.
+			-> when a new subscriber appears when our SharedFlow is stopped, it will start again.
+
+			- "stopTimeoutMillis"
+				-> how long to listen after the last subscriber disappears, 0 by default
+			
+			- "replayExpirationMillis"
+				-> how long to keep replay after stopping, Long.MAX_VALUE by default.
+
+		* useful when multiple services are interested in the same changes.
+
+	<StateFlow>
+		- modern alternative to "LiveData"
+			-> full support for coroutines
+			-> has an initial value(does not need to be nullable)
+
+		- "Conflated!"
+			-> slower observers might not receive some intermediate state changes.
+
+
+	<stateIn>
+		- Flow<T> into StateFlow<T>
