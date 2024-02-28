@@ -1,0 +1,11 @@
+Item 63: Beware the performance of string concatenation
+
+	* Using the string concatenation operator(+) repeatedly to concatenate n strings requires time quadratic in n.
+		- Strings are immutable. (Cannot change)
+		- When two strings are concatenated, the contents of both are copied.
+
+	* Use StringBuilder for concatenation!
+		-> it creates a single buffer for apending characters.
+
+	* Don't use the string concatenation operator to combine more than a few strings unless performance is irrelevant.
+		(Alternatively, use a character array, or process the strings one at a time instead of combining them)

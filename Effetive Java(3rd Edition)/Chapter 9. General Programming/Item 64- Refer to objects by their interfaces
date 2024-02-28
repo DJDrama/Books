@@ -1,0 +1,24 @@
+Item 64: Refer to objects by their interfaces
+	
+	* If appropriate interface types exist, then parameters, return values, variables, and fields should be all declared using interface types.
+
+		ex) Good - uses interface as type
+			Set<Son> sonSet = new LinkedHashSet<>();
+
+			BAD - uses class as type!
+			LinkedHashSet<Son> sonSet = new LinkedHashSet<>();
+
+	* Program will be much more flexible when using interfaces as types.
+
+	[Cases] When to use class types?
+	1) It's entirerly appropriate to refer to an object by a class rather than an interface if no appropriate interface exists.
+		ex) String and BigInteger
+
+	2) there is no appropriate interface type is that of objects belonging to a framework whose fundamental types are classes rather than interfaces.
+		ex) Many java.io classes such as OutputStream
+
+	3) there is no appropriate interface typeis that of classes that implement an interface but also provide extra methods not found in the interface.
+		ex) PriorityQueue has a comparator method that is not present on the Queue interface.
+
+
+	* If there is no appropriate interface, just use the least specific class in the class hierarchy that provides the required functionality.
