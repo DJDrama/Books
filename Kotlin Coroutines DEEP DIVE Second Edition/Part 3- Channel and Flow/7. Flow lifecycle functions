@@ -1,0 +1,83 @@
+Flow lifecycle functions
+
+	<onEach>
+		- is suspending, and elements are processed sequentially
+
+	<onStart>
+		- sets a listener that should be called immediately once the flow is started.
+		- does not wait for the first element: it is called when we request the first element.
+		- we can emit elements in "onStart"
+
+	<onCompletion>
+		- also happens in the case of an uncaught exception or a coroutine cancellation.
+
+
+	* in Android
+		-> we often use "onStart" to show a progress bar, and we use "onCompletion" to hide it.
+
+	<onEmpty>
+		- might used to emit some default value.
+			ex)
+				========================================================================
+				suspend fun main() = coroutineScope {
+					flow<List<Int>> { delay(1000) }
+						.onEmpty { emit(emptyList()) }
+						.collect { println(it) }
+				}
+				========================================================================
+
+	<catch>
+		- an exception will flow down, closing each processing step on the way.
+		- this listener receives the exception as an argument and allows you to perform recovering operations.
+
+		- it stops an exception by catching it. (BUT still can emit new values and keep the rest of the flow alive)
+
+		* it will only react to the exceptions thrown in the function defined upstream.
+
+	<Uncaught exceptions>
+		- Uncaught exceptions in a flow immediately cancel this flow, and collect rethrows this exception.
+
+			ex)
+				========================================================================
+				suspend fun main(): Unit {
+					try{
+						flow.collect { println("Collected $it") }
+					} catch (e: MyError){
+						println("Caught")
+					}
+				}
+				========================================================================
+				* "catch" does not protect us from an exception in the terminal oepration
+					-> catch cannot be placed after the last operation.
+
+		* common practice : move the operation from collect to "onEach" and place it before the catch.
+			ex)
+				========================================================================
+				suspend fun main(): Unit {
+					flow.onStart { println("Before") }
+						.onEach { throw MyError() }
+						.catch { println("Caught $it") }
+						.collect()
+				}
+				========================================================================
+
+	<flowOn>
+		* "flowOn" works only for functions that are upstream in the flow!
+
+	<launchIn>
+		- launches "collect" in a new coroutine on the scope object passed as the only argument.
+			ex) launchIn(scope)
+
+	* In Android
+		ex)
+			========================================================================
+			fun updateNews(){
+				newsFlow()
+					.onStart { ... }
+					.onCompletion { ... }
+					.onEach { ... }
+					.catch { ... }
+					.launchIn(viewModelScope)
+			}
+			========================================================================
+						
