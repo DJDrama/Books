@@ -1,0 +1,94 @@
+Flow building
+
+	- simplest way to create a flow = "flowOf" function
+		ex)
+			================================================
+			suspend fun main(){
+				flowOf(1, 2, 3, 4, 5)
+					.collect { print(it) } // 12345			
+			}
+			================================================
+
+	- flow with no values: "emptyFlow()" function
+		ex)
+			================================================
+			suspend fun main(){
+				emptyFlow<Int>()
+					.collect { print(it) } // (nothing)
+			}
+			================================================
+
+
+	<Converters>
+		- we can convert every "Iterable", "Iterator", or "sequence" into a "Flow" using "asFlow" function.
+			ex)
+				================================================
+				suspend fun main(){
+					listOf(1, 2, 3, 4, 5)
+						.asFlow()
+						.collect{ print(it) } // 12345
+				}
+				================================================
+
+	<Converting a function to a flow>
+		ex)
+			================================================
+			suspend fun main(){
+				val function = suspend {
+					delay(1000)
+					"UserName"
+				}
+
+				function.asFlow()
+					.collect { println(it) }
+			}
+			// (1 sec)
+			// UserName
+			================================================
+
+	<Flow and Reactive Streams>
+
+	<Flow builders>
+		- most popular way to make a flow = "flow" builder
+
+	<Understanding flow builder>
+		- when we call a "flow" builder, we just create an object.
+
+	<channelFlow>
+		- once it is started, it produces the values in a separate coroutine without waiting for the receiver.
+
+		- like all the other coroutines, channelFlow doesn't finish until all its children are in a terminal state.
+
+	<callbackFlow>
+		- callbackFlow is for wrapping callbacks.
+
+		1) awaitClose { ... }
+			-> suspends until the channel is closed.
+
+		2) trySendBlocking(value)
+			-> similar to send, but it is blocking instead of suspending, so it can be used on non-suspending functions.
+
+		3) close()
+			-> ends this channel
+
+		4) cancel(throwable)
+			-> ends this channel and sends an exception to the flow.
+
+			ex)
+				====================================================================================
+				fun flowFrom(api: CallbackBasedApi): Flow<T> = callbackFlow {
+					val callback = object: Callback {
+						override fun onNextValue(value: T){
+							trySendBlocking(value)
+						}
+
+						override fun onApiError(cause: Throwable){
+							cancel(CancellationException("API Error", cause))
+						}
+
+						override fun onCompleted() = channel.close()
+					}
+					api.register(callback)
+					awaitClose { api.unregister(callback) }
+				}
+				====================================================================================
