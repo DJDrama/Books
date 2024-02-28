@@ -1,0 +1,302 @@
+Flow processing
+	* operations between flow creation and terminal operation are called "Flow processing"
+
+	<map>
+
+	<filter>
+
+	<take and drop>
+		- "take"
+			-> pass only a certain number of elements
+
+		- "drop"
+			-> ignore a certain number of elements.
+				ex)
+					================================================
+					suspend fun main(){
+						('A'..'Z').asFlow()
+							.drop(20)
+							.collect { print(it) } // UVWXYZ
+					}
+					================================================
+
+	<How does collection processing work?>
+
+	<merge, zip and combine>
+		- "merge"
+			ex)
+				============================================================
+				suspend fun main(){
+					val ints: Flow<Int> = flowOf(1, 2, 3)
+					val doubles: Flow<Double> = flowOf(0.1, 0.2, 0.3)
+
+					val together: Flow<Number> = merge(ints, doubles)
+					print(together.toList())
+				}
+				// [1, 0.1, 0.2, 2, 3, 0.3]
+				============================================================
+				-> elements from one flow do not wait for another flow.
+
+		- "zip"
+			-> which makes pairs from both flows
+			-> elements left without a pair are lost!
+			ex)
+				============================================================
+				suspend fun main(){
+					val flow1 = flowOf("A", "B", "C").onEach{ delay(400) }
+					val flow2 = flowOf(1, 2, 3, 4).onEach { delay(1000) }
+
+					flow1.zip(flow2) { f1, f2 -> "${f1}_${f2}" }
+						.collect { println(it) }
+				}
+				// (1 sec)
+				// A_1
+				// (1 sec)
+				// B_2
+				// (1 sec)
+				// C_3
+				============================================================
+		
+		- "combine"
+			-> wait for the slower flow to produce the first pair!
+			-> every new element replaces its predecessor.
+			ex)		
+				============================================================
+				suspend fun main(){
+					val flow1 = flowOf("A", "B", "C").onEach{ delay(400) }
+					val flow2 = flowOf(1, 2, 3, 4).onEach { delay(1000) }
+
+					flow1.zip(flow2) { f1, f2 -> "${f1}_${f2}" }
+						.collect { println(it) }
+				}
+				// (1 sec)
+				// A_1
+				// (1 sec)
+				// B_2
+				// (1 sec)
+				// C_3
+				// (1 sec)
+				// C_4
+				============================================================
+
+	<fold and scan>
+		- "fold"
+			-> works same as Kotlin "fold" but for flows
+
+		- "scan"
+			-> produces all intermediate accumulator values.
+			-> useful with Flow because it produces a new value immediately after receving one from the previous step.
+				ex)
+					============================================================
+					suspend fun main(){
+						flowOf(1, 2, 3, 4)
+							.onEach { delay(1000) }
+							.scan(0) { acc, v -> acc + v }
+							.collect { println(it) }
+					}
+					// 0
+					// (1 sec)
+					// 1
+					// (1 sec)
+					// 3
+					// (1 sec)
+					// 6
+					// (1 sec)
+					// 10
+					============================================================
+
+			* when we have a flow of updates or changes, and we need an object that is the result of these changes.
+
+	<flatMapConcat, flatMapMerge, and flatMapLatest>
+		- "flatMapConcat"
+			-> processes the produced flows one after another.
+				ex)
+					============================================================
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+						.onEach { delay(1000) }
+						.map { "${it}_${elem} "}
+
+					suspend fun main(){
+						flowOf("A", "B", "C")
+							.flatMapConcat { flowFrom(it) }
+							.colelct { println(it) }
+					}
+					// (1 sec)
+					// 1_A
+					// (1 sec)
+					// 2_A
+					// (1 sec)
+					// 3_A
+					// (1 sec)
+					// 1_B
+					// (1 sec)
+					// 2_B
+					// (1 sec)
+					// 3_B
+					// (1 sec)
+					// 1_C
+					// (1 sec)
+					// 2_C
+					// (1 sec)
+					// 3_C
+					============================================================
+
+		- "flatMapMerge"
+			-> processes produced flows concurrently.
+				ex)
+					============================================================
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+						.onEach { delay(1000) }
+						.map { "${it}_${elem} "}
+
+					suspend fun main(){
+						flowOf("A", "B", "C")
+							.flatMapMerge { flowFrom(it) }
+							.colelct { println(it) }
+					}
+					// (1 sec)
+					// 1_A
+					// 1_B
+					// 1_C
+					// (1 sec)
+					// 2_A
+					// 2_B
+					// 2_C
+					// (1 sec)
+					// 3_A
+					// 3_B
+					// 3_C
+					============================================================
+					-> you can limit concurrency by using "concurrency" parameter
+						ex)
+							============================================================
+							suspend fun main(){
+								flowOf("A", "B", "C")
+									.flatMapMerge(concurrency = 2) { flowFrom(it) }
+									.collect { println(it) }
+							}
+							// (1 sec)
+							// 1_A
+							// 1_B
+							// (1 sec)
+							// 2_A
+							// 2_B
+							// (1 sec)
+							// 3_A
+							// 3_B
+							// (1 sec)
+							// 1_C
+							// (1 sec)
+							// 2_C
+							// (1 sec)
+							// 3_C
+							============================================================
+
+			* when we need to request data for each element in a flow.
+
+		- "flatMapLatest"
+			-> forgets about the previous flow once a new one appears.
+				ex)
+					============================================================
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+						.onEach { delay(1000) }
+						.map { "${it}_${elem} "}
+
+					suspend fun main(){
+						flowOf("A", "B", "C")
+							.flatMapLatest { flowFrom(it) }
+							.colelct { println(it) }
+					}
+					// (1 sec)
+					// 1_C
+					// (1 sec)
+					// 2_C
+					// (1 sec)
+					// 3_C
+					============================================================
+
+	<retry>
+		ex)
+			============================================================
+			suspend fun main(){
+				flow {
+					emit(1)
+					emit(2)
+					emit("E")
+					emit(3)
+				}.retry(3){
+					print(it.message)
+					true
+				}.collect { print(it) }
+				// 12E12E12E12(exception thrown)
+			}
+			============================================================
+
+		ex)
+			============================================================
+			fun makeConnection(config: ConnectionConfig) = api
+				.startConnection(config)
+				.retry { e->
+					delay(1000)
+					log.error(e) { "Error for $config" }
+					true
+				}
+			============================================================
+
+		ex)
+			============================================================
+			fun makeConnection(config: ConnectionConfig) = api
+				.startConnection(config)
+				.retryWhen { e, attempt ->
+					delay(100 * attempt)
+					log.error(E) { "Error for $config" }
+					e is ApiException && e.code !in 400..499
+				}
+			============================================================
+
+	<Distinct functions>
+		- helps us eliminate repeating elements that are considered identical.
+		* only eliminates elements that are identical to the corresponding previous element.
+			ex)
+				============================================================
+				suspend fun main(){
+					flowOf(1, 2, 2, 3, 2, 1, 1, 3)
+						.distinctUntilChanged()
+						.collect { print(it) } // 123213
+				}
+				============================================================
+
+		- "distinctUntilChangedBy { ... } "
+		- "distinctUntilChanged { prev, next -> ... }"
+
+	<Terminal operations>
+		- "collect"
+		- "count"
+		- "first"
+		- "firstOrNull"
+		- "fold"
+		- "reduce"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
