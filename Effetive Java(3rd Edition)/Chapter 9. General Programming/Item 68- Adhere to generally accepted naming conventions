@@ -1,0 +1,44 @@
+Item 68: Adhere to generally accepted naming conventions
+
+	- The Java Language Specification (https://docs.oracle.com/javase/specs/jls/se8/html/)
+
+
+	* Type parameter
+		- T: for an arbitrary type
+		- E: for the element type of a collection
+		- K and V: for the key and value types of a map
+		- X: for an exception
+
+		- R: return type
+		- T, U, V or T1, T2, T3: sequence of arbitrary types
+
+	- Instantiable classes, enum types
+		-> singular noun or noun phrase 
+			ex) Thread, PriorityQueue, ChessPiece
+
+	- Non-instantiable classes with a plural noun
+		ex) Collectors, Collections
+
+	- Interfaces
+		-> "able" or "ible"
+			ex) Runnable, Iterable, Accessible
+
+	- methods that perform action are generally named with verb phrase
+		ex) append, drawImage...
+
+	- methods that return a boolean
+		-> begin with the word "is" or "has"
+			ex) isDigit, isProbablePrime, hasSiblings ...
+
+
+	- getAttribute, setAttribute
+		ex) getSomething(), setSomething()
+
+	- toType
+		ex) toInt, toString, toArray
+
+	- typeValue
+		ex) intValue
+
+	- static factories
+		ex) from, of, valueOf, instance, getInstance, newInstance, getType, and newType ...
