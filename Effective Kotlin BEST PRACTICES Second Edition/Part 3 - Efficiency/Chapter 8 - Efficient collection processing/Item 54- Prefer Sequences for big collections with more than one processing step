@@ -1,0 +1,35 @@
+Item 54: Prefer Sequences for big collections with more than one processing step
+	- sequence
+		-> terminal operators: toList(), count(), sum() ...
+
+		1) they keep the natural order of operations
+		2) do a minimal number of operations
+		3) can be infinite
+		4) do not create collections at every step
+
+	<Order is important>
+		- Eager (Step-by-step) : Collections
+		- Lazy (Element-by-element) : Sequence
+
+	<Sequences do the minimal number of operations>
+
+	<Sequences can be infinite>
+		(Generators)
+			- generateSequence
+			- sequence
+				-> uses a suspending function that generates the next number on demand.
+				-> runs until a value is yielded using "yield"
+
+		- infinite sequences cannot be processed unless we limit their number of elements.
+			-> we need to limit them using an operation like "take"
+			-> or we need to use a terminal operation like "first", "find", "indexOf"
+
+	<Sequences do not create collections at every processing step>
+		* Do not use collections for big files, use sequences
+			ex) readLines() -> useLines{ ... }
+
+	<When aren't sequences faster?>
+		- "sorted" is a rare example of a processing step that is faster on Collection than on Sequence.
+
+	<Kotlin sequence Debugging>
+		- "Kotlin Sequence Debugger"
