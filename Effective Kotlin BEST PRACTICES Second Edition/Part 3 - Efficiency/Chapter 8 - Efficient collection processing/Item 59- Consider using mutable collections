@@ -1,0 +1,5 @@
+Item 59: Consider using mutable collections
+
+	- adding elements to mutable collections is generally faster, but immutable collections give us more control over how they are changed.
+
+	- in the local scope we generally do not need this control, so mutable collections should be preferred. (Especially in util functions, where elements insertion might happen many times)
