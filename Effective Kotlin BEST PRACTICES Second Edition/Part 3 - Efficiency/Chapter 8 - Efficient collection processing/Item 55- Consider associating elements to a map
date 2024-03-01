@@ -1,0 +1,29 @@
+Item 55: Consider associating elements to a map
+
+	- Kotlin's hashmap = LinkedHashMap
+
+	<Associating elements with keys>
+		ex) associate : produce key-value pairs for each element
+			=======================================================================
+			data class User(val id: Int, val name: String)
+			fun main() {
+			    val users = listOf(User(1, "Michale"), User(2, "Marek"))
+			    val nameById = users.associate { it.id to it.name }
+			    println(nameById) // {1=Michale, 2=Marek}
+			}
+			=======================================================================
+
+		ex) associateBy : keeps an iterable elements as a value, we only decide the key
+			=======================================================================
+			data class User(val id: Int, val name: String)
+
+			fun main() {
+			    val users = listOf(User(1, "Michale"), User(2, "Marek"))
+			    val byId = users.associateBy { it.id }
+			    println(byId) // {1=User(id=1, name=Michale), 2=User(id=2, name=Marek)}
+
+			    val byName = users.associateBy { it.name }
+			    println(byName) // {Michale=User(id=1, name=Michale), Marek=User(id=2, name=Marek)}
+			}
+			=======================================================================
+			* note that duplicates are removed.
