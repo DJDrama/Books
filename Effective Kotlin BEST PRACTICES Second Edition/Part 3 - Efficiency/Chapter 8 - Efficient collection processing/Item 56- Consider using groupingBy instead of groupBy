@@ -1,0 +1,10 @@
+Item 56: Consider using groupingBy instead of groupBy
+
+	<groupBy>
+		- returns Map<K, List<T>>
+
+	<groupingBy>
+		- returns Grouping<K, T>
+		-> does not do additional operations: just wraps the iterable together with the specified key selector.
+
+		- supports "eachCount", "fold", "reduce", and "aggregate"
