@@ -1,0 +1,29 @@
+Item 57: Limit the number of operations
+
+	- Every collection processing method is a cost.
+		(Collection)
+			-> additional iteration over the elements
+			-> new collection created under the hood
+
+		(Sequences)
+			-> another object that wraps the whole sequence
+			-> lambda expression creation : need to create it as an object because the operation is passed to the sequence object, cannot be inlined.
+
+	(use)
+		- filterNotNull()
+
+		- mapNotNull { <Transformation> }
+
+		- joinToString { <Transformation> }
+
+		- filter { <Predicate 1> && <Predicate 2> }
+
+		- filterIsInstance<Type>()
+
+		- sortedWith(
+				compareBy({ <Key 1> }, { <Key 2> })
+			)
+
+		- listOfNotNul(...)
+
+		- .filterIndexed { index, elem -> <Predicate using index> }
