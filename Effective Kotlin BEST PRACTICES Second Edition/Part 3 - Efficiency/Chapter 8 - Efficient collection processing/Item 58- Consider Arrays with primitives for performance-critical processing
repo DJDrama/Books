@@ -1,0 +1,9 @@
+Item 58: Consider Arrays with primitives for performance-critical processing
+
+	(Kotlin Type)	(Java Type)
+		Int				int
+		List<Int>		List<Integer>
+		Array<Int>		Integer[]
+		IntArray		int[]
+
+	- use primitives when need an optimization in performance-critical partsof your code.
