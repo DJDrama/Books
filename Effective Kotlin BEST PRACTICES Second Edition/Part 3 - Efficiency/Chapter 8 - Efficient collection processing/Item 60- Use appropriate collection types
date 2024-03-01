@@ -1,0 +1,51 @@
+Item 60: Use appropriate collection types
+
+	- In Kotlin, most collections are mutable and not thread-safe.
+
+	<Array-based list>
+		* keeps track of the number of elements and their inner array size
+
+		* wrapper over an array, certain number of reserved places next to each other in memory.
+
+		* when the number of elements decreases, the size of the inner array is typically not decreased.
+			-> elements references are replaced with "null" values.
+
+	<Deque>
+		- Double Ended queue
+		- Kotlin offers "ArrayDeque" (which implements MutableList<E> interface)
+
+		* behavior is similar to ArrayList, but internal array is "circular"
+			-> beginning of the array is not necessarily the first element of this collection.
+			-> there is a separate property (head) that marks the beginning of the collection.
+
+		* removing or adding elements at the beginning or end is a constat time operation O(1)
+
+	<Linked Lists>
+		- last node in the list has a reference to "null"
+		- adding or removing elements from the beginning or the middle of the list is a constant time.
+			-> just a matter of changing references.
+			(BUT) iterating over elements anyway to find the position by index, is a linear operation.
+
+		* indexing is a linear time O(n)
+			-> we need to traverse the list from the beginning to the element with the given index.
+
+		* Linked lists also take twice as much space because they need to store
+			1) element
+			2) reference to the next element.
+
+	<Hash Tables>
+		* Kotlin's default Set and Map guarantee to keep the order in which elements were added. (each element in a hash table is a node of a linked list)
+			(actual names)
+				- LinkedHashMap
+				- LinkedHashSet
+
+		* HashMap, HashSet
+			-> takes less memory and faster! (Because order is not preserved.)
+
+	<Sorted binary trees>
+		- we can create a sorted set or a sorted map by using the "sortedSetOf" and "sortedMapOf" function.
+
+		- O(log n) for finding, adding, and removing an element (uses BinaryTree)
+		- Iterating is O(n)
+
+
