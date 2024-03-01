@@ -1,0 +1,70 @@
+Common use cases
+	
+	- Most modern app
+		1) Data / Adapters Layer
+			- repositories that can contain one or more datasources.
+
+		2) Domain Layer
+			- use cases, services, facades, etc.
+
+		3) Presentation/API/UI Layer
+
+	<Data/Adapters Layer>
+		- where we implement repositories, providers, adapters, data sources, and etc.
+
+		(Callback functions)
+			- turn them in to "suspendCancellableCoroutine"
+				-> the coroutine should be resumed using the "resume" method on "Continuation".
+				-> If it is cancellable, it should be cancelled inside the "invokeOnCancellation" lambda expression.
+
+
+		(Blocking functions)
+
+		(Observing with Flow)
+			- callbackFlow { ... awaitClose() }
+
+			- popular use for Flow is observing UI events, like button clicks or text changes.
+				ex)
+					==================================================================
+					fun EditText.listenTextChange(): Flow<String> = callbackFlow {
+						val watcher = doAfterTextChanged {
+							trySendBlocking(it.toString())
+						}
+						awaitClose { removeTextChangedListener(watcher) }
+					}
+					==================================================================
+
+			- use "flowOn" for a specific dispatcher in a flow builder
+				ex)
+					==================================================================
+					fun fibonacciFlow(): Flow<BigDecimal> = flow {
+						...
+					}.flowOn(Dispatchers.Default)
+					==================================================================
+
+	<Domain Layer>
+		- we should use coroutine scope functions to start coroutines!
+
+		(Concurrent calls)
+			- wrap function body with "coroutineScope" and use "async" builder
+
+			- withTimeoutOrNull(){...} : for time limit of the execution.
+
+		(Flow transformations)
+
+	<Presentation/API/UI layer>
+		(Creating custom scope)
+
+		(Using runBlocking)
+
+		(Working with Flow)
+			ex)
+				==================================================================
+				flow()
+					.onStart { ... }
+					.onCompletion { ... }
+					.onEach { ... }
+					.catch { ... }
+					.launchIn(viewModelScope)
+				==================================================================
+
