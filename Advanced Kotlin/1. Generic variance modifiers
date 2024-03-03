@@ -1,0 +1,70 @@
+[Generic variance modifiers]
+	- Covariant (<out T>)
+	- Contravariant (<in T>)
+	- Invariant (<T>)
+
+	(List variance)
+		- "List" interface type parameter is "covariant"
+			-> it has "out" modifier
+				ex)
+					========================================================
+					public interface List<out E> : Collection<E> {
+						...
+					}
+					========================================================
+
+		- "Covariance" can't be used for a mutable data structure.
+			-> "MutableList" has an invariant type parameter, so it has no variance modifier.
+				ex)
+					========================================================
+					public interface MutableList<E> : List<E>, ... {
+						...
+					}
+					========================================================
+
+		* Covariance should be used for immutable classes.
+
+	(Consumer variance)
+		- consumes -> "in" modifier.
+
+		* "out" modifier
+			-> appropriate for type parameters that are in the out-position and are thus used as a result type or a read-only property type.
+
+		* "in" modifier
+			-> appropriate for type parameters that are in the in-position and are thus used as parameter types.
+
+	(Function types)
+		* All parameter types in Kotlin function types are "contravariant"
+		* All return types in Kotlin function types are "covariant".
+
+	(The Covariant Nothing Object)
+		* "Nothing" type is a subtype of all types.
+
+	(The Covariant Nothing Class)
+
+	(Variance modifier limitations)
+		- In Kotlin, Array is invaraint <-> Java is covariant(lots of flaws)
+		* Read-write property types are invariant!
+
+	(UnsafeVariance Annotation)
+		- "@UnsafeVariance" annotation, which is used to turn off the aforementioned limitations.
+			-> "I know it is unsafe, but I know what I'm doing and I will use this type safely."
+
+	(Variance modifier positions)
+		1. example
+			// Declaration-side variance modifier
+			class Box<out T>(val value: T)
+
+		2. example
+			class Box<T>(val value: T)
+			// Use-site variance modifier
+			val boxAny: Box<out Any> = boxStr
+
+		- "out" -> only read from a generic object
+		- "in" -> only modify that generic object
+
+	(Star projection)
+		- it can be any type. ("*")
+
+		- MutableList<*> returns Any? as a result in methods like get or removeAt, but it expects Nothing as an argument for methods like add or set.
+			-> MutableList<*> can return anything but accepts nothing.
