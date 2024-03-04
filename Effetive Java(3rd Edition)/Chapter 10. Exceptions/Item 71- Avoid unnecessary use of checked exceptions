@@ -1,0 +1,15 @@
+Item 71: Avoid unnecessary use of checked exceptions
+	
+	- Overuse of checked exceptions in APIs can make them far less pleasant to use.
+
+	- Easiest way to eliminate a checked exception
+		-> return an "optional" of the desired result type.
+			(Disadvantage)
+				-> method can't return any additional information detailing its inability to perform the desired computation.
+
+		-> turn a checked exception into an unchecked exception by breaking the method that throws the exception into two methods, the first of which returns a boolean indicating whether the exception would be thrown.
+
+
+	- unchecked exceptions -> callers won't be able to recover
+	- optional -> recovery may be possible and force callers to handle exceptional conditions
+	- checked exceptions -> provide insufficient info in the case of failure
