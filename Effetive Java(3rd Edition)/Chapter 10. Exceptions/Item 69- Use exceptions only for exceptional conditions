@@ -1,0 +1,24 @@
+Item 69: Use exceptions only for exceptional conditions
+	
+	1) Because exceptions are designed for exceptional circumstances, there is little incentive for JVM implementators to make them as fast as explicit tests.
+
+	2) Placing code inside a try-catch block inhibits certain optimizations that JVM implementations might otherwise perform.
+
+	3) The standard idiom for looping through an array doesn't necessarily result in redundant checks. Many JVM implementations optimize them away.
+
+	* Exception-based idiom is about twice as slow as the standard one for arrays of one hundred elements.
+		-> reduces performance
+
+	* If there is bug in the loop, the use of exceptions can "MASK" the bug, complicating the debugging process.
+
+	* Exceptions are, as their name implies, to be used only for exceptional conditions; they should never be used for ordinary control flow.
+
+	* A well-designed API must not force its clients to use exceptions for ordinary control flow.
+		-> a class with a "state-dependent" method that can be invoked only under certain unpredictable conditions should generally have a separate "state-testing" method indicating whether it is appropriate to invoke the state-dependent method.
+			ex) Iterator
+				-> state-dependent method: "next"
+				-> state-testing method: "hasNext"
+
+		-> Alternative to providing a separate-testing method is to have the state-dependent method return an empty optional or a distinguished value such as "null" if it cannot perform the desired computation.
+
+	
