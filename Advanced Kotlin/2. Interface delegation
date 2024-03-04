@@ -1,0 +1,18 @@
+[Interface delegation]
+	
+	(Delegation and inheritance)
+		- inheritance only one class, but we can delegate to many objects.
+		- Inheritance is a very strong relationship
+		- most classes are not designed for inheritance as they are either closed or we just should not inherit from them.
+		- Inheritance breaks encapsulation, causing safety threats.
+
+	(Kotlin interface delegation support)
+		- use the "by" keyword and specify the object that should be used as a delegate.
+			-> this removes the "writing additional code" overhead.
+
+	(Wrapper classes)
+
+	(The decorator pattern)
+		- uses delegation.
+		- help us avoid implementing methods that only call similar decorated object methods.
+			-> makes our implementation clearer and lets a reader focus on what is essential.
