@@ -1,0 +1,17 @@
+Item 74: Document all exceptions thrown by each method
+
+	* Always declare checked exceptions individually, and document precisely the conditions under which each one is thrown using the Javadoc @throws tag.
+
+	* Don't throw Exception, or worse, Throwable
+		-> it obscures any other exception that may be thrown in the same context.
+
+	* use the Javadoc @throws tag to document each exception that a method can throw, but do not use the throws keyword on unchecked exceptions.
+
+	* If an exception is thrown by many methods in a class for the same reason, you can document the exception in the class's documentation comment rather than documenting it individually for each method.
+
+
+	(Q)
+		- Since Unchecked Exceptions such as NullPointerException, ArithmeticExceptions indicate  programming errors.
+			-> declaring them in "throws" should be avoided.
+
+		* Unchecked exceptions are runtime exceptions.
