@@ -15,3 +15,11 @@ Item 74: Document all exceptions thrown by each method
 			-> declaring them in "throws" should be avoided.
 
 		* Unchecked exceptions are runtime exceptions.
+
+		(Checked and Unchecked Exceptions)
+			- Every exception is either a checked exception or an unchecked exception. If a method includes code that could cause a checked exception to be thrown, then:
+				1) the exception must be declared in the method header, using a throws clause, or the code that might cause the exception to be thrown must be inside a try block with a catch clause for that exception.
+			So in general, you must always include some code that acknowledges the possibility of a checked exception being thrown. If you don't, you will get an error when you try to compile your code.
+
+			* Some exceptions are checked and some are unchecked. If a method might throw one or more checked exceptions, they must be listed in the method's throws clause.
+
