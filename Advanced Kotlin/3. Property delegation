@@ -1,0 +1,74 @@
+[Property delegation]
+	- "by" keyword
+
+	* "Koin" presents service location, not dependency injection.
+
+	(How property delegation works)
+		- when you "get" a property value, you call this property's getter; property delegation delegates this getter to the "getValue" function.
+
+		- when you "set" a property value, you are calling this property's setter; property delegation delegates this setter to the "setValue" function.
+
+	(Other getValue and setValue parameters)
+		- "getValue" and "setValue" methods not only receive the value that was set to the property and decide what its getter returns, but they also receive a bounded reference to the property as well as a context (This).
+
+			-> the reference to the property is most often used to get its name and sometimes to get information about annotations.
+
+	(Implementing a custom property delegate)
+		- val -> "getValue" operator
+		- var -> "getValue" and "setValue" operators
+
+		- "ReadOnlyProperty" interface for "val"
+		- "ReadWriteProperty" interface for "var"
+
+	(Provide a delegate)
+		- An object can define the "provideDelegate" method, which returns another object that will be used as a delegate.
+
+	(Property delegates in Kotlin stdlib)
+		- Kotlin provides the following standard property delegates:
+			- Delegates.notNull
+			- lazy
+			- Delegates.observable
+			- Delegates.vetoable
+			- Map<String, T> and MutableMap<String, T>
+
+	(The notNull delegate)
+		- alternative to "lateinit"	-> the property delegated to "notNull" behaves like a regular property but has no inital value.
+
+		* We should use the "lateinit" property instead of the "notNull" delegate for better performance because lateinit properties are faster!
+		(But Kotlin does not support lateinit properties with types that associate with primitives, like Int or Boolean)
+			ex)
+				================================================
+				lateinit var i: Int // Compilation Error
+				lateinit var b: Boolean // Compilation Error
+
+				var i: Int by Delegates.notNull()
+				var b: Boolean by Delegates.notNull()
+				================================================
+
+	(The lazy delegate)
+		* The actual "lazy" implementation is more complicated as it has better synchronization, which secures it for concurrent use.
+
+		- lazy "modes"
+			1) SYNCHRONIZED - default
+				-> uses lock to ensure that only a single thread can initialize this delegate instance.
+				
+				* The slowest because synchronizatino mechanisms introduce some performance costs.
+
+			2) PUBLICATION
+				-> initializer function can be called several times on concurrent access to an uninitialized delegate instance value, but only the first returned value will be used as the value of this delegate intsnace.
+
+				* if a delegate is used only by a single thread, this option will be slightly faster than SYNCRHONIZED
+
+			3) NONE
+				-> fastest option and uses no locks to synchronize access to the delegate instance value; so, if tthe instance is accessed from multiple threads, it's behavior is undefined.
+
+	(The observable delegate)
+
+	(The vetoable delegate)
+		- "Veto" : "I forbid" meaning.
+		- "vetoable" lambda expression is executed before the property value changes and returns the Boolean type, which determines if the property value should change or not.
+			-> If returns "true", the property value will change
+			-> If returns "false", the value won't change.
+
+	(A map as a delegate)
+		
