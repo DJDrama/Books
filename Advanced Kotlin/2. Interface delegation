@@ -16,3 +16,12 @@
 		- uses delegation.
 		- help us avoid implementing methods that only call similar decorated object methods.
 			-> makes our implementation clearer and lets a reader focus on what is essential.
+
+	(Intersection types)
+
+	(Limitations)
+		- objects we delegate to must have an interface, and only methods from this interface will be delegated.
+		- unlike when we use inheritance - the meaning of the "this" reference does not change.
+
+	(Conflicting elements from parents)
+		- when two interfaces define the same method or property, we must resolve this conflict by overriding this element in the class.
