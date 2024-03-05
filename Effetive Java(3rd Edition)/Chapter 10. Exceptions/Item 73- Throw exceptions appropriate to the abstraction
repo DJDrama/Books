@@ -1,0 +1,21 @@
+Item 73: Throw exceptions appropriate to the abstraction
+
+	(Exception Translation)
+		* Higher layers should catch lower-level exceptions and, in their place, throw exceptions that can be explained in terms of the higher-level abstraction.
+
+	(Exception Chaining)
+		* lower-level exception might be helpful to someone debugging the problem that caused the higher-level exception.
+			-> lower-level exception is passed to the higher-level exception, which provides an accessor method (Throwable's getCause method) to retrieve the lower-level exception.
+
+	(Chaining-aware)
+		- higher-level exception's constructor passes the cause to a chaining-aware superclass constructor
+			-> it is ultimately passed to one of Throwable's chaining-aware constructors, such as Throwable(Throwable)
+
+	* While exception translation is superior to mindless propagation of exceptions from lower layers, it should not be overused.
+		-> avoid them by ensuring that lower-level methods succeed.
+
+
+	1) if it isn't feasible to prevent or to handle exceptions from lower layers, use exception translation, unelss the lower-level method happens to guarantee that all of its exceptions are appropriate to the higher level.
+
+	
+
