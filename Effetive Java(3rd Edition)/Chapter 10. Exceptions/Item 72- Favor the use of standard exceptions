@@ -1,0 +1,22 @@
+Item 72: Favor the use of standard exceptions
+	(Reusable Exceptions)
+		- "IllegalArgumentException"
+			-> when arguments are inappropriate
+
+		- "IllegalStateException"
+			-> when the invocation is illegal because of the state of the receiving object.
+
+		- when passed "null" -> "NullPointerException" rather than "IllegalArgumentException"
+
+		- when passed out-of-range value -> "IndexOutOfBoundException" rather than "IllegalArgumentException"
+
+		- "ConcurrentModificationException"
+
+		- "UnsupportedOperationException"
+			-> if an object does not support an attempted operation.
+
+	* DO NOT reuse Exception, RuntimeException, Throwable, or Error directly!!!
+		-> You can't reliably test for these exceptions because they are superclasses of other exceptions that a method may throw.
+
+
+	* Throw IllegalStateException if no argument values would have worked, otherwise throw IllegalArgumentException.
