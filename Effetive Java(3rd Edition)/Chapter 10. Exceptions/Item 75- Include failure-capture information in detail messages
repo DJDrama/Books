@@ -1,0 +1,21 @@
+Item 75: Include failure-capture information in detail messages
+	
+	- stack trace
+		-> contains the exception's "string representation", the result of invoking its "toString" method.
+		-> typically consists of the exception's class name followed by its detail message.
+
+	* To capture a failure, the detail message of an exception should contain the values of all parameters and fields that contributed to the exception.
+		ex) "IndexOutOfBoundsException"
+			-> should contain the lower bound, the upper bound, and the index value that failed to lie between the bounds.
+				("Fencepost error" : index could be one less than the lower bound or equal to the upper bound)
+				or
+				(wild value: far too low or high)
+
+	* Do not include passwords, encryption keys, and the like in detail messages.
+		-> for security
+
+	* information content is far more important than readability.
+		-> User-level error messages are often localized, whereas exception detail messages rarely are.
+
+	- it is more important to provide such accessor methods on checked exceptions than unchecked
+		-> failure-capture information could be useful in recovering from the failure.
