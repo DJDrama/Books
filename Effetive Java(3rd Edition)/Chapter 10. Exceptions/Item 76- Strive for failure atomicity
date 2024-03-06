@@ -1,0 +1,21 @@
+Item 76: Strive for failure atomicity
+
+	* A failed method invocation should leave the object in the state that it was in prior to the invocation.
+		-> a method with this property is said to be "failure-atomic"
+
+		(methods)
+		1. design immutable objects.
+			-> failure atomicity is free
+
+		2. for mutable objects, check parameters for validity before performing the operation!
+			-> most exceptions to get thrown before object modification commences.
+
+			-> order the computation so that any part that may fail takes place before any part that modifies the object.
+
+		3. perform the operation on a temporary copy of the object and to replace the contents of the object with the temporary copy once the operation is complete.
+
+		4. 
+
+
+(Question)
+A third approach to achieving failure atomicity is to perform the operation on a temporary copy of the object and to replace the contents of the object with the temporary copy once the operation is complete. This approach occurs naturally when the computation can be performed more quickly once the data has been stored in a temporary data structure. For example, some sorting functions copy their input list into an array prior to sorting to reduce the cost of accessing elements in the inner loop of the sort. This is done for performance, but as an added benefit, it ensures that the input list will be untouched if the sort fails. -> Meaning?
