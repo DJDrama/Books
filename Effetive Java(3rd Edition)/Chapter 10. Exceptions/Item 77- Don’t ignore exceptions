@@ -1,0 +1,19 @@
+Item 77: Don’t ignore exceptions
+
+	* An empty catch block defeats the purpose of exceptions!
+
+	(situations when it is appropriate to ignore an exception)
+		1. when closing a "FileInputStream"
+			-> you haven't changed the state of the file, so there's no need to perform any recovery action, and you've already read the informationk that you need from the file.
+			-> so there's no reason to abort the operation in progress.
+
+	* If you choose to ignore an exception, the "catch" block should contain a comment explaining why it is appropriate to do so, and the variable should be named "ignored"
+		ex)
+			==================================================
+			try{
+				...
+			} catch (ExecutionException ignored){
+				// not required
+			}
+			==================================================
+	
