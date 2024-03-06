@@ -21,4 +21,8 @@ Item 69: Use exceptions only for exceptional conditions
 
 		-> Alternative to providing a separate-testing method is to have the state-dependent method return an empty optional or a distinguished value such as "null" if it cannot perform the desired computation.
 
-	
+	(Guidelines to choose between a state-testing method and an optional or distinguished return value)
+		- If an object is to be accessed concurrently without external synchronization or is subject to externally induced state transitions, you MUST use an optional or distinguished return value, as the object's state could change in the interval between the invocation of a state-testing method and its state-dependent method.
+
+		- State-testing method offers better readability, and incorrect use may be easier to detect.
+			-> if you forget to call a state-testing method, the state-dependent method will throw an exception, making the bug obvious.
