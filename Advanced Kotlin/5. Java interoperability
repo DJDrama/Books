@@ -1,0 +1,106 @@
+[Java interoperability]
+	
+	(Nullable types)
+		- Java type is not annotated (@Nullable or @NotNull)
+			-> Kotlin does not know if it should be considered nullable or not.
+
+		- "platform type"
+			-> platform types are notated with a single exclamation mark ! after the type name, such as "String!".
+
+			(Java String -> Kotlin String!)
+				* Always be careful when we get platform types from Java.
+
+	(Kotlin type mapping)
+		Kotlin.Any 			->		Java.lang.Object
+		...
+		Kotlin.Throwable	->		Java.lang.Throwable
+
+	(JVM primitives)
+		- Java has two kinds of values: objects and primitives.
+
+		* In Kotlin, all values are objects
+			-> BUT the Byte, Short, Int, Long, Float, Double, Char, and Boolean types use primitives under the hood.
+				ex) Kotlin's Int will be Java's int.
+
+		* Primitives are not nullable on JVM!
+			-> so nullable Kotlin types are always compiled into non-primitive types.
+				ex) Int? -> Integer
+
+		* Collections use wrapped types in Java
+			ex) List<Int> -> List<Integer>
+
+		* Arrays in Kotlin can use primitives, but Array uses wrapped types in Java
+			ex) IntArray -> Int[], Array<Int> -> Integer[]
+
+		* Using primitive types as an array type argument makes an array or arrays.
+			ex)
+				Array<IntArray> -> int[][]
+				Array<Array<LongArray>> -> long[][]
+				Array<Array<Int>> -> Integer[][]
+				Array<Array<Long>> -> Long[][]
+
+	(Collection types)
+		- "Interface Segregation Principle"
+			-> no code should be forced to depend on methods it does not use!
+
+		* Java List, Set, Map becomes (Mutable) List, Set, Map in Kotlin
+			-> breaks the Kotlin type contract.
+
+	(Annotation targets)
+
+	(Static elements)
+		- Kotlin doesn't have the concept of "static" elements.
+			-> so use object delcarations and ompanion objects instaed.
+
+		- use "@JvmStatic" for java interopolerability when using object functions or companion object functions.
+
+	(JvmField)
+		- when "JvmField" annotation is used for an annotation in an object declaration or a companion object, its field also becomes static.
+
+		- constant variables (const) do not need this annotation as they will always be represented as static fields.
+
+	(Using Java accessors in Kotlin)
+		- getter without a setter -> val
+		- getter and a setter -> var
+		- setter without a getter cannot be interpreted as a property because every property needs a getter.
+
+	(JvmName)
+		- useful for resolving name conflicts
+
+	(JvmMultifileClass)
+
+	(JvmOverloads)
+		- Java does not support named optional arguments
+			-> default Kotlin arguments cannot be used in Java.
+
+		- use for constructor telescoping in Java.
+
+	(Unit)
+
+	(Function types and function interfaces)
+
+	(Tricky names)
+		- Backticks(`)
+			-> used for naming unit test functions
+
+	(Throws)
+		- Java : Checked Exception, Unchecked Exception
+			-> "Checked Exceptions"
+				= classes that directly inherit "Throwable" are checked exceptions (Except for RuntimeException and Error)
+
+			-> "Unchekced Exceptions"
+				= which can be thrown "at any time" and don't need to be stated in any way, therefore methods don't have to catch or throw unchecked exceptions explicitly.
+					(Classes that inherit RuntimeException or Error)
+
+		- Kotlin: All exceptions are unchecked.
+
+		- use "@Throws(IOException::class)" annotation for JAva interoperability.
+
+	(JvmRecord)
+		- Java 16 introduced "records" as immutable data carriers. (Alternatives to Kotlin data classes)
+
+		- Kotlin Usage (for Java interoperability record)
+			@JvmRecord 
+			data class Person(val name: String, val age: Int)
+
+		
