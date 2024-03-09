@@ -1,0 +1,39 @@
+[Reflection]
+	- Reflection in programming is a program's ability to introspect its own source code symbols at runtime.
+
+	- Reflection is often used by libraries that analyze our code and behave according to how it is constructed.
+
+		ex) GSON
+			-> uses reflection to serialize and deserialize objects.
+			-> often reference classes to check which properties they require and which constructors they offer in order to then use these constructors.
+
+
+		ex) Koin
+			-> uses reflection to identify the type that should be injected and to create and inject an instance appropriately.
+
+	- to use Kotlin refelction, we need to add the "kotlin-reflect" dependency to our project.
+		-> "KotlinReflectionNotSupportedError" -> We need the "kotlin-reflect" dependency.
+
+
+	(Hierarchy of classes)
+		* Interfaces in reflection API nomenclature are also considered classes, so their references are of type KClass.
+
+	(Function references)
+
+	(Parameter references)
+
+	(Property references)
+
+	(Class reference)
+
+	(Serialization example)
+		- "JsonName" -> @JsonName("myName")
+		- "JsonIgnore" -> ignore For toJson
+
+	(Referencing types)
+
+	(Type reflection example: Random value)
+
+	(Breaking encapsulation)
+		- Using reflection, we can call elements we should not have access to.
+		* We can change element's accessibility by using "isAccessible"

@@ -39,3 +39,5 @@ SharedFlow and StateFlow
 
 	<stateIn>
 		- Flow<T> into StateFlow<T>
+
+		* when we want to observe a value from one source of changes.

@@ -71,4 +71,7 @@
 			-> If returns "false", the value won't change.
 
 	(A map as a delegate)
-		
+		- "read-only" interface -> can only be used for read-only properties.
+
+		- references to same object when "MUTABLE"
+		- references to previous object if "IMMUTABLE and set to another object"

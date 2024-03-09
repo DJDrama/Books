@@ -25,3 +25,8 @@
 
 	(Conflicting elements from parents)
 		- when two interfaces define the same method or property, we must resolve this conflict by overriding this element in the class.
+
+
+	[Summary]
+		- Interface delegation can help us make our code more clear and concise.
+			-> used when we need to make a simple wrapper over an interface, implement the decorator pattern, or make a class that collects methods from two interfaces.
