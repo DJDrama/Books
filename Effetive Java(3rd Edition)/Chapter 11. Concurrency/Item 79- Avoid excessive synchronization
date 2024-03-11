@@ -1,0 +1,30 @@
+Item 79: Avoid excessive synchronization
+
+	* Excessive synchronization can cause reduced performance, deadlock, or even nondeterministic behavior.
+
+	* To avoid liveness and safety failures, never cede control to the client within a synchronized method or block.
+		(alien methods when inside a syncrhonized region - do not invoke)
+			- method that is designed to be overriden
+			- one provided by a client in the form of a function object
+
+	- In the Java programming language, locks are reentrant.
+
+	- "CopyOnWriteArrayList" -> concurrent collection
+		-> all modification operations are implemented by making a fresh copy of the entire underlying array.
+		-> internal array is never modified, iteration requires no locking and is very fast.
+
+	- "open call"
+		-> alien method invoked oustide of a syncrhonized region
+
+	* you should do as little work as possible inside syncrhonized regions.
+
+	(Two options when writing a mutable class)
+		1. omit all syncrhonization and allow the client to synchronize externally if concurrent use is desired.
+			-> ex) Collections inside java.util
+
+		2. synchronize internally, making the class thread-safe (Choose this one if you can achieve higher concurrency with internal synchronization than you could by having the client lock the entire object externally.)
+			-> ex) Collections in java.util.concurrent
+
+	- StringBuffer -> StringBuilder
+
+	- Random -> ThreadLocalRandom
