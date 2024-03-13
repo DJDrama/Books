@@ -1,0 +1,6 @@
+[Kotlin Symbol Processing]
+	- KSP(Kotlin Symbol Processing)
+
+	- Faster than Annotation processing
+		-> KSP API is lazy.
+		-> Compared to kapt, KSP can run up to twice as fast because KSP is not slowed down by creating intermediate stub classes and Gradle javac tasks.

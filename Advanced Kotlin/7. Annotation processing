@@ -1,0 +1,5 @@
+[Annotation processing]
+	- to use annotation processing in Kotlin, we should use the "kapt" plugin.
+
+	- KotlinPoet
+		-> generate a Kotlin file instead of a Java file.
