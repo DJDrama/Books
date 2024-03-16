@@ -1,0 +1,12 @@
+Item 84: Don’t depend on the thread scheduler
+
+	* Any program that relies on the thread scheduler for correctness or performance is likely to be nonportable.
+
+	* average number of runnable threads is not significantly greater thatn the number of processors.
+
+	* Threads should not run if they aren't doing useful work.
+
+	- Do not depend on the thread scheduler for the correctness of your program.
+
+	- do not rely on Thread.yield or thread priorities.
+		-> they should never be used to "fix" a program that barely works.
