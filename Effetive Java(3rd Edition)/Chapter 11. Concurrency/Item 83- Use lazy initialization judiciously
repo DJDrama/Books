@@ -1,0 +1,65 @@
+Item 83: Use lazy initialization judiciously
+	- "lazy initialization"
+		-> act of delaying the initialization of a field until its value is needed.
+			-> applicable for both static and instance fields.
+
+		* Don't do it unless you need to
+
+			1) lazy initialization can actually harm performance
+				-> measure the performance of the class with and without lazy initialization
+
+			2) In the presence of multiple threads, lazy initialization is tricky.
+
+	* Under most circumstances, normal initialization is preferable to lazy initialization.
+
+	* If you use lazy initialization to break and initialization circularity, use a sycnrhonized accessor.
+		-> simplest, clearest alternative
+
+	* If you need to use lazy initialization for performance on a static field, use the lazy initialization holder class idiom.
+		ex) holder class
+			========================================================
+			private static class FieldHolder{
+				static final FieldType field = computeFieldValue();
+			}
+			private static FieldType getField() {
+				return FieldHolder.field;
+			}
+			========================================================
+
+
+	* If you need to use lazy initialization for performance on an instance field, use the "double-check" idiom.
+		ex) double check
+			========================================================
+			private volatile FieldType field;
+
+			private FieldType getField(){
+				FieldType result = field;
+				if(result == null){ // once without locking
+					syncrhonized(this){
+						if(field == null){ // second with locking
+							field = result = computeFieldValue();
+						}
+					}
+				}
+				return result;
+			}
+			========================================================
+
+		-> lazy initialization holder class idiom is a better choice.
+
+		ex) single check
+			========================================================
+			private volatile Fieldtype field;
+
+			private FieldType getfield(){
+				FieldType result = field;
+				if(result == null){
+					field = result = computeFieldValue();
+				}
+				return result;
+			}
+			========================================================
+
+	* for instance fields -> double-check idiom
+		-> for instance fields that can tolerate repeated initialization, you may also consider the single-check idiom.
+	* for static fields -> lazy initialization holder class idiom
