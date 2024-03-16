@@ -21,3 +21,6 @@ Item 80: Prefer executors, tasks, and streams to threads
 	- Key abstraction is the unit of work, which is the "task".
 		1) Runnable
 		2) Callable (which is like Runnable, except that it returns a value and can throw arbitrary exceptions.)
+
+	- General mechanism for executing tasks is the "executor service".
+	

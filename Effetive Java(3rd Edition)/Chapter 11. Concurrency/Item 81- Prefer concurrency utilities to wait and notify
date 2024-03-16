@@ -1,1 +1,26 @@
 Item 81: Prefer concurrency utilities to wait and notify
+
+	* Given the difficulty of using wait and notify correctly, you should use the higher-level conccurrency utilities instead.
+
+	- java.util.concurrent
+		1) Executor Framework
+		2) Concurrent collections
+			ex)
+				- Map's "putIfAbsent(key, value)"
+					-> inserts a mapping for a key if none was present and returns the previous value associated with the key, or null if there was none.
+					-> thread-safe canonicalizing maps.
+
+				- ConcurrentHashMap is very fast.
+
+			* Use ConcurrentHashMap in preference to Collections.synchronizedMap
+
+		3) Synchronizers
+			- CountDownLatch
+			- Semaphore
+			- Phaser
+
+	* For interval timing, always use System.nanoTime rather than System.currentTimeMillis.
+		-> nanoTime is both more accurate and more precise and is unaffected by adjustments to the system's real time clock.
+
+	- Try to use "notifyAll" rather than "notify"
+		-> There is seldom, if ever, a reason to use wait and notify in new code.
