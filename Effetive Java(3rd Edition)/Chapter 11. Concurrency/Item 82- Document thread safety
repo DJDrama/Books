@@ -1,0 +1,35 @@
+Item 82: Document thread safety
+	- The presence of the synchronized modifier in a method declaration is an implementation detail, not a part of its API.
+
+	* To enable safe concurrent use, a class must clearly document what level of thread safety it supports.
+
+		1) Immutable
+			-> Instances of this class appear constant
+
+		2) Unconditionally thread-safe
+			-> Instances of this class are mutable, but the class has sufficient internal syncrhonization that its instances can be used concurrently without the need for any external synchronization.
+				ex) AtomicLong, ConcurrentHashMap
+
+		3) Conditionally thread-safe
+			-> some methods require external syncrhonization for safe concurrent use.
+
+		4) Not thread-safe
+			-> Instances of this class are mutable.
+				ex) ArrayList, HashMap
+
+		5) Thread-hostile
+			-> unsafe for concurrent use eve if every method invocation is surrounded by external syncrhonization.
+
+	(Thread safe annotations)
+		- Immutable
+		- ThreadSafe
+		- NotThreadSafe
+
+	- private lock object 
+		ex) private final Object lock = new Object();
+			-> private lock object is inaccessible outside the class, it is impossible for clients to interfere with the object's syncrhonization.
+
+		* Lock fields should always be declared final.
+
+		* private lock object idiom can be used only on unconditionally thread-safe classes.
+		
