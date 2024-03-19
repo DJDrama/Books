@@ -1,0 +1,25 @@
+Item 85: Prefer alternatives to Java serialization
+
+	- a short stream that requires a long time to deserialize
+		-> deserialization bombs
+
+	* The best way to avoid serialization exploits is never to deserialize anything.
+
+	* There is no reason to use Java serialization in any new system you write.
+
+	- leading cross-platform structured data representations are JSON and Protocol Buffers(Protobuf)
+		-> JSON (Douglas Crockford): browser-server communication
+			- developed for Javascript
+			- text-based and human-readable
+			- data representation
+
+		-> Protobuf (Google) : storing and interchanging structured data among its servers.
+			- developed for C++
+			- binary and substantially more efficient
+			- schemas(types) to document and enforce appropriate usage.
+
+	* Never deserialize untrusted data.
+
+	* Seriously consider migrating to a cross-platform structured-data representation rather than serialization.
+
+	* If you have to deserialize something, use object deserialization filtering (java.io.ObjectInputFilter)
