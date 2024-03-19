@@ -14,4 +14,7 @@ Item 86: Implement Serializable with great caution
 	4) Implementing it is not a decision to be undertaken lightly.
 
 	5) Classes designed for inheritance should rarely implement Serializable, and interfaces should rarely extend it.
-	
+
+
+* Finalize attack example
+https://self-learning-java-tutorial.blogspot.com/2020/03/finalizer-attack-in-java.html
