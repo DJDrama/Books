@@ -1,0 +1,17 @@
+Item 86: Implement Serializable with great caution
+
+	1) A major cost of implementing Serializable is that it decreases the flexibility to change a class's implementation once it has been released.
+
+		- loses fields for information hiding.
+
+		- Every serializable class has a unique identification number associated with it.
+			-> if you fail to declare a serial version UID, compatibility will be broken, resulting in an InvalidClassException at runtime.
+
+	2) Serializable increases the likelihood of bugs and security holes
+
+	3) increase the testing burden associated with releasing a new version of a class.
+
+	4) Implementing it is not a decision to be undertaken lightly.
+
+	5) Classes designed for inheritance should rarely implement Serializable, and interfaces should rarely extend it.
+	
