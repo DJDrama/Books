@@ -1,0 +1,33 @@
+Item 87: Consider using a custom serialized form
+
+	* Do not accept the default serialized form without first considering whether it is appropriate.
+
+	* The default serialized form is likely to be appropriate if an object's physical representation is identical to its logical content.
+
+	* Even if you decide that the default serialized from is appropriate, you often must provide a readObject method to ensure invariants and security.
+
+	- "@serial"
+		-> tag tells that JAvadoc to place this documentation on a special page that documents serialized forms.
+
+	* Using the default serialized form when an object's physical representation differs substantially from its logical data content has four disadvantages:
+		1) It permanently ties the exported API to the current internal representation.
+
+		2) It can consume excessive spave.
+
+		3) It can consume excessive time.
+
+		4) It can cause stack overflows.
+
+	- "@serial" -> for fields
+	- "@serialData" -> for methods
+
+	* Before deciding to make a field nontransient, convince yourself that its value is part of the logical state of the object.
+		-> If you use a custom serialized form, most or all of the instance fields should be labeled transient.
+
+	* You must impose any synchronization on object serialization that you would impose on any other method that reads the entire state of the object.
+
+	* Declare an explicit serial version UID in every serializable class you write.
+		-> If no serial version UID is provided, an expensive computation is performed to generate one at runtime.
+
+	* Do not change the serial verison UID unless you want to break compatibility with all existing serialized instances of a class.
+	
