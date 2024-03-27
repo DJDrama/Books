@@ -83,7 +83,139 @@
 		- Dynamic Binding
 			-> Run-time association of a request to an object and one of its operations is known as.
 			-> issuing a request doesn't commit you to a particular implementation until run-time.
+
+			* Polymorphism
+				-> key concept in object-oriented systems.
+				-> siplifies the definition of clients
+				-> decouples object from each oter
+				-> vary relationships to each other at run-time.
+
+	[Specifying Object Implementations]
+		- Objects are created by instantiating a class.
+		- Object is said to be an instance of the class.
+
+		- abstract class <-> concrete class
+		- abstract operations
+			-> operations that an abstract class declares but doesn't implement
+
+		- mixin class
+			-> a class that's intended to provide an optional interface or functionality to other classes.
+
+		- Class inheritance : defines an object's implementation in terms of another object's implementation.
+			-> mechanism for code and representation sharing.
+
+		- Interface inheritance(or subtyping): describes when an object can be used in place of another.
+
+
+	[Programming to an Interface, not an Implementation]
+		- two benefits to manipulating objects solely in terms of the interface defined by abstract class:
+			1. Clients remain unaware of the specific types of objects they use, as long as the objects adhere to the interface that clients expect.
+
+			2. Clients remain unaware of the classes that implement these objects. Clients only know about the abstract class(es) defining the interface.
+
+		* Program to an interface, not an implementation.
+
+		- Don't declare variables to be instances of particular concrete class.
+			-> Instead, commit only to an interface defined by an abstract class.
+
+	[Putting Reuse Mechanisms to Work]
+		(Inheritance versus Composition)
+			- most common techniques for reusing functionality in object-oriented systems
+				1. Class inheritance
+					- "White-box reuse"
+						-> reuse by subclassing
+						-> with inheritance, the internals of parent classes are often visible to subclasses.
+
+				2. Object composition
+					- "Black-box reuse"
+						-> no internal details of objects are visible.
+						-> objects appear only as "black boxes"
+
+			- Advantages of Class inheritance
+				1. Class inheritance is defined statically at compile-time and is straightforward to use
+				
+				2. Class inheritance also makes it easier to modify the implementation being reused.
+
+			- Disadvantages of Class inheritance
+				1. you can't change the implementations inherited from parent classes at run-time, because inheritance is defined at compile-time.
+				
+				2. parent classes often define at least part of their subclasses' physical representation.
+					-> "Inheritance breaks encapsulation"
+					-> implementation of a subclass becomes so bound up with the implementation of its parent class
+					-> any change in the parent's implementation will force the subclass to change!
+
+				3. Dependencies can cause problems: 
+					-> any aspect of the implementation might not be appropriate for new problem domains
+					-> parent class must be rewritten or replaced by something more appropriate.
+					-> limits flexibility and ultimately reusability.
+
+			- Advantages of Object composition
+				1. defined dynamically at run-time through objects acquiting references to other objects.
+
+				2. objects are accessed soley through their interfaces, we don't break encapsulation.
+
+				3. Any object can be replaced at run-time by another as long as it has the same type.
+
+				4. fewer implementation dependencies
+					-> object's implementation will be written in terms of object interfaces
+
+				5. helps you keep each class encapsulated and focused on one task.
+
+			* "Favor object composition over class inheritance"
+
+		(Delegation)
+			- two objects are involved in handling a request
+				-> a receiving object delegates operations to its delegate.
+
+			- Advantage
+				-> easy to compose behaviors at run-time and to change the way they're composed.
+
+			- Disadvantage
+				-> run-time inefficiencies
+
+		(Inheritance versus Parameterized Types)
+			- parameterized types = generics and templates
+
+			* Object composition lets you change the behavior being composed at run-time
+				-> also requires indirection and can be less efficient.
+
+			* Inheritance lets you provide default implementations for operations and lets subclasses override them.
+
+			* Parameterized types let you change the types that a class can use.
+				-> Neither inheritance nor prametirized types can change at run-time!
+
+	[Relating Run-time and Compile-Time Structures]
+		- Aggregation
+			-> one object owns or is responsible for another object.
+			-> we speak of an object "having" or being "part of" another object.
+
+		- Acquitance
+			-> object merely knows of another object.
+			-> sometimes called "association" of the "using" relationship.
+			* Weaker relationship than aggregation and suggests much looser coupling between objects.
+
+		* Aggregation tend to be fewer and more permanent than acquitance
+		* Acquintances are made and remade more frequently, sometimes existing only for the duration of an operation.
+			-> More dynamic as well, making them more difficult to discern in the source code.
+
+
+1.7 How to Select a Design Pattern
+	
+	1. Consider how design patterns solve design problems
+	2. Scan Intent sections
+	3. Study ow patterns interrelate
+	4. Study patterns of like purpose
+	5. Examine a cause of redesign
+	6. Consider what should be variable in your design.
+
+1.8 How to Use a Design Pattern
+	
 			
+
+
+
+
+
 
 
 
