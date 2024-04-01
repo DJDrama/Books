@@ -1,0 +1,36 @@
+[Singleton]
+	(requirements)
+		1. We should have exactly one instance in our system.
+		2. This instance should be accessible from any part of our system.
+
+	(instantiation requirements)
+		1. Lazy
+			-> instantiate it only when it's needed for the first time.
+
+		2. Thread-safe
+
+		3. Performant
+			-> block many threads when they are trying to instantiate a singleton object at the same time.
+
+	(Kotlin)
+		- "object" keyword : Singleton
+		- objects can implement interfaces
+			ex)
+				================================================
+				object NoMovieList: List<String> {
+					override val size = 0
+					override fun contains(element: String) = false
+					...
+				}
+				================================================
+
+		- objects can't have constructors. Use init block instead.
+			ex)
+				================================================
+				object Logger {
+					init {
+						// Initialization logic
+					}
+					// More code goes here
+				}
+				================================================

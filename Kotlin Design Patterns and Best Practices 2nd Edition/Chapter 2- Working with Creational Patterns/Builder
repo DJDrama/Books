@@ -1,0 +1,55 @@
+[Builder]
+	
+	- builder example (MailBuilder)
+		ex)
+			====================================================================
+			class MailBuilder {
+			    private var to: List<String> = listOf()
+			    private var cc: List<String> = listOf()
+			    private var title: String = ""
+			    private var message: String = ""
+			    private var important: Boolean = false
+
+			    class Mail internal constructor(
+			        val to: List<String>,
+			        val cc: List<String>?,
+			        val title: String?,
+			        val message: String?,
+			        val important: Boolean
+			    )
+
+			    fun to(to: List<String>): MailBuilder {
+			        this.to = to
+			        return this
+			    }
+
+			    fun title(title: String): MailBuilder {
+			        this.title = title
+			        return this
+			    }
+
+			    fun build(): Mail {
+			        if (to.isEmpty()) {
+			            throw RuntimeException("To property is empty")
+			        }
+			        return Mail(to, cc, title, message, important)
+			    }
+			}
+
+			// usage
+			fun main() {
+			    val email = MailBuilder()
+			        .to(listOf("hello@hello.com"))
+			        .title("What's up?")
+			        .build()
+			}
+			====================================================================
+
+	(Downsides)
+		1. properties of our resulting class must be repeated inside the builder.
+		2. for every property, we need to declare a function to set its value
+
+
+
+	- Best option = Default arguments !!
+		-> rarely need the Builder design pattern at all in Kotlin.

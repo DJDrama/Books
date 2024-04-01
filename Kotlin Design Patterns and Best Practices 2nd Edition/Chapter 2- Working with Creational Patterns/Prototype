@@ -1,0 +1,10 @@
+[Prototype]
+	
+	- All about customization and creating objects that are similar but slightly different.
+
+	- whole idea of a "prototype" is to be able to clone and object easily.
+		(reasons)
+			1. helps an instances where creating your object is very expensive
+			2. helps if you need to create objects that are similar but vary slightly and you don't want to repeat similar parts over and over again.
+
+	- Data classes have "copy()" method.

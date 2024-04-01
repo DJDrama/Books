@@ -1,0 +1,37 @@
+[Factory Method]
+	
+	(Static Factory Method)
+		<benefits>
+			+ provides an opportunity to explicitly name different object constructors.
+			+ we usually don't expect exceptions from a constructor.
+			+ speaking of expectations, we expect the constructor to be fast.
+				-> when objects constructuring is slow, use static factory method instead.
+
+		- May provide "caching" (as Long actually does)
+			-> instead of always returning a new instance for any value, valueOf() checks in the cache whether this value was already parsed.
+
+		- companion object
+			ex)
+				==========================================================
+				class Server(port: Long){ 
+					
+					// OR 
+
+				class Server private constructor(port: Long){ 
+
+					init {
+						println("Server started on port $port")
+					}
+
+					companion object {
+						fun withPort(port: Long) = Server(port)
+					}
+					
+				}
+
+				// usages
+				Server(8080) // won't compile (private constructor)
+
+				Server.withPort(8080) // Works!
+				==========================================================
+

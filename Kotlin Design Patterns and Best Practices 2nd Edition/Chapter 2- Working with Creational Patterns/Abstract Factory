@@ -1,0 +1,24 @@
+[Abstract Factory]
+	- Factory of factories.
+	- Factory: function or class that's able to create other classes.
+
+	-> Abstract Factory: a class that wraps multiple factory methods.
+
+
+		(Smart casts)
+			- Kotlin compiler is very smart.
+			- If we performed a type check on an if expression, it would mean that portProperty was indeed IntProperty.
+				ex)
+					=============================================================
+					if(portProperty is IntProperty){
+						val port: Int = portProperty.value 
+
+						// No neeed to as below
+						// val port: Int = (portProperty as IntProperty).value
+					}
+
+					=============================================================
+
+	- ex) java.util.Collections class
+		-> has methods such as emptyMap, emptyList, and emptySet, which each generate a different class.
+		-> However, what is common to all of them is that they are all collections!
