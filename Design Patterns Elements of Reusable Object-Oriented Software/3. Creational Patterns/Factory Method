@@ -1,0 +1,24 @@
+Factory Method
+	(Intent)
+		Define an interface for creating an object, but let subclasses decide which class to instantiate.
+		Lets a class defer instantiation to subclasses.
+
+	(Also Known As)
+		Virtual Constructor
+
+	(Applicability)
+		Use it when
+			1. a class can't participate the class of objects it must create.
+			2. a class wants its subclasses to specify the objects it creates.
+			3. classes delegate responsibility to one of several helper subclasses, and you want to localize the knowledge of which helper subclass is the delegate.
+
+	(Consequences)
+		- eliminates the need to bind application-specific classes into your code.
+
+		- (potential disadvantage)
+			-> clients might have to subclass the Creator class just to create a particular ConcreteProduct object.
+
+		1. Provides hooks for subclasses.
+			-> creating objects inside a class with a factory method is always more flexible than creating an object directly.
+
+		2. Connects parallel class hierarchies.
