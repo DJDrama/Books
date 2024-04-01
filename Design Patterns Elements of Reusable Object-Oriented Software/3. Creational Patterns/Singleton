@@ -1,0 +1,23 @@
+Singleton
+	
+	(Intent)
+		Ensure a class only has one instance, and provide a global point of access to it.
+
+	(Applicability)
+		Use it when
+			1. there must be exactly one instance of a class, and must be accessible to clients from a well-known access point.
+
+			2. when the sole instance should be extensible by subclassing, and clients should be able to use an extended instance without modifying their code.
+
+	(Consequences)
+		1. Controlled access to sole instance.
+			-> Singleton class encapsulates its sole instance, it can have strict control over how and when clients access it.
+
+		2. Reduced name space
+			-> Singleton avoids polluting the name space with global variables that store sole instances.
+
+		3. Permits refinement of operations and representation.
+
+		4. Permits a variable number of instances.
+
+		5. More flexible than class operations.
