@@ -1,0 +1,20 @@
+Builder
+	(Intent)
+		Separate the construction of a complex object from its representation so that the same construction process can create different representations.
+
+	(Applicability)
+		Use it when
+			1. algorithm for creating a complex object should be independent of the parts that make up the object and how they're assembled.
+
+			2. construction process must allow different representations for the object that's constructed.
+
+	(Consequences)
+		1. lets you vary a product's internal representation.
+			-> interface lets the builder hide the representation and internal structure of the product.
+			-> hides how the product gets assembled.
+
+		2. isolates code for construction and representation.
+			-> improves modularity by encapsulating the way a complex object is constructed and represented.
+
+		3. gives you finer control over the construction process
+			-> builder pattern constructs the product step by step under the director's control.
