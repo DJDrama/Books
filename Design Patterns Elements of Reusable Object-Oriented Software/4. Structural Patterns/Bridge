@@ -1,0 +1,32 @@
+[Bridge]
+	
+	(Intent)
+		- Decouple an abstraction from its implementation so that the two can vary independently.
+
+	(Also Known As)
+		- Handle/Body
+
+	(Applicability)
+		Use the Bridge Pattern when
+			1. avoid a permanent binding between an abstraction and its implementation.
+				ex) when the implementation must be selected or switched at run-time.
+
+			2. both the abstractions and their implementations should be extensible by subclassing.
+				-> bridge pattern lets you combine the different abstractions and implementations and extend them independently.
+
+			3. changes in the implementation of an abstraction should have no impact on clients
+				-> code should not have to be recompiled.
+
+			4. hide the implementation of an abstraction completely from clients.
+
+			5. share an implementation among multiple objects, and this fact should be hidden from the client.
+
+	(Consequences)
+		1. Decoupling interface and implementation.
+			-> Implementation is not bound permanently to an interface.
+
+		2. Improved extensibility
+			-> you can extend the abstraction and implementor hierarchies independently.
+
+		3. Hiding implementation details from clients.
+		

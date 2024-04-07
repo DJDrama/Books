@@ -1,0 +1,134 @@
+[Bridge]
+	
+	- helps you to avoid abusing inheritance.
+
+	ex) A lot of classes!
+		======================================================
+		interface Trooper {
+		    fun move(x: Long, y: Long)
+		    fun attackRebel(x: Long, y: Long)
+		}
+
+		open class StormTrooper : Trooper {
+		    override fun move(x: Long, y: Long) {
+		        // Move at normal speed
+		    }
+
+		    override fun attackRebel(x: Long, y: Long) {
+		        // Missed most of the time
+		    }
+		}
+
+		open class ShockTrooper: Trooper{
+		    override fun move(x: Long, y: Long) {
+		        // Moves slower than regular StormTrooper
+		    }
+
+		    override fun attackRebel(x: Long, y: Long) {
+		        // Sometimes hits
+		    }
+		}
+
+		class RiotControlTrooper: StormTrooper() {
+		    override fun attackRebel(x: Long, y: Long) {
+		        // Has an electric baton, stay away!
+		    }
+		}
+
+		class FlameTrooper: ShockTrooper(){
+		    override fun attackRebel(x: Long, y: Long) {
+		        // Uses flametrower, dangeorus!
+		    }
+		}
+
+		class ScoutTrooper: ShockTrooper(){
+		    override fun move(x: Long, y: Long) {
+		        // Runs faster
+		    }
+		}
+		======================================================
+
+		* When we add another function the interface, all the classes extending the interface should implement that function!
+
+	(Bridging changes)
+		- Idea
+			-> flatten the class hierarchy and have fewer specialized classes in our system.
+
+		- Helps us to avoid the "fragile base class" problem when modifying the superclass introduces subtle bugs to classes that inherit from it.
+
+		- Making Flat
+			ex)
+				===================================================================================
+				interface Trooper {
+				    fun move(x: Long, y: Long)
+				    fun attackRebel(x: Long, y: Long)
+				}
+
+				typealias PointsOfDamage = Long
+				typealias Meters = Int
+
+				interface Weapon {
+				    fun attack(): PointsOfDamage
+				}
+
+				interface Legs {
+				    fun move(): Meters
+				}
+
+
+				data class StormTrooper(
+				    private val weapon: Weapon,
+				    private val legs: Legs
+				) : Trooper {
+				    override fun move(x: Long, y: Long) {
+				        TODO("Not yet implemented")
+				    }
+
+				    override fun attackRebel(x: Long, y: Long) {
+				        TODO("Not yet implemented")
+				    }
+				}
+
+				const val RIFLE_DAMAGE = 3L
+				const val REGULAR_SPEED: Meters = 1
+
+				class Rifle : Weapon {
+				    override fun attack(): PointsOfDamage {
+				        return RIFLE_DAMAGE
+				    }
+				}
+
+				class FlameThrower : Weapon {
+				    override fun attack(): PointsOfDamage {
+				        return RIFLE_DAMAGE * 2
+				    }
+				}
+
+				class Batton : Weapon {
+				    override fun attack(): PointsOfDamage {
+				        return RIFLE_DAMAGE * 3
+				    }
+				}
+
+				class RegularLegs : Legs {
+				    override fun move(): Meters {
+				        return REGULAR_SPEED
+				    }
+				}
+
+				class AthleticLegs : Legs {
+				    override fun move(): Meters {
+				        return REGULAR_SPEED * 2
+				    }
+				}
+
+				fun main() {
+				    val stormTrooper = StormTrooper(Rifle(), RegularLegs())
+				    val flameTrooper = StormTrooper(FlameThrower(), RegularLegs())
+				    val scoutTrooper = StormTrooper(Rifle(), AthleticLegs())
+				}
+				===================================================================================
+
+		- Real World
+			-> Bridge pattern is often used in conjunction with dependency injection frameworks.
+				ex) allows us to replace an implementation that used a real database with a mocked interface.
