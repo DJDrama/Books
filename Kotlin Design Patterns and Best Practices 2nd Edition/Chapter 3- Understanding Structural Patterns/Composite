@@ -1,0 +1,10 @@
+[Composite]
+
+	- widely used in user interface (UI) frameworks.
+
+		ex) Android: Group widget
+				-> implementation of the Composite design pattern.
+				-> it can group multiple other elements and implement the View interface in order to be able to act on their behalf.
+
+	- As long as all the objects in the hierarchy implement the same interface, no matter how deep the nesting is, we can ask the top-level object to invoke an action on everything beneath it.
+	

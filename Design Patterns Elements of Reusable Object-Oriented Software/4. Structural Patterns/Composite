@@ -1,0 +1,27 @@
+[Composite]
+	
+
+	(Intent)
+		- Compose objects into tree structures to represent part-whole hierarchies.
+		- lets clients treat individual obejcts and compositions of objects uniformly.
+
+	(Applicability)
+		Use it when
+			1. you want to represent part-whole hierarchies of objects.
+			2. you want clients to be able to ignore the difference between compositions of objects and individual objects.
+				-> clients will treat all objects in the composite structure uniformly.
+
+	(Consequences)
+		1. defines class hierarchies consisting of primitive objects and composite objects.
+			-> primitive objects can be composed into more complex objects, which in tern can be composed, and so on recursively.
+
+			2. makes the client simple.
+				-> clients normally don't know whether they're dealing with a leaf or a composite component.
+
+			3. makes it easier to add new kinds of components.
+				-> clients don't have to be changed for new component classes.
+
+			4. can make your design overly general.
+				-> with composite, you can't rely on the type system to enforce the constraints for you.
+				-> you'll have to use run-time checks instead.
+				
