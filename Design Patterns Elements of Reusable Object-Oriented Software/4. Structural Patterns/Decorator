@@ -1,0 +1,25 @@
+[Decorator]
+	
+	(Intent)
+		- Attach additional responsibilities to an object dynamically.
+		- provide a flexible alternative to subclassing for extending functionality.
+
+	(Also known as)
+		- Wrapper
+
+	(Applicability)
+		Use it when
+			1. add responsibilities to individual objects dynamically and transparently, without affecting other objects.
+
+			2. for responsibilities that can be withdrawn.
+
+			3. when extension by subclassing is impractical.
+
+	(Consequences)
+		1. More flexibility than static inheritance.
+			-> with decorators, responsibilities can be added and removed at run-time simply by attaching and detaching them.
+
+			<-> Inheritance requires creating a new class for each additional responsibility.
+
+		2. Avoids feature-laden classes high up in the hierarchy.
+		
