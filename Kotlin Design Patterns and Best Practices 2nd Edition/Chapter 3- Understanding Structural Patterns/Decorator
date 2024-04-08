@@ -2,4 +2,62 @@
 
 	- we allow the users of our code to specify the abilities they want to ad..
 
-	
+	- purpose: add new behaviors to our objects dynamically.
+
+	ex)
+		========================================================================
+		interface StarTrekRepository {
+		    fun getCaptain(starshipName: String): String
+		    fun addCaptain(starshipName: String, captainName: String)
+		}
+
+		class DefaultStarTrekRepository : StarTrekRepository {
+		    private val starshipCaptains = mutableMapOf("USS Enterprise" to "Jean-Luc Picard")
+		    override fun getCaptain(starshipName: String): String {
+		        return starshipCaptains[starshipName] ?: "Unknown"
+		    }
+
+		    override fun addCaptain(starshipName: String, captainName: String) {
+		        starshipCaptains[starshipName] = captainName
+		    }
+		}
+
+		// "by" keyword: delegates the implementation of an interface to another object.
+		// this class doesn't have to implement any of the functions declared in the interface.
+		// they are all implemented by default by another object that the instance wraps.
+		class LoggingGetCaptain(
+		    private val repository: StarTrekRepository
+		) : StarTrekRepository by repository {
+		    override fun getCaptain(starshipName: String): String {
+		        println("Getting captain for $starshipName")
+		        return repository.getCaptain(starshipName = starshipName)
+		    }
+		}
+
+		class ValidatingAdd(
+		    private val repository: StarTrekRepository
+		) : StarTrekRepository by repository {
+		    private val maxNameLength = 15
+		    override fun addCaptain(starshipName: String, captainName: String) {
+		        require(captainName.length < maxNameLength) {
+		            "$captainName name is longer than $maxNameLength characters!"
+		        }
+		        repository.addCaptain(starshipName = starshipName, captainName = captainName)
+		    }
+		}
+
+		fun main(){
+		    val starTrekRepository = DefaultStarTrekRepository()
+		    val withValidating = ValidatingAdd(repository = starTrekRepository)
+		    val withLoggingAndValidating = LoggingGetCaptain(repository = starTrekRepository)
+		    withLoggingAndValidating.getCaptain("USS Enterprise")
+		    withValidating.addCaptain("USS Voyager", "Kathryn Janeway") // IllegalArgumentException
+		}
+		========================================================================
+
+	* What wee need from the Decorator design pattern is as follows:
+		1. we need to be able to receive the object we're decorating.
+		2. we need to be able to keep a reference to the object.
+		3. when our decorator is called, we need to be able to decide if we would like to change the behavior of the object we're holding or to delegate the call.
+		4. we need to be able to extract an interface or have one provided already by the author.
+

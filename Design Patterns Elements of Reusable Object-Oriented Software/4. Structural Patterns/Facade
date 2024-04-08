@@ -1,0 +1,24 @@
+[Facade]
+	(Intent)
+		- Provide a unified interface to set of interfaces in a subsystem.
+		- defines a higher-level interface that makes the subsystem easier to use.
+
+	(Applicability)
+		Use it when
+			1. you want to provide a simple interface to a complex subsystem.
+
+			2. decouple the subsystem from clients and other subsystems, promoting subsystem independence and portability.
+
+			3. layer your subsystems.
+
+	(Consequences)
+		1. shields clients from subsystem components
+			-> reducing the number of objects that clients deal with and making the subsystem easier to use.
+
+		2. promotes weak coupling between the subsystem and its clients.
+			-> Facades help layer a system and the dependencies between objects.
+
+		3. it doesn't prevent applications from using subsystem classes if they need to.
+
+	* Usually only one Facade object is required.
+		-> Facade objects are often Singletons.

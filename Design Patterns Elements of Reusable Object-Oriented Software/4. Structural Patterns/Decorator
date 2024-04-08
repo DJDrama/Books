@@ -22,4 +22,9 @@
 			<-> Inheritance requires creating a new class for each additional responsibility.
 
 		2. Avoids feature-laden classes high up in the hierarchy.
-		
+
+		3. A decorator and its component aren't identical.
+			* decorated component is not identical to the component itself.
+				-> you should not rely on object identity when you use decorators.
+
+		4. Lots of little objects.

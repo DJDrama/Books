@@ -1,0 +1,23 @@
+[Facade]
+	- hide the ugly details of an implementation
+	- Abstract Factory design pattern focuses on "creating" related classes, while the Facade design pattern focuses on "working with them" once they have been created.
+
+	- Common tactic in most languages
+		-> provide a new class to encapsulate all of logics
+
+	- In Kotlin, we can make an extension function.
+		* Goal
+			-> make a complex group of classes easy to use.
+				ex)
+					================================================================
+					fun Server.startFromConfiguration(fileLocation: String) {
+					    val path = Path(fileLocation)
+					    val lines = path.toFile().readLines()
+					    val configuration = try {
+					        JsonParser().server(lines)
+					    } catch (e: RuntimeException) {
+					        YamlParser().server(lines)
+					    }
+					    Server.withPort(configuration.port)
+					}
+					================================================================
