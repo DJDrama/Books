@@ -1,0 +1,28 @@
+Item 90: Consider serialization proxies instead of serialized instances
+	
+	- implementing "Serializable" increases the likelihood of bugs and security problems
+		-> allowing instances to be created using an extralinguistic mechanism in place of ordinary constructors.
+
+	* "Serialization proxy pattern"
+		1. design a private static nested class that conciesly represents the logical state of an instance of the enclosing class.
+			-> "nested class" = "serialization proxy" of the enclosing class.
+			-> should have a single constructor, whose parameter type is the enclosing class.
+
+	- "writeReplace" method translates an instance of the enclosing class to its serialization proxy prior to serialization.
+
+	- serialization proxy pattern allows the deserialized instance to have different class from the originally serialized instance.
+
+	* Enumset
+		-> if the underlying enum type has sixty-four or fewer elements, the static factories return a "RegularEnumSet";
+		-> otherwise, they return a "JumboEnumSet"
+
+
+	- Limitations
+		1. not compatible with classes that are extendable by their users.
+		2. not compatible with some classes whose object graphs contain circularities: if you attempt to invoke a method on such an object from within its serialization proxy's readResolve method, you'll get a ClassCastException because you don't have the object yet, only its serialization proxy.
+
+		3. serialization proxy pattern is more expensive to serialize and deserialize Period instances with serialization proxies than it is with defensive copying.
+
+
+	* consider the serialization proxy pattern whenever you find yourself having to write a readObject or writeObject method on a class that is not extendable by its clients.
+		-> easiest way to robustly serialize objects with nontrivial invariants.
