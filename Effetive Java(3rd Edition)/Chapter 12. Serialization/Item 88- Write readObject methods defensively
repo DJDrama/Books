@@ -1,0 +1,23 @@
+Item 88: Write readObject methods defensively
+
+	- readObject method (just as a constructor)
+		1. must check its arguments for validity
+		2. make defensive copies of parameters where appropriate
+
+		-> if fails, it is a relatively simple matter for an attacker to violate the class's invariants.
+
+		* readObject is a constructor that takes a byte stream as its sole parameter.
+
+	- "impossible object"
+
+	- provide a readObject method for Period that calls "DefaultReadObject" and then checks the validity of the deserialized object.
+
+	* When an object is deserialized, it is critical to defensively copy any field containing an object reference that a client must not possess.
+		-> every serializable immutable class containing private mutable components must defensively copy these components in its readObject method.
+
+	- "serialization proxy pattern"
+
+	- "readObject" must not invoke an overridable method, either directly or indirectly.
+		-> if this rule is violated and the method in question is overridden, the overriding method will run before the subclass's state has been deserialized.
+
+	* when write a "readObject" method, adopt the mind-set that you are writing a public constructor that must produce a valid instance regardless of what byte stream it is given.
