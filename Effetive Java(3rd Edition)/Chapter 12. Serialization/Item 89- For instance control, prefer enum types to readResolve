@@ -1,0 +1,17 @@
+Item 89: For instance control, prefer enum types to readResolve
+	
+	- Any "readObject" method, whether explicit or default, returns a newly created instance, which will not be the same instance that was created at class initialization time.
+
+	- "readResolve"
+		-> allows you to substitute another instance for the one created by readOBject.
+
+	* If you depend on "readResolve" for instance control, all instance fields with object reference types must be declared transient.
+		-> If a singleton contains a nontransient object reference field, the contents of this field will be deserialized before the singleton's readResolve method is run.
+			-> this allows a carefully crafted stream to "steal" a reference to the originaly deserialized singleton at the time the contents of the object reference field are deserialized.
+
+
+	* Use enum types to enforce instance control invariants wherever possible.
+
+	* if you cannot make enum types, but need a class to be both seriazliable and instance-controlled, you must provide a readResolve method and ensure that all of the class's instance fields are either primitive or transient.
+
+	
