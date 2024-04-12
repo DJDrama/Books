@@ -1,0 +1,68 @@
+[Flyweight]
+	- Object without any state.
+	- "very light"
+
+	* type of object that should be very light: a data class -> BUT data class has a state!
+
+	- original Design Patterns book was published in 1994, and regular PC had 4MB of RAM.
+
+
+	EX)
+		===========================================================================================
+		import java.io.File
+
+		enum class Direction {
+		    LEFT, RIGHT
+		}
+
+		class TanzanianSnail {
+		    val directionFacing = Direction.LEFT
+		    val sprites = List(8) { i ->
+		        File(
+		            when (i) {
+		                0 -> "snail-left.jpg"
+		                1 -> "snail-right.jpg"
+		                in 2..4 -> "snail-move-left-${i - 1}.jpg"
+		                else -> "snail-move-right${(4 - i)}.jpg"
+		            }
+		        )
+		    }
+		}
+		===========================================================================================
+		- Each snail is represented by a 64 x 64 image.
+			-> if each color takes up exactly one byte, the single images will take up 4KB of RAM in the memory.
+			-> we have 8 images for a snail, we need 32 KB of RAM for each one, which allows us to fit only 32 snails into 1MB of memory.
+
+	(Saving memory)
+	Ex)
+		===========================================================================================
+		object SnailSprites {
+		    val sprites = List(8) { i ->
+		        File(
+		            when (i) {
+		                0 -> "snail-left.jpg"
+		                1 -> "snail-right.jpg"
+		                in 2..4 -> "snail-move-left-${i - 1}.jpg"
+		                else -> "snail-move-right${(4 - i)}.jpg"
+		            }
+		        )
+		    }
+		}
+
+		class TanzanianSnail {
+		    val directionFacing = Direction.LEFT
+		    val sprites = SnailSprites.sprites
+		}
+
+		===========================================================================================
+		- No matter how many snails we generate.
+			-> we can generate millions of them without affecting the footprint of our Program.
+
+	* Limit the number of heavyweight objects (like image fiels) by sharing them between the lightweight objects.
+
+	(Caveats of the Flyweight design pattern)
+		- we should take care about the immutability of the data we pass.
+			ex) if we use "var" instead of "val" in Singleton, the code will be disastrous.
+
+			-> use value instead of variables in your extrinsic state.
+			-> use immutable data structures
