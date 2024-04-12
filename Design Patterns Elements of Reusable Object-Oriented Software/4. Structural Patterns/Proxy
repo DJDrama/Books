@@ -1,0 +1,23 @@
+[Proxy]
+
+	(Intent)
+		- provide a surrogate or placeholder for another object to control access to iot.
+
+	(AKA)
+		- Surrogate
+
+	(Applicability)
+		1. A remote proxy provides a local presentative of an object in a different address space
+
+		2. A virtual proxy creates expensive objects on demand
+
+		3. A protection proxy controls access to the original object
+
+		4. A smart reference is a replacement for a bare pointer that performs additional actions when an object is accessed.
+
+	(Consequences)
+		1. remote proxy can hide the fact that an object resides in a different address space.
+
+		2. virtual proxy can perform optimizations such as creating an object on demand
+
+		3. protection proxies and smart references allow additional housekeeping tasks when an object is accessed.

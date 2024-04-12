@@ -1,6 +1,6 @@
 [Decorator]
 
-	- we allow the users of our code to specify the abilities they want to ad..
+	- we allow the users of our code to specify the abilities they want to add.
 
 	- purpose: add new behaviors to our objects dynamically.
 
