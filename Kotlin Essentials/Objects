@@ -1,0 +1,53 @@
+[Objects]
+	
+	(Object expressions)
+		- to create an empty object using an expression, we use the object keyword and braces.
+			ex) Object Expression
+				======================================================
+				val instance = object {}
+
+				private val LOCK = object {}
+				fun syncrhonizedOperation() = syncrhonized(LOCK){
+					...
+				}
+				======================================================
+
+		- in a local scope, object expressions define an anonymous type that won't work outside the class where it is defined.
+
+		* are used as an alternative to Java anonymous classes
+			ex)
+				======================================================
+				addTextChangedListener(object: TextWatcher { ... })
+				======================================================
+
+	(Object declaration)
+		- when we give it a name, it is "object declaration" = single object
+			-> singleton pattern
+
+	(Companion objects)
+		- when we use the "companion" keyword before an object declaration defined in a class, then we can call these object methods implicitly "on the class"
+
+		- default name "Companion"
+
+		- companion objects are objects, so they can extend classes or implement interfaces.
+
+	(Data object declarations)
+		- generates "toString" method for the object
+			ex)
+				=============================================
+				data object User {
+				    val hello = "asdf"
+				    
+				}
+				object User2 {
+				    val hello = "asdf"
+				}
+
+				fun main() {
+				    println(User2) // User2@4f023edb
+				    println(User) // User
+				}
+				=============================================
+
+
+		
