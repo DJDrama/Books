@@ -1,0 +1,136 @@
+[Enum classes]
+
+	- UPPER_SNAKE_CASE notation to name values.
+
+	- Enum class elements can be referenced by the enum name, followed by a dot, and then the value name.
+
+	- All values are typed as the enum class type.
+
+	ex)
+		========================================
+		enum class PaymentOption {
+		    CASH, CARD, TRANSFER
+		}
+
+		fun printOption(option: PaymentOption){
+		    println(option)
+		}
+
+		fun main(){
+		    val option = PaymentOption.CARD
+		    println(option) // CARD
+		    printOption(option) // CARD
+		}
+		========================================
+
+	- has following companion object elements
+		1. "entries" property (introduced in Kotlin 1.9)
+			-> list of all the values of this enum class
+				ex) PaymentOption.entries -> [CASH, CARD, TRANSFER]
+
+			* Modern replaceofment of the "values" (Array<PaymentOption>)
+				ex) PaymentOption.values() -> [LPaymentOption;@4c873330
+
+		2. "valueOf" function
+			* case-sensitive or throws IllegalArgumentException
+
+
+	- Top-level functions
+		1. enumValues
+			ex) enumValues<PaymentOption>() -> [LPaymentOption;@119d7047 (Array)
+
+		2. enumValueOf
+			ex) enumValueOf<PaymentOption>("CARD") -> CARD (Case-sensitive or throw IllegalArgumentException)
+
+	- Enum value has two properties
+		1. "name"
+		2. "ordinal"
+
+	- Each enum class is a subclass of the abstract class Enum.
+		-> guarantees the "name" and the "ordinal" properties.
+		-> have properties that implement "toString", "equals", and "hashCode"
+		* BUT unlike data classes, they also have "compareTo"
+			ex)
+				=======================================================
+				enum class PaymentOption {
+				    CASH, CARD, TRANSFER
+				}
+
+				fun main(){
+				    val option = PaymentOption.CARD
+				    println(option.compareTo(PaymentOption.CASH)) // 1
+				    println(option.compareTo(PaymentOption.CARD)) // 0
+				    println(option.compareTo(PaymentOption.TRANSFER)) // -1
+				}
+				=======================================================
+
+	* Popular way to represent a finite set of possible values.
+
+	(Data in enum values)
+		- Each enum value can hold a state.
+		- possible to define a primary constructor for an enum class, and then each value needs to specify its data next to its name.
+
+		* Best practice: enum values should always be immutable, so their state should never change.
+
+		ex)
+			=======================================================
+			import java.math.BigDecimal
+
+			enum class PaymentOption(val commission: BigDecimal) {
+			    CASH(BigDecimal.ONE),
+			    CARD(BigDecimal.TEN),
+			    TRANSFER(BigDecimal.ZERO)
+			}
+
+			@OptIn(ExperimentalStdlibApi::class)
+			fun main(){
+			    println(PaymentOption.CARD.commission) // 10
+			    println(PaymentOption.TRANSFER.commission) // 0
+
+			    val paymentOption = PaymentOption.entries.random()
+			    println(paymentOption.commission) // random of 0, 10, 1
+			}
+			=======================================================
+
+	(Enum classes with custom methods)
+		- can have abstract methods whose implementations are item-specific.
+		- when we define them, the enum class itself needs to define an abstract method, and each item must override it:
+			ex)
+				=======================================================
+				enum class PaymentOption {
+				    CASH {
+				        override fun startPayment(transaction: Transaction) {
+				            // do something
+				        }
+				    },
+				    CARD {
+				        override fun startPayment(transaction: Transaction) {
+				            // do something
+				        }
+				    },
+				    TRANSFER {
+				        override fun startPayment(transaction: Transaction) {
+				            // do something
+				        }
+				    };
+
+				    abstract fun startPayment(transaction: Transaction)
+				}
+				=======================================================
+				* This option is not popular as we generally prefer using functional primary constructor parameters or extension functions.
+
+				=======================================================
+				fun PaymentOption.doSomething(){
+				    when(this){
+				        PaymentOption.CASH -> TODO()
+				        PaymentOption.CARD -> TODO()
+				        PaymentOption.TRANSFER -> TODO()
+				    }
+				}
+				=======================================================
+
+	(Summary)
+		- way to represent a concrete set of possible values.
+		- Each value has the properties "name" and "ordinal"(position)
+		- get an array of all values using the "values()" companion object function or the "enumValues<>()" top-level function
+		- parse an enum value from String using the "valueOf()" companion object function or the "enumValueOf<>(...)" top-level function.
