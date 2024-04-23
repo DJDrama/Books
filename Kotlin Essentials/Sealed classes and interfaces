@@ -1,0 +1,124 @@
+[Sealed classes and interfaces]
+	
+	- we can also use classes and inheritance to represent hierarchies through polymorphism
+
+		ex)	Using interface
+			====================================================
+			interface Result
+			class Success(val data: String): Result
+			class Failure(val exception: Throwable): Result
+			====================================================
+
+		ex) Using abstract class
+			====================================================
+			abstract class Result
+			class Success(val data: String): Result()
+			class Failure(val exception: Throwable): Result()
+			====================================================
+
+		ex) usage
+			====================================================
+			abstract class Result
+			class Success(val data: String): Result()
+			class Failure(val exception: Throwable): Result()
+
+			fun main(){
+			    val result: Result = getSomething()
+			    when(result){
+			        is Success->{
+			            
+			        }
+			        is Failure->{
+			            
+			        }
+			    }
+			}
+
+			fun getSomething(): Result {
+			    val random = (0..1).random()
+			    if(random==0)
+			        return Failure(Exception())
+			    return Success("data")
+			}
+			====================================================
+
+	* Problem of above
+		-> no guarantee that its defined subclasses are all possible subtypes of this interface or abstract class!
+
+		ex)
+			====================================================
+			class FakeSuccess: Result
+			val res: Result = object: Result {}
+			====================================================
+
+	* A hierarchy whose subclasses are not known in advance is known as a 	"non-restricted hierarchy"
+
+	- Use "sealed" modifier before a class or an interface for restricted hierarchy.
+
+	- "sealed" makes abstract already, we do not need "abstract" modifier.
+
+	* Requirements
+		1. they need to be defined in the same package and module where the sealed class or interface is
+
+		2. they can't be local or defined using object expression.
+
+	- Sealed class vs interface
+		1. classes
+			-> they can keep a state(non-abstract properties) and control their members' openness (can have final methods and properties)
+
+		2. interface
+			-> class can inherit from only one class but it can implement multiple interfaces.
+			-> inherit multiple sealed interface
+
+		ex)
+			============================================================
+			sealed class Result(val hello: String) {
+			    val helloWorld = "HelloWorld"
+			}
+
+			sealed interface ResultTwo {
+			    val helloWorld: String
+			}
+
+			class Success(val data: String) : Result("hello") {
+			    fun hello() {
+			    	println(hello)
+			        println(helloWorld)
+			    }
+			}
+
+			class Failure(val exception: Throwable) : ResultTwo{
+			    override val helloWorld: String
+			        get() = "asdf"
+			    
+			    fun hello(){
+			        println(helloWorld)
+			    }
+			}
+			============================================================
+
+	(Selaed classes and when expressions)
+		- Exhaustive
+		- "is" checks for all possible subtypes.
+
+		* Kotlin compiler tracks the is-checks and explicit casts for immutable values and inserts (safe) casts automatically when necessary.
+
+	(Sealed vs enum)
+		- enum: set of values
+		- sealed: set of subtypes that can be made with classes or object declarations.
+
+		- class is more than a value.
+			-> can have many instances and can be a data holder.
+
+		- Sealed subclasses can each store different data, whereas an enum is just a set of values.
+
+
+	(Use cases)
+		- we use the "sealed" modifier, we can use reflection to find all the subclasses.
+			-> need "kotlin-reflect" dependency.
+
+	(Summary)
+		- Sealed : represent restricted hierarchies.
+		- When: makes it easier to handle each possible sealed subtype and, as a result, to add new methods to sealed elements using extension functions.
+
+
