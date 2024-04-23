@@ -1,0 +1,16 @@
+[Chain of Responsibility]
+	
+	- "filter chain" is a ubiquitous concept in web servers.
+		-> when a request reaches you, it's expected that the following is true
+			1. Its parameters have already been validated.
+
+			2. The user has already been authenticated, if possible.
+
+			3. User roles and permissions are known and the user is authorized to perform an action.
+
+	- goal
+		-> break a complex piece of logic into a collection of smaller steps, where each step, or link in the chain, decides whether to proceed to the next one or to return a result.
+
+	- examples in real cases
+		- "filters" or "middleware"
+			-> handle cross-cutting concerns, such as authentication, authorization, logging, and even routing requests.

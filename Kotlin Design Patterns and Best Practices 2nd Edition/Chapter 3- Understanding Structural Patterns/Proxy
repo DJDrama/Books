@@ -1,0 +1,37 @@
+[Proxy]
+	- like the decorator design pattern, proxy design pattern extends an object's functionality.
+	- unlike a decorator, when asked to do something, the object does something totally different.
+
+	(idea)
+		-> instead of the expected behavior of going over the network each time, we're being a bit lazy and returning the result that we already prepared. (caching etc)
+
+
+	Ex) either a "virtual proxy" or a combination of the "virtual" and "remote" types of proxies.
+		=============================================
+		import java.net.URL
+
+		data class CatImage(
+		    val thumbnailUrl: String,
+		    val url: String
+		) {
+		    val image: ByteArray by lazy {
+		        // Read image as bytes
+		        URL(url).readBytes()
+		    }
+		}
+		=============================================
+
+
+	- Proxy design pattern is divided into three sub-patterns:
+		1) Virtual proxy
+			-> lazily caches the result
+
+		2) Remote proxy
+			-> Issues a call to the remote resource
+
+		3) Protection or access control proxy
+			-> denies access to unauthorized parties
+
+
+	(Lazy Delegation)
+		

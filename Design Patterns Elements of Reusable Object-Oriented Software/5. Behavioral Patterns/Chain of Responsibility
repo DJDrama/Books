@@ -1,0 +1,34 @@
+[Chain of Responsibility]
+	
+	(Intent)
+		- Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request.
+
+		- Chain the receiving objects and pass the request along the chain until an object handles it.
+
+	(Movitvation)
+		- Idea of this pattern
+			-> decouple senders and receivers by giving multiple objects a chance to handle a request.
+
+		- The request gets passed along a chain of objects until one of the handles it.
+
+	(Applicability)
+		Use it when
+			1. more than one object may handle a request, and the handler isn't known a priori. The handler should be ascertained automatically.
+
+			2. you want to issue a request to one of several objects without specifying the receiver explicitly.
+
+			3. the set of objects that can handle a request should be specified dynamically.
+
+	(Consequences)
+		1. Reduced coupling
+			-> both the sender and the receiver have no explicit knowledge of each other
+			-> an object in the chain doesn't have to know about the chain's structure.
+
+		2. Added flexibility in assigning responsibilities to objects
+			-> you can add or change responsibilities for handling a request by adding to or otherwise changing the chain at run-time.
+
+		3. Receipt isn't guaranteed
+			-> the request can fall off the end of the chain without ever being handled.
+			-> request can go unhandled when the chain is not configured properly.
+
+	

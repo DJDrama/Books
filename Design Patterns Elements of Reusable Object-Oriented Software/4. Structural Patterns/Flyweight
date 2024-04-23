@@ -1,0 +1,39 @@
+[Flyweight]
+	
+	(Intent)
+		- Use sharing to support large numbers of fine-grained objects efficiently.
+
+	(Motivation)
+		- FlyWeight is a shared object that can be used in multiple contexts simultaneously.
+
+		- distinction between "intrinsic" and "extrinsic" state
+			1. "Intrinsic" state is stored in the flyweight; consists of info that's independent of the flyweight's context, making it sharable.
+
+			2. "Extrinsic" state depends on and varies with the flyweight's context and therefore can't be shared.
+
+			* Client objects are responsible for passing extrinsic state to the flyweight when it needs it.
+
+
+	(Applicability)
+		Apply it when all of the following are true
+
+			1. An application uses a large number of objects.
+
+			2. Storage costs are high because of the sheer quantity of objects.
+
+			3. Most object state can be made extrinsic.
+
+			4. Many groups of objects may be replaced by relatively few shared objects once extrinsic state is removed.
+
+			5. The application doesn't depend on object identity. Since flyweight objects may be shared, identity tests will return true for conceptually distinct objects.
+
+	(Consequences)
+		- may introduce run-time costs with transferring, finding, and / or computing extrinsic state.
+			* However, such costs are offset by space savings, which increase as more flyweights are shared.
+
+		- the more flyweights are shared, the greater the storage savings.
+		- savings increase with the amount of shared state.
+
+	(Implementation)
+		1. Removing extrinsic state
+		2. Managing shared objects.
