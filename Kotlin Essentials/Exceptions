@@ -1,0 +1,50 @@
+[Exceptions]
+	- Stack Trace
+		-> list of the method calls that the app was in the middle of when the exception was thrown.
+
+	(Throwing exceptions)
+		- "throw" keyword
+
+	(Defining exceptions)
+		- regular classes or object declarations that extend the "Throwable" class.
+
+	(Catching exceptions)
+	(The finally block)
+		- guarantee that some operations will be executed, no matter the exceptions.
+
+	(Important exceptions)
+		1. IllegalArgumentException
+			-> argument has an incorrect value
+
+		2. IllegalStateException
+			-> when the state of our system is incorrect
+
+		- require
+			-> throws IllegalArgumentException
+
+		- check
+			-> throws IllegalStateException
+
+		- error
+			-> throws IllegalArgumentException
+			-> used in a when condition, or the right side of the Elvis operator, or in an if-else expression.
+
+	(The hierarchy of exceptions)
+		- Error, Exception <- subtypes of Throwable
+
+			1. Error
+				-> exceptions that are impossible to recover from and consequently should not be caught
+					ex)
+						OutOfMemoryError
+						StackOverFlowError
+
+			2. Exception
+				-> we can recover from using a try-catch block
+					ex)
+						IllegalArgumentException
+						IllegalStateException
+						ArithmeticException
+						NumberFormatException
+
+		* There are no checked exceptions in Kotlin!
+		
