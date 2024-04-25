@@ -1,0 +1,71 @@
+[Function types]
+
+	(Defining function types)
+		- Predicate
+			(T) -> Boolean
+
+		- Transformation
+			(T) -> R
+
+		- Operation
+			(T) -> Unit
+
+
+	(Using function types)
+		- A function type offers only one method : "invoke()"
+			-> Explicit invoke call : functionName.invoke()
+
+			-> Implicit invoke call : functionName()
+
+		* When function is nullable
+			-> only can call with explicit "inovke" call
+				ex) function?.invoke()
+
+
+		ex) (()->Unit) -> Unit : function type representing a function that expects a function type () -> Unit as an argument and returns nothing
+
+		ex) () -> () -> Unit : function type representing a function that expects no arguments and returns a function type () -> Unit.
+
+
+	(Named parameters)
+		- we can suggest parameter names.
+			ex)
+				================================================================
+				var listeners = listOf<Any>()
+
+				fun setListItemListener(
+				    listener: (Int, Int, View, View) -> Unit
+				) {
+				    listeners += listener
+				}
+
+				fun setListItemListenerNamed(
+				    listener: (
+				        position: Int,
+				        id: Int,
+				        child: View,
+				        parent: View
+				    ) -> Unit
+				) {
+				    listeners += listener
+				}
+
+				fun main() {
+				    setListItemListener { i, i2, view, view2 ->
+
+				    }
+				    
+				    setListItemListenerNamed { position, id, child, parent ->
+
+				    }
+				}
+				================================================================
+
+		* It's a good practice to add named parameters if the meaning is unclear.
+
+	(Type aliases)
+		- can help us resolve name conflicts across libraries.
+
+	(A function type is an interface)
+		- All function types are just interfaces with generic type parameters.
+		
