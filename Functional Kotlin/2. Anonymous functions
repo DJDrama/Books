@@ -1,0 +1,9 @@
+[Anonymous functions]
+
+	- an expression that returns an object of functional type.
+		-> does not define a regular function
+
+	- lambda functions are
+		1. shorter
+		2. have better support and partly
+			-> only lambda expressions are suggested with hints in IntelliJ.
