@@ -1,0 +1,257 @@
+[Lambda expressions]
+	- Shorter alternative to anonymous functions
+	- used to define objects that represent functions.
+
+	- "Function literals"
+		-> expression used to create an object representating a function
+			(lambda expressions and anonymous functions are function literals.)
+
+	(Tricky braces)
+		- all braces that are not part of Kotlin sturcutre are lambda expressions
+			
+			ex) Never prints Hello
+				==============================
+				fun main() {
+				    {
+				        println("Hello")
+				    }
+				}
+				==============================
+
+			ex) 
+				============================================================
+				fun produce() = { 42 }
+				fun main() {
+					// ???
+
+				    println(produce()) // Function0<java.lang.Integer>
+
+				    println(produce()()) // 42
+				}
+				============================================================
+
+	(Parameters)
+		- we need to separate the content of the braces with an arrow for parameters
+
+			ex)
+				============================================================
+				fun main() {
+				    val printTimes = { text: String, times: Int ->
+				        repeat(times){
+				            print(text)
+				        }
+				    }
+
+				    printTimes("Na", 7) // NaNaNaNaNaNaNa
+				    println()
+				    printTimes("Batman", 2) // BatmanBatman
+				}
+				============================================================
+
+		- ignore unused parameter using "_"
+
+		- use destructuring when defining a lambda expression's parameters
+			
+			ex)
+				============================================================
+				data class User(val name: String, val surname: String)
+				data class Element(val id: Int, val type: String)
+
+				fun setOnClickListener(listener: (User, Element) -> Unit) {
+				}
+
+				fun main(){
+				    setOnClickListener(listener = {(name, surname), (id, type) ->
+				        println(
+				            "User $name $surname clicked, element $id of type $type"
+				        )        
+				    })
+				}
+				============================================================
+
+	(Trailing lambdas)
+		- Kotlin convention (Trailing lambda)
+			-> if we call a function whose last parameter is of a functional type, we can define a lambda expression outside the parentheses.
+
+			(if it is the only argument we define, we can skip the parameter bracket and just define a lambda expression)
+
+			ex)
+				============================================================
+				fun main() {
+				    run({ println("A") })
+				    run() { println("A") }
+				    run { println("A") }
+
+				    repeat(2, { println("B") })
+				    repeat(2){
+				        println("C")
+				    }
+				}
+				============================================================
+
+			ex)
+				============================================================
+				fun main() {
+				    println(sumRange(1, 10)) // 55
+				    println(productRange(1, 4)) // 24
+				}
+
+
+				fun sumRange(a: Int, b: Int) = (a..b).fold(0) { acc, i ->
+				    acc + i
+				}
+
+				fun productRange(a: Int, b: Int) = (a..b).fold(1) { acc, i ->
+				    acc * i
+				}
+				============================================================
+
+			* Becareful of trailing lambda
+				ex)
+					============================================================
+					fun call(
+					    before: ()->Unit = {},
+					    after: ()->Unit = {}
+					){
+					    before()
+					    print("A")
+					    after()
+					}
+
+					fun main(){
+					    call({print("C")}) // CA
+					    call{print("B")} // AB
+					}
+
+					// result is CAAB (use named parameters)
+					============================================================
+
+	(Result values)
+		- the result of the last statement is returned.
+			ex)
+				============================================================
+				fun main(){
+				    val f = {
+				        1
+				        2
+				        3
+				    }
+				    println(f()) // 3
+				}
+				============================================================
+
+		- we can't use simple "return" inside lambda
+			ex)
+				============================================================
+				fun main(){
+				    val f = {
+				        val a = 1
+				        val b = 2
+				        val c = 3
+				        if(c==3) return // 'return' is not allowed here
+				        c
+				    }
+				    println(f()) // 3
+				}
+				============================================================
+
+		- We should use a label to use "return"
+			ex)
+				============================================================
+				fun main(){
+				    val f = someLambda@{
+				        val a = 1
+				        val b = 2
+				        val c = 3
+				        if(c==3) return@someLambda 
+				        c
+				    }
+				    println(f()) // kotlin.Unit
+				}
+				============================================================
+
+		- convention: if a lmabda expression is used as an argument to a function, the name of this function becomes its default label.
+			ex)
+				============================================================
+				fun main() {
+				    onUserChanged { user ->
+				        if (user == null) return@onUserChanged
+				        cheerUser(user)
+				    }
+				}
+				============================================================
+
+	(An implicit name for a single parameter)
+		- when a lambda expression has exactly one parameter, we can reference it using the "it" keyword instead of specifying its name.
+			ex)
+				============================================================
+				val printNumber: (Int) -> Unit = { println(it) }
+				val toName: (String) -> Unit = { Name(it) }
+				============================================================
+
+	(Closures)
+		- A lambda expression can use and modify variables from the scope where it is defined.
+			ex)
+				============================================================
+				fun makeCounter(): () -> Int {
+				    var i = 0
+				    return {
+				        i++
+				    }
+				}
+
+				fun main(){
+				    val counter1 = makeCounter()
+				    val counter2 = makeCounter()
+
+				    println(counter1()) // 0
+				    println(counter1()) // 1
+				    println(counter2()) // 0
+				    println(counter1()) // 2
+				    println(counter1()) // 3
+				    println(counter2()) // 1
+				}
+				============================================================
+		* A lambda expression that refers to an object defined outside its scope, like the lambda expression in the above example that refers to the local variable i, is called a closure.
+
+	(Lambda expressions vs anonymous functions)
+		ex)
+			============================================================
+			val processor = label@{ data: String ->
+			    if (data.isEmpty())
+			        return@label null
+
+			    data.uppercase()
+			}
+
+			val processor2 = fun(data: String): String? {
+			    if (data.isEmpty())
+			        return null
+
+			    return data.uppercase()
+			}
+			============================================================
+		
+		<Lambda expressions>
+			- Lambda expressions are shorter but also less explicit.
+			- we need a label to use "return"
+		
+		<Anonymous functions>
+			- Anonymous functions are longer, but is clear
+			- uses an explicit return and must specify the result type.
+
+		* Lambda expressions were mainly designed for single expression functions.
+		
+		* Documentation suggests using anonymous functions for longer bodies.
+			(BUT developers use lambda expressions practically everhwhere, and nowadays anonymous functions seem nearly forgotten.)
+
+		- Features of lambda
+			1. Trailing lambda
+			2. implicit name for a single parameter (it)
+			3. non-local return
+
+
+
+
+
+
