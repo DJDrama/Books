@@ -1,0 +1,185 @@
+[Inline functions]
+	
+	- "inline" modifier before a function
+		-> body will replace its usages (calls) during compilation.
+
+	- example is "print" function
+
+	- advantages
+		1. Functions with functional parameter calls are more efficient when they are inline.
+		2. Non-local return is allowed
+		3. A type argument can be reified.
+
+	(Inline functions with functional parameters)
+
+		* Lambda expressions used in inline function calls do not create an object!
+			-> they have capabilities that non-inline functions do not.
+
+	(Non-local return)
+		- inline fun supports non-local return
+			ex)
+				============================================================
+				fun main(){
+				    repeat(7){
+				        print("NA")
+				        return // returns "main"
+				    }
+				    
+				    testRepeat(7){
+				        print("NA")
+				        return // compile error(only local return allowed)
+				    }
+				    
+				    println(" Batman")
+				}
+
+				// no inline function
+				fun testRepeat(times: Int, block:()->Unit){
+				    for(i in 0..<times){
+				        block()
+				    }
+				}
+				============================================================
+
+		- "forEach", "map", "filter" are inline functions
+			-> supports non-local return
+
+	(Crossinline and noinline)
+		- crossinline
+			-> function should be inlined, but the "non-local" return is not allowed
+			-> used in another scope where the non-local return is not allowed
+				ex) another lambda that is not inlined.
+
+		- noinline
+			-> argument should not be inlined at all!
+			-> used when we use this function as an argument to another function that is not inlined.
+
+	(Reified type parameters)
+		* Generic types are erased during compilation.
+
+		- we cannot check if an object is List<Int>
+			ex)
+				============================================================
+				fun main(){
+				    val testList = mutableListOf<Any>()
+				    
+				    println(testList is List<Int>) // Cannot check for instance of erased type: List<Int>
+				    println(testList is List<*>)
+				}
+				============================================================
+
+		- we cannot operate on a type argument.
+			ex)
+				============================================================
+				fun <T> printTypeName(){
+				    // Cannot use 'T' as reified type parameter. Use a class instead.
+				    print(T::class.simpleName)
+				}
+
+				fun <T> isOfType(value: Any): Boolean {
+				    // Cannot check for instance of erased type: T
+				    return value is T
+				}
+
+				============================================================
+
+		- by using "inline" and "reified" into the function, it works
+			ex)
+				============================================================
+				inline fun <reified T> printTypeName(){
+				    print(T::class.simpleName)
+				}
+
+				fun main(){
+				    printTypeName<Int>() // Int
+				    printTypeName<String>() // String
+				    printTypeName<Char>() // Char
+				}
+				============================================================
+				-> During compilation, the body of printTypeName replaces the usages, and the type arguments(Int, Char, and String) replace the reified type parameter T
+
+		* Reified: type system that makes generic type information available at runtime.
+
+	(Inline properties)
+		* Properties defined by accessors are considered to be functions.
+			-> In the end, such properties are compiled into functions.
+				ex)
+					============================================================
+					import java.util.*
+
+					data class User(
+					    val name: String,
+					    val surname: String,
+					    var birthdayMillis: Long
+					)
+
+					val User.fullName: String
+					    get() = "$name $surname"
+
+					var User.birthday: Date
+					    get() = Date(birthdayMillis)
+					    set(value) {
+					        birthdayMillis = value.time
+					    }
+
+					// is actually similar to :
+					fun getFullName(user: User) = "${user.name} ${user.surname}"
+
+					fun getBirthDay(user: User) = Date(user.birthdayMillis)
+
+					fun setBirthday(user: User, value: Date) {
+					    user.birthdayMillis = value.time
+					}	
+					============================================================
+
+		- properties can be marked with the "inline" modifier
+			ex)
+				============================================================
+				class User(
+				    val name: String,
+				    val surname: String,
+				) {
+				    inline val fullName: String
+				        get() = "$name $surname"
+				}
+
+				fun main() {
+				    val user = User("A", "B")
+				    println(user.fullName)
+
+				    // during compilation changes to
+				    println("${user.name} ${user.surname}")
+				}
+				============================================================
+
+	(Costs of the inline modifier)
+		* It should not be used everywhere due to its costs and limitations.
+			1. Inline functions cannot use elements with more restrictive visibility (Biggest problem)
+				-> we cannot use private or internal functions or properties in public inline functions.
+				-> In fact, an inline function cannot use anything with more restrictive visibility.
+					ex)
+						============================================================
+						private class Reader{
+						}
+
+						fun read(){
+						    val reader = Reader()
+						}
+
+						inline fun inlineRead(){
+						    // [Compile Error]
+						    // Public-API inline function cannot access non-public-API 
+						    // 'public constructor Reader() defined in Reader'
+						    val reader = Reader()
+						}
+						============================================================
+
+			2. Inline functions cannot be recursive
+
+			3. Inline functions make our code grow.
+
+	(Using inline functions)
+		1. To improve the performance of functions with functional parameters; as a bonus, we also have support for non-local return.
+		2. To support reified type parameters.
+
+		* Inline functions are best suited to helper functions: either top-level functions or redundant methods that are used to simplify the use of other class methods.
