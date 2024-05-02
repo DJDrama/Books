@@ -1,0 +1,48 @@
+[SAM Interface support in Kotlin]
+
+	- Single Abstract Method (Sam interfaces)
+		ex)
+			================================================
+			interface OnClick {
+				fun onClick(view: View)
+			}
+			================================================
+
+	(Support for Java SAM interfaces in Kotlin)
+
+	(Functional interfaces)
+		- marked with the "fun" modifier and must have just a single abstract method
+			ex)
+				================================================
+				fun interface OnClick{
+					fun onClick(view: View)
+				}
+				================================================
+
+		- main reasons to prefer functional interfaces over function types
+			1. Java interoperability
+			2. Optimization for primitive types
+			3. When we need to not only represent a function but also to express a concrete contact.
+
+			ex)
+				================================================
+				interface IntPredicate {
+				    fun accept(i: Int): Boolean
+				}
+
+				fun interface IntPredicateFunctionalInterface {
+				    fun accept(i: Int): Boolean
+				}
+
+				fun main() {
+				    val isEven = object : IntPredicate {
+				        override fun accept(i: Int): Boolean {
+				            return i % 2 == 0
+				        }
+				    }
+
+				    val isEvenAnother = IntPredicateFunctionalInterface {
+				        it % 2 == 0
+				    }
+				}
+				================================================
