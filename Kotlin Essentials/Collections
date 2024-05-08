@@ -1,0 +1,492 @@
+[Collections]
+
+	- Iterable: top of the hierarchy
+		-> represents a sequence of elements that can be iterated over.
+		-> we can iterate over Iterable objects using a for-loop
+		ex)
+			=====================================================
+			interface Iterable<out T> {
+				operator fun iterator(): Iterator<T>
+			}
+			=====================================================
+
+	- Collection: next type
+		-> represents a collection of elements.
+		-> read-only
+		-> this interface does not allow any modifications.
+		ex)
+			=====================================================
+			interface Collection<out E> : Iterable<E> {
+				val size: Int
+				fun isEmpty(): Boolean
+				operator fun contains(element: E): Boolean
+				override fun iterator(): Iterator<E>
+				fun containsAll(elements: Collection<E>): Boolean
+			}
+			=====================================================
+
+	- List and Set are subtypes of "Collection" and "Iterable"
+	* Map and arrays are not part of this hierarchy;
+	* All the interfaces described so far are read-only
+		-> they have methods that allow what is inside to be read BUT not modified.
+
+	- MutableIterable, MutableCollection and MutableList are sub-interfaces of Iterable, Collection and List
+		-> add methods for modifying elements (like remove, clear, add).
+
+	- listOf() 
+		-> actual class is Arrays.ArrayList from the Standard Java Library
+		-> actual class is JavaScript Array in Kotlin/JS version.
+
+
+	(Mutable vs read-only types)
+		- listOf -> list(read-only) // Immutable
+
+		* Int or String -> also immutable (they cannot change internally)
+			-> we update their values with operators like plus
+				ex)
+					=============================================
+					var a = 100
+					a = a + 10
+					a += 1
+					println(a) // 111
+
+					var str = "A"
+					str = str + "B"
+					str += "C"
+					println(str) // "ABC"
+					=============================================
+
+		* Same goes for read-only collections.
+			ex)
+				=============================================
+				var list = listOf("A", "B")
+				list = list + "C"
+				println(list) // [A, B, C]
+
+				list = list + listOf("D", "E")
+				println(list) // [A, B, C, D, E]
+
+				list = listOf("Z") + list
+				println(list) // [Z, A, B, C, D, E]
+				=============================================
+
+		- Mutable lists can be modified internally
+			-> mutableListOf -> MutableList
+				ex)
+					=============================================
+					val mutable = mutableListOf("A", "B")
+					mutable.add("C")
+					mutable.remove("A")
+					println(mutable) // [B, C]
+					=============================================
+
+		- toList, toMutableList : transform between a mutable and read-only list
+
+		* But you don't need to explicitly transform from a MutableList to a List.
+			(MutableList is a subtype of List, so a MutableList can be used as a List)
+
+	(Creating collections)
+		- In Kotlin, creating collections is performed by top-level functions.
+		- Convention
+			-> names start with the name of the type they produce and the "of" suffix.
+				ex)
+					===========================================================
+					val list: List<String> = listOf("A", "B", "C")
+					val mutableList: MutableList<Int> = mutableListOf(1, 2, 3)
+
+					val set: Set<Double> = setOf(3.14, 7.11)
+					val mutableSet: MutableSet<Char> = mutableSetOf('A', 'B')
+
+					val map: Map<Char, String> = mapOf('A' to "Alex", 'B' to "Ben")
+					val mutableMap: MutableMap<Int, Char>
+						= mutableMapOf(1 to 'A', 2 to 'B')
+
+					val array: Array<String> = arrayOf("Hello", "World")
+					val intArray: IntArray = intArrayOf(1, 2, 3)
+
+					val arrayList: ArrayList<String> = arrayListOf("M", "N")
+					===========================================================
+
+			-> we use "to" prefix to transform one collection to another.
+				ex)
+					===========================================================
+					val list: List<Char> = listOf('A', 'B', 'C')
+					val mutableList: MutableList<Char> = list.toMutableList()
+					val set: Set<Char> = mutableList.toSet()
+					val mutableSet: MutableList<Char> = set.toMutableList()
+					val array: Array<Char> = mutableSet.toTypedArray()
+					val charArray: CharArray = array.toCharArray()
+					val list2: List<Char> = charArray.toList()
+					===========================================================
+
+	(Lists)
+		- most basic type of collection
+		- ordered list of elements
+			ex)
+				===========================================================
+				val list = listOf(1, 2, 3)
+				println(list) // [1, 2, 3]
+				===========================================================
+
+		* List is a generic class.
+			-> result type of listOf is List<T>
+			-> T is the type of the elements in this list.
+
+			ex)
+				===========================================================
+				val list: List<String> = listOf("a", "b", "c")
+				println(list) // [a, b, c]
+
+				val ints: List<Int> = listOf(1, 2, 3)
+				println(ints) // [1, 2, 3]
+				===========================================================
+
+		(Modifying lists)
+			1. use a read-only list in a "var" variable, and modify it using operators like plus or minus.
+
+			2. Use a mutable list in a "val" variable, and modify it using MutableList methods like "add", "addAll" or "remove".
+
+			ex)
+				===========================================================
+				var list = listOf("A", "B")
+				list = list + "C"
+				println(list) // [A, B, C]
+
+				list = list + listOf("D", "E")
+				println(list) // [A, B, C, D, E]
+
+				list = listOf("Z") + list
+				println(list) // [Z, A, B, C, D, E]
+
+				list = list - "A"
+				println(list) // [Z, B, C, D, E]
+
+				val mutable = mutableListOf("A", "B")
+				mutable.add("C")
+				println(mutable) // [A, B, C]
+
+				mutable.addAll(listOf("D", "E"))
+				println(mutable) // [A, B, C, D, E]
+
+				mutable.add(0, "Z")
+				println(mutable) // [Z, A, B, C, D, E]
+
+				mutable.remove("A")
+				println(mutable) // [Z, B, C, D, E]
+				===========================================================
+				-> read-only list gives more freedom (limit mutability)
+				-> mutable considered more efficient (no new list creations)
+
+		(Checking a list's size or if it is empty)
+			- "size" property
+
+			- size==0 -> you can check with "isEmpty" method
+
+		(List and indices)
+			- box bracket or get method
+				-> may throw an IndexOutOfBoundsException when trying to get an element at an index that does not exist.
+
+			- if you are not sure if an index is correct, it is safer to use 
+				1. getOrNull
+				2. getOrElse (default value)
+					ex)
+						=============================================
+						val list = listOf("A", "B")
+						println(list.getOrNull(1)) // B
+						println(list.getOrElse(1) { "X" }) // B
+
+						println(list.getOrNull(3)) // null
+						println(list.getOrElse(3) { "X" }) // X
+						=============================================
+
+			- getOrPut for "MutableMap"
+				ex)
+					=============================================
+					val map = mutableMapOf("A" to 1, "B" to 2)
+					println(map.getOrPut("A") { 3 }) // 1
+					println(map.getOrPut("C") { 3 }) // 3
+					println(map) // {A=1, B=2, C=3}
+					=============================================
+
+			- "indexOf" method
+				-> returns -1 when no matching element in the list
+					ex)
+						=============================================
+						val list = listOf("A", "B")
+						println(list.indexOf("A")) // 0
+						println(list.indexOf("B")) // 1
+						println(list.indexOf("Z")) // -1
+						=============================================
+
+			- in Mutable list, you can modify an element at a certain index using the box bracket or using the set method
+				ex)
+					=============================================
+					val mutable = mutableListOf("A", "B", "C")
+					mutable[1] = "X"
+					println(mutable) // [A, X, C]
+
+					mutable.set(1, "Y")
+					println(mutable) // [A, Y, C]
+					=============================================
+
+		(Checking if a list contains an element)
+			- "contains" method (or "in" operator)
+				ex)
+					=============================================
+					val letters = listOf("A", "B", "C")
+					println(letters.contains("A")) // true
+					println(letters.contains("Z")) // false
+
+					println("A" in letters) // true
+					println("Z" in letters) // false
+
+					// use of !in operator
+					println("A" !in letters) // false
+					println("Z" !in letters) // true
+					=============================================
+
+		(Iterating over a list)
+			- for-loop
+				ex)
+					=============================================
+					val letters = listOf("A", "B", "C")
+					for(letter in letters){
+						println(letter)
+					}
+					// A
+					// B
+					// C
+					=============================================
+
+	(Sets)
+		- we use sets instead of lists when
+			1. we want to ensure elements in our collection are unique
+			2. frequently look for an element in a collection (hash table algorithm)	-> O(1) complexity.
+
+		* Sets do not treat order as seriously as lists, and some kinds of sets do not respect order at all.
+			-> that's why we cannot get elements by index.
+
+
+		- Set is also a generic class like List.
+
+		(Modifying sets)
+			ex) using var
+				=============================================
+				var set = setOf("A", "B")
+				set = set + C
+				println(set) // [A, B, C]
+
+				set = set + setOf("D", "E")
+				println(set) // [A, B, C, D, E]
+
+				set = setOf("Z") + set
+				println(set) // [Z, A, B, C, D, E]
+
+				set = set - "A"
+				println(set) // [Z, B, C, D, E]
+				=============================================
+
+			ex) using mutableSet
+				=============================================
+				val mutable = mutableSetOf("A", "B")
+				mutable.add("C")
+				println(mutable) // [A, B, C]
+
+				mutable.addAll(listOf("D", "E"))
+				println(mutable) // [A, B, C, D, E]
+
+				mutable.remove("B")
+				println(mutable) // [A, C, D, E]
+				=============================================
+
+		(Elements in a set are unique)
+			- If set elements repeat during set creation, only the first occurrence will be present in the set.
+
+			- Adding an element that is equal to an element already present in a set is ignored.
+
+				ex)
+					=============================================
+					class Cat(val name: String)
+					data class Dog(val name: String)
+
+					val cat1 = Cat("haha")
+					val cat2 = Cat("haha")
+					println(cat1 == cat2) // false
+					println(setOf(cat1, cat2)) // [Cat@4eec7777, Cat@3b07d329]
+
+					val dog1 = Dog("hoho")
+					val dog2 = Dog("hoho")
+					println(dog1 == dog2) // true
+					println(setOf(dog1, dog2)) // [Dog(name=hoho)]
+					=============================================
+
+			- we can make list to set to remove duplicates
+				ex)
+					=============================================
+					val numbers = listOf(1, 1, 1, 2, 2, 3, 3, 3)
+
+					val uniqueNumbers = numbers.toSet()
+					println(uniqueNumbers) // [1, 2, 3]
+					=============================================
+
+		(Checking a set's size or if it is empty)
+			-> set.size
+			-> set.isEmpty()
+
+		(Checking if a set contains an element)
+			-> set.contains()
+			-> in operator
+
+		(Iterating over sets)
+			-> for(item in set){ ... }
+
+	(Maps)
+		- keep associations from keys to their values.
+			ex) user id to an object representing this user
+			ex) website to its IP address
+			ex) configuration name to data stored in this configuration
+
+		- mapOf : for creation
+			ex)
+				=====================================================
+				val capitals: Map<String, String> = mapOf(
+					"South Korea" to "Seoul",
+					"Japan" to "Tokyo"
+				)
+				println(capitals) // {South Korea=Seoul, Japan=Tokyo}
+				=====================================================
+				-> map also uses generics
+
+		(Finding a value by a key)
+			- use of box [] or get function.
+				-> [] or get returns nullable(null if value of the key does not exist)
+
+		(Adding elements to a map)
+			-> use plus sign to create a new map with new entries
+
+			* Duplicate keys are not allowed
+				-> a new value with an existing key wins.(replacing the old value)
+
+
+		(Checking if a map contains a key)
+			-> containsKey
+			-> in operator
+
+		(Checking map size)
+			-> using the size property
+
+		(Iterating over maps)
+			-> for-loop with (key, value) or entry
+				ex)
+					=====================================================
+					val map = mapOf('A' to "Alex", 'B to "Bob")
+					for(entry in map){
+						println(entry.key)
+						println(entry.value)
+					}
+
+					for((key, value) in map){ // destructuring
+						println(key)
+						println(value)
+					}
+					=====================================================
+
+		(Mutable maps)
+			- create using "mutableMapOf" (type is MutableMap)
+			- "put" or "remove"
+
+	(Using arrays in practice)
+		- Array
+			-> basic data structure that strongly relates to how memory is organized.
+
+			-> constant size
+			-> limited number of operations
+			-> do not implement any interface
+			-> do not override the "toString", "equals", "hashCode" methods.
+
+			* mutableList -> uses ArrayList which keeps elements in an array.
+
+		- We use arrays to performance-critical parts of apps.
+			-> by using primitive type arrays.
+
+		- Array<T> -> do not uses primitive types.
+
+		- no "toString", "equals", "hashCode"
+			ex)
+				=====================================================
+				val arr1 = arrayOf("A", "B", "C")
+				val arr2 = arrayOf("A", "B", "C")
+
+				println(arr1 == arr2) // false
+				println(arr1) // strange text
+				println(arr2) // strange text
+				=====================================================
+
+		- we can transform array to "list" by "toList()" or "set" by "toSet()", and also the other way around by using "toTypedArray()"
+
+
+		(Arrays of primitives)
+			- IntArray
+			- LongArray
+			- DoubleArray
+			- FloatArray
+			- CharArray
+			- BooleanArray
+			- ShortArray
+			- ByteArray
+
+			-> using the xxxOf function for creation
+				ex) intArrayOf(), doubleArrayOf()...
+
+			-> using the toXXX
+				ex) intList.toIntArray(), booleanList.toBooleanArray()...
+
+			* Arrays of primitive are not used often in most real-life projects.
+				-> they are generally treated as low-level performance or memory use optimizations.
+
+		(vararg parameters and array functions)
+			- this modifier turns a parameter into an array.
+				ex)
+					=====================================================
+					fun something(vararg lines: String) { ... }
+					// vararg lines are actually Array<String>
+
+					// usage
+					something("A", "B", "C")
+
+					val arr = arrayOf("D", "E")
+					something("A", *arr, "C")
+					=====================================================
+
+			- listOf, setOf all uses "vararg"
+				ex)
+					=====================================================
+					fun <T> listOf(vararg elements: T): List<T>
+						= if(elements.size > 0) elements.asList()
+							else emptyList()
+
+					// usage
+					val list = listOf(1, 2, 3, 4, 5)
+					=====================================================
+
+	(Summary)
+		- List
+			-> ordered collection of elements
+
+		- Set
+			-> collection of unique elements
+
+		- Map
+			-> set of key-value pairs
+		
+
+
+
+
+
+
+
+
+
+
+
