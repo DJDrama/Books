@@ -1,0 +1,117 @@
+Coroutines under the hood
+
+	<Continuation-passing style>
+		- "continuation-passing style"
+			-> continuations are passed from function to function as arguments.
+			-> By convention, continuation takes the last parameter position.
+
+			ex)
+				==================================================================
+				suspend fun getUser(): User?
+				suspend fun setUser(user: User)
+				suspend fun checkAvailability(flight: Flight): Boolean
+
+				--> under the hood is
+				fun getUser(continuation: Continuation<*>): Any?
+				fun setUser(user: User, continuation: Continuation<*>): Any
+				fun checkAvailability(
+					flight: Flight,
+					continuation: Continuation<*>
+				): Any
+				==================================================================
+				* Return type is changed to Any or Any?
+					-> suspending function might be suspended, and so it might not return a declared type.
+					-> In such a case, it returns a special COROUTINE_SUSPENDED(type of Any) marker.
+
+	<A very simple function>
+
+	<A function with a state>
+		- If a function has some states(like local variables or parameters) that need to be restored after suspension, this state needs to be kept in this function's continuation.
+
+			ex)
+				==================================================================
+				import kotlinx.coroutines.delay
+
+				suspend fun myFunction(){
+				    println("Before")
+				    var counter=0
+				    delay(1000)
+				    counter++
+				    println("Counter: $counter")
+				    println("After")
+				}
+				==================================================================
+				- "counter" is needed in two states(for a label equal to 0 and 1)
+					-> need to be kept in the continuation.
+					-> it will be stored right before suspension.
+
+			ex) (simplified) function looks under the hood
+				==================================================================
+				fun myFunction(continuation: Continuation<Unit>): Any {
+				    val continuation = continuation as? MyFunctionContinuation
+				        ?: MyFunctionContinuation(completion = continuation)
+				    var counter = continuation.counter
+
+				    if (continuation.label == 0) {
+				        println("Before")
+				        counter = 0
+				        continuation.counter = counter
+				        continuation.label = 1
+				        if (delay(1000, continuation) == COROUTINE_SUSPENDED) {
+				            return COROUTINE_SUSPENDED
+				        }
+				    }
+				    if (continuation.label == 1) {
+				        counter = counter + 1
+				        println("Counter: $counter")
+				        println("After")
+				        return Unit
+				    }
+				    error("Impossible")
+				}
+
+				class MyFunctionContinuation(
+				    val completion: Continuation<Unit>
+				) : Continuation<Unit> {
+				    override val context: CoroutineContext
+				        get() = completion.context
+
+				    var result: Result<Unit>? = null
+				    var label = 0
+				    var counter = 0
+
+				    override fun resumeWith(result: Result<Unit>) {
+				        this.result = result
+				        val res = try {
+				            val r = myFunction(this)
+				            if (r == COROUTINE_SUSPENDED) return
+				            Result.success(value = r as Unit)
+				        } catch (e: Throwable) {
+				            Result.failure(exception = e)
+				        }
+				        completion.resumeWith(res)
+				    }
+				}
+				==================================================================
+
+	<A function resumed with a value>
+
+	<The call stack>
+		- when function a calls function b, the virtual machine needs to store the state of a somewhere, as well as the address where execution should return once be is finished.
+			-> All this is stored in a structure called "call stack".
+
+		- When we suspend, we free a thread; as a result, we clear our call stack.
+			-> Therefore, it is not useful when we resume.
+
+		- Instead, the continuation serve as a call stack.
+			-> Each continuation keeps the state where we suspended (as a label) the function's local variables and parameters (as fields), and the reference to the continuation of the function that called this function.
+
+
+	<The actual code>
+
+	<The performance of suspending functions>
+		- Dividing a function into states is cheap as number comparison and execution jumping costs nearly nothing.
+		- Saving a state in a continuation is also cheap.
+		- We do not copy local variables: we make new variables point to the same points in memory.
+
+		* Only cost: creating a continuation class, but not a big deal.
