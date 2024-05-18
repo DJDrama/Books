@@ -1,0 +1,152 @@
+3. How does suspension work?
+	- Threads cannot be suspended, only blocked.
+		-> when a thread is blocked: it still consumes resources and needs to be managed by the operating system.
+
+	- Coroutines can be suspended, and resumed.
+		-> when a coroutine is suspended, the only thing that remains is an object that keeps references to local variables and the place where this coroutine was suspended.
+
+	* Coroutines are lightweight abstractions that run on top of threads, and they are managed by the coroutine library, not by the operating system.
+
+	<A game analogy>
+		- Thread: like an old-school game you can't save.
+
+		- Coroutine: save at any time, without wasting resources.
+
+	<Suspending functions>
+		- suspending functions
+			-> just functions that can suspend a coroutine.
+			-> MUST be called on a coroutine (needs a coroutine to suspend)
+			-> Can call regular functions
+
+		- Suspending functions are not coroutines, but they require coroutines.
+
+		- Suspending functions allow suspension
+			-> network libraries like "Retrofit" react to the suspend modifier and suspend coroutines (instead of blocking threads) when they need to wait for a network response.
+
+	<Your first suspension>
+
+		ex)
+			========================================================================
+			import kotlinx.coroutines.suspendCancellableCoroutine
+
+			suspend fun main() {
+			    println("Before")
+			    suspendCancellableCoroutine<Unit> { }
+			    println("After")
+			}
+			========================================================================
+			- "After" won't be printed and code will not stop running! (main never finishes)
+			* The function passed as an argument to suspendCancellableCoroutine will be invoked before the suspension.
+				-> This function has an argument of type "Continuation".
+				-> This is the object that we can use to resume the coroutine.
+				-> We could use it to resume immediately.
+					ex)
+						========================================================================
+						import kotlinx.coroutines.suspendCancellableCoroutine
+						import kotlin.coroutines.resume
+
+						suspend fun main() {
+						    println("Before")
+						    suspendCancellableCoroutine { continuation ->
+						        println("Before too")
+						        continuation.resume(Unit)
+						    }
+						    println("After")
+						}
+
+						// Before
+						// Before too
+						// After
+						========================================================================
+						* suspendCancellableCoroutine calls the lambda expression immediately!
+						- So the continuation can be used just before the suspension.
+						- Calling the lambda expression after the suspendCancellableCoroutine call would be too late.
+							-> So the lambda expression passed as a parameter to the suspendCancellableCoroutine function is invoked just before the suspension.
+
+	<What is stored in the continuation?>
+		- Continuation is an object that stores the state of the coroutine.
+		- It must also store the local variables and the place where the coroutine was suspended.
+
+	<Delaying a coroutine>
+
+	<Resuming with a value>
+		- "suspendCancellableCoroutine" -> turn a callback function into a suspending function if you ever need to.
+			ex)
+				========================================================================
+				import kotlinx.coroutines.suspendCancellableCoroutine
+				import kotlin.coroutines.resume
+
+				suspend fun main() {
+				    println("Before")
+				    val user = requestUser()
+				    println(user)
+				    println("After")
+				}
+
+				suspend fun requestUser(): User {
+				    return suspendCancellableCoroutine { continuation ->
+				        requestUser {
+				            continuation.resume(it)
+				        }
+				    }
+				}
+
+				// if this is an IO operation
+				fun requestUser(block: (User) -> Unit) {
+				    block(User(name = "Test"))
+				}
+
+				data class User(
+				    val name: String
+				)
+				========================================================================
+
+	<Resume with an exception>
+		ex)
+			========================================================================
+			import kotlinx.coroutines.suspendCancellableCoroutine
+			import kotlin.coroutines.resume
+			import kotlin.coroutines.resumeWithException
+
+			suspend fun main() {
+			    println("Before")
+			    try {
+			        val user = requestUser()
+			        println(user)
+			    } catch (e: NullPointerException) {
+			        println(e.message) // User is null!
+			    }
+			    println("After")
+			}
+
+			suspend fun requestUser(): User {
+			    return suspendCancellableCoroutine { continuation ->
+			        requestUser {
+			            if (it != null)
+			                continuation.resume(value = it)
+			            else
+			                continuation.resumeWithException(
+			                    exception = NullPointerException("User is null!")
+			                )
+			        }
+			    }
+			}
+
+			// if this is an IO operation
+			fun requestUser(block: (User?) -> Unit) {
+			    //block(User(name = "Test"))
+			    block(null)
+			}
+
+			data class User(
+			    val name: String
+			)
+			========================================================================
+
+	<Suspending a coroutine, not a function>
+		* We suspend a coroutine, not a function!
+		* suspend functions are not coroutines! just functions that can suspend a coroutine.
+			-> "suspend fun main()" is a special case. Kotlin compiler starts it in a coroutine.
+
+		
+
