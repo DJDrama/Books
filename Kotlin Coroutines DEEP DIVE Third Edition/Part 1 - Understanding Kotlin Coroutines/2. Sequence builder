@@ -1,4 +1,4 @@
-2. Sequence builder
+Sequence builder
 	- Kotlin sequence
 		-> element is always calculated on demand, when it is needed.
 

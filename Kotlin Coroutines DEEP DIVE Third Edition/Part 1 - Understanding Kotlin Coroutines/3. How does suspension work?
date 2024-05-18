@@ -1,4 +1,4 @@
-3. How does suspension work?
+How does suspension work?
 	- Threads cannot be suspended, only blocked.
 		-> when a thread is blocked: it still consumes resources and needs to be managed by the operating system.
 
@@ -147,6 +147,4 @@
 		* We suspend a coroutine, not a function!
 		* suspend functions are not coroutines! just functions that can suspend a coroutine.
 			-> "suspend fun main()" is a special case. Kotlin compiler starts it in a coroutine.
-
-		
 
