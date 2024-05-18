@@ -1,0 +1,64 @@
+2. Sequence builder
+	- Kotlin sequence
+		-> element is always calculated on demand, when it is needed.
+
+		1) Do the minimal number of required operations
+		2) Can be infinite
+		3) Are more memory-efficient
+
+		ex) sequence builder
+			====================================================
+			fun main() {
+			    val sequence = sequence {
+			        yield(1)
+			        yield(2)
+			        yield(3)
+			    }
+
+			    sequence.forEach {
+			        print(it) 	// 123
+			    }
+			}
+			====================================================
+			* sequence builder provides "suspend block"
+			* yield is suspend function -> supports continuation
+
+
+	<Real-life usages>
+
+		- Fibonacci
+			ex)
+				================================================================================
+				val fibonacci = sequence {
+				    var first = 0.toBigInteger()
+				    var second = 1.toBigInteger()
+				    while (true) {
+				        yield(first)
+				        val temp = first
+				        first += second
+				        second = temp
+				    }
+				}
+
+				// 0 1 1 2 3 5 ...
+				fun main() {
+				    print(fibonacci.take(10).toList()) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+				}
+				================================================================================
+
+		- Factorial
+			ex)
+				================================================================================
+				val factorial = sequence {
+				    var res = 1.toBigInteger()
+				    var counter = 1.toBigInteger()
+				    while (true) {
+				        yield(res)
+				        res *= counter++
+				    }
+				}
+
+				fun main() {
+				    print(factorial.take(5).toList()) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+				}
+				================================================================================
