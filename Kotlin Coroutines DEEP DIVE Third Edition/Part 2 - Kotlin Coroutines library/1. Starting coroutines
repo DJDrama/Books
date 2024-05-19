@@ -1,0 +1,248 @@
+Starting coroutines
+	* suspend functions are not coroutines; they are functions that can suspend a coroutine
+		-> they must be called from a coroutine.
+
+	- Three main ways to start coroutines
+		1) Asynchronous coroutine builders(launch and async), which start an asynchronous coroutine on a scope.
+		2) Blocking coroutines builders(runBlocking and runTest), which start a coroutine on the current thread and block it until the coroutine is done.
+		3) Coroutine scope functions, which create a synchronous coroutine; in practice, this means that coroutine scope functions supend the current coroutine until the new one is completed.
+
+
+	<Asyncrhonous crotouine builders>
+		- launch and async : extension functions on CoroutineScope.
+			-> "configuration and parent of a coroutine"
+
+		- "launch"
+			-> execution of launch does not wait for the coroutine to finish.
+				ex)
+					======================================================
+					import kotlinx.coroutines.GlobalScope
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.launch
+
+					fun main(){
+					    GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    println("Hello, ")
+					    Thread.sleep(2000L)
+					}
+
+					// prints
+					Hello, 
+					World!
+					World!
+					World!
+					======================================================
+					-> needs "Thread.sleep" to wait the coroutines to finish jobs
+
+			-> join
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main(){
+					    val job1 =GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    val job2 =GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    val job3 =GlobalScope.launch {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    println("Hello, ")
+					    job1.join()
+					    job2.join()
+					    job3.join()
+					}
+					======================================================
+					-> each launch function returns a Job object that can be used to await coroutine completion using the "join" function.
+						-> which suspends until a coroutine is completed.
+
+			-> "launch" builder does not return any value, and its lambda expression returns "Unit".
+
+			-> "async" builder behaves just like launch, but its lambda expression is expected to return a value.
+
+		- "async"
+			-> returns a "Deferred<T>" object that also implements Job
+			-> "await" function that is used to wait and get the result of the coroutine.
+				-> like "join", also suspends until the coroutine is completed, but also returns the result of the coroutine.
+
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main() {
+					    val job1 = GlobalScope.async {
+					        delay(1000L)
+					        1
+					    }
+					    val job2 = GlobalScope.async {
+					        delay(1000L)
+					        2
+					    }
+					    val job3 = GlobalScope.async {
+					        delay(1000L)
+					        3
+					    }
+					    println("Hello, ")
+					    println(job1.await())
+					    println(job2.await())
+					    println(job3.await())
+					}
+
+					// prints
+					Hello, 
+					1
+					2
+					3
+					======================================================
+
+			-> If we call "await" on an already completed "Deferred", then there is no suspending
+				-> "await" just returns the value.
+				-> calling "await" multiple times in succession does not suspend multiple times!			
+
+			-> "async" builder is often used to asynchronously execute two processes and then combine their results.
+				ex)
+					======================================================
+					scope.launch{
+						val news = async { newsRepo.getNews() }
+						val newsSummary = async { newsRepo.getNewsSummary() }
+						view.showNews(newsSummary.await(), news.await())
+					}
+					======================================================
+
+
+		* "launch" and "async" builders start a coroutine IMMEDIATELY.
+
+
+	<Blocking coroutine builders>
+		- General rule: coroutines should never block threads, only suspend them.
+
+		- "runBlocking" is used only in places in our program where we do want to block the thread
+			-> such as when we need a regular function to call suspending functions and await their completion.
+				ex)
+					======================================================
+					fun runDataMigrationScript() = runBlocking {
+						val sourceData = readDataFromSource()
+						val transformedData = transformData(sourceData)
+						writeDataToTarget(transformedData)
+					}
+					======================================================
+
+	<Structured Concurrency>
+		- "launch", "async" functions are extension functions which have receiver of CoroutineScope.
+
+		- "sturctured concurrency"
+			-> when a coroutine is started on a scope, it becomes a child of this scope.
+			-> each coroutine builder provides a scope that can be used to start other coroutine builders on it.
+			* As a result, these coroutines become children of the coroutine that provided their scope.
+
+			-> creates a hierarchy of coroutines, where each coroutine has a parent and can have children.
+
+		- Important consequences of parent-child relationship
+			1) Children inherit context from their parent (but they can also overwrite it)
+			2) A parent cannot complete until all its children have completed
+			3) When the parent is cancelled, its child coroutines are cancelled too
+			4) When a child completes with an exception, this exception is passed to the parent.
+
+		- GlobalScope is just a placeholder for the lack of parent.
+			-> literally an empty scope that configures nothing and builds no relationship with coroutines started on it
+			-> therefore bad practice to use because it can easily break our relationships and cannot be used to control coroutines started on it.
+
+		* GlobalScope breaks structured concurrency!
+
+		- runBlocking
+			-> is not an extension function on CoroutineScope	
+			-> cannot be a child: can only be used as a root coroutine.
+
+		- suspending functions need to be called from other suspending functions.
+			-> and needs to start with a coroutine builder such as runBlocking
+	
+		* "launch" and "async" builders need a scope, so we need to create one.
+
+		* Inside suspend functions, we cannot use the launch or async builders because they need a scope.
+
+	<Coroutine scope functions>
+		- "Coroutine scope functions"
+			-> suspending functions that start a synchronous coroutine.
+			-> start a new coroutine but suspend the current one until the new one is completed.
+
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main() {
+					    coroutineScope {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    coroutineScope {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    coroutineScope {
+					        delay(1000L)
+					        println("World!")
+					    }
+					    println("Hello, ")
+					}
+
+					// prints
+					World!
+					World!
+					World!
+					Hello,
+					======================================================
+					-> "coroutineScope" is a suspend function
+
+			-> Coroutine scope functions return whatever is returned from their lambda expression.
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main() {
+					    println("A")
+					    val a = coroutineScope {
+					        delay(1000L)
+					        10
+					    }
+					    println("B")
+					    val b = coroutineScope {
+					        delay(1000L)
+					        20
+					    }
+					    println("C")
+					    println(a + b)
+					}
+
+					// prints
+					A
+					B
+					C
+					30
+					======================================================
+
+		* Coroutine scope functions have very little do with asynchronous coroutine builders.
+			1) They both start coroutines, but coroutine scope functions are synchronous coroutines because they suspend the current coroutine until the coroutine they've started has completed.
+
+			2) They do not require a scope <-> coroutine builders are regular functions that do require a scope.
+
+		* Coroutine scope functions MAINTAIN structured concurrency.
+			1) inherit context from their parent
+			2) cannot complete until all their children are completed
+			3) cancel their children when they get cancelled
+			4) cancel and throw an exception when they receive an exception from a child
