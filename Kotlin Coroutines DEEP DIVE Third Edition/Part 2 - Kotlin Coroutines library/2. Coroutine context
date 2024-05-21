@@ -1,0 +1,301 @@
+Coroutine context
+	<CoroutineContext interface>
+		- CoroutienContext is an interface that represents an element or a collection of elements.
+		- indexed set of Element instances like Job, CoroutineName, CoroutineDispatcher, etc.
+		- Each CoroutineContext.Element is also a CoroutineContext, which can also represent multiple elements added togehter.
+			-> CoroutineContext implements the "Composite design pattern".
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+				import kotlin.coroutines.CoroutineContext
+
+				fun main() {
+				    val name: CoroutineName = CoroutineName("A name")
+				    val element: CoroutineContext.Element = name
+				    val context: CoroutineContext = element
+				    println(context)    // CoroutineName(A name)
+
+				    val job: Job = Job()
+				    val jobElement: CoroutineContext.Element = job
+				    val jobContext: CoroutineContext = jobElement
+				    println(jobContext) // JobImpl{Active}@7e6cbb7a
+
+				    val ctx: CoroutineContext = name + job
+				    println(ctx)    // [CoroutineName(A name), JobImpl{Active}@7e6cbb7a]
+				}
+				========================================================================
+
+		- You can add elements together, and the resulting context will contain all of them.
+			ex)
+				========================================================================
+				launch(CoroutineName("Name1")) { ... }
+
+				launch(CoroutineName("Name2") + Job()) { ... }
+				========================================================================
+
+	<Finding elements in CoroutineContext>
+		- CoroutineContext represents a collection
+			-> we can find an element with a name concrete key using "get".
+			-> Another option is to use square brackets "[]"
+			-> result: nullable element of the type that is associated with the key.
+			-> works like Map
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+				import kotlin.coroutines.CoroutineContext
+
+				fun main() {
+				    val ctx: CoroutineContext = CoroutineName("A name")
+				    val coroutineName: CoroutineName? = ctx[CoroutineName]
+				    println(coroutineName?.name)  // A name
+
+				    val job: Job? = ctx[Job]
+				    println(job)    // n ull
+				}
+				========================================================================
+				- "CoroutineName" Key is a companion object.
+					-> ctx[CoroutineName] is ctx[CoroutineName.Key]
+
+	<Adding contexts>
+		- CoroutineContext is useful when to merge two contexts together
+			-> When two elements with different keys are added, the resulting context responds to both keys.
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+				import kotlin.coroutines.CoroutineContext
+
+				fun main() {
+				    val ctx1: CoroutineContext = CoroutineName("Name1")
+				    println(ctx1[CoroutineName]?.name)  // Name1
+				    println(ctx1[Job]?.isActive)    // null
+
+				    val ctx2: CoroutineContext = Job()
+				    println(ctx2[CoroutineName]?.name)  // null
+				    println(ctx2[Job]?.isActive)    // true
+				    // "Active" is the default state of a job created this way
+
+				    val ctx3 = ctx1 + ctx2
+				    println(ctx3[CoroutineName]?.name)  // Name1
+				    println(ctx3[Job]?.isActive)    // true
+				}
+				========================================================================
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlin.coroutines.CoroutineContext
+
+				fun main() {
+				    val ctx1: CoroutineContext = CoroutineName("Name1")
+				    println(ctx1[CoroutineName]?.name)  // Name1
+
+				    val ctx2: CoroutineContext = CoroutineName("Name2")
+				    println(ctx2[CoroutineName]?.name)  // Name2
+
+				    val ctx3 = ctx1 + ctx2
+				    println(ctx3[CoroutineName]?.name)  // Name2
+				}
+				========================================================================
+				* like in a map, new element replaces the previous one when another element with the same key is added.
+
+	<Empty coroutine context>
+		- Since CoroutineContext is like a collection, we also have an empty context.
+		- if we add it to another context, it behaves exactly like this other context.
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+				import kotlin.coroutines.CoroutineContext
+				import kotlin.coroutines.EmptyCoroutineContext
+
+				fun main() {
+				    val empty: CoroutineContext = EmptyCoroutineContext
+				    println(empty[CoroutineName])   // null
+				    println(empty[Job])             // null
+
+				    val ctxName = empty + CoroutineName("Name1") + empty
+				    println(ctxName[CoroutineName]) // CoroutineName(Name1)
+				}
+				========================================================================
+
+	<Subtracting elements>
+		- elements can also be removed from a context by their key using the "minusKey" function.
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+
+				fun main() {
+				    val ctx = CoroutineName("Name1") + Job()
+				    println(ctx[CoroutineName]?.name)   // Name1
+				    println(ctx[Job]?.isActive)     // true
+
+				    val ctx2 = ctx.minusKey(CoroutineName)
+				    println(ctx2[CoroutineName]?.name)  // null
+				    println(ctx2[Job]?.isActive)    // true
+
+				    val ctx3 = (ctx + CoroutineName("Name2"))
+				        .minusKey(CoroutineName)
+				    println(ctx3[CoroutineName]?.name)  // null
+				    println(ctx3[Job]?.isActive)    // true
+				}
+				========================================================================
+
+	<Folding context>
+		- fold method
+			1. an initial accumulator value;
+			2. an operation to produce the next state of the accumulator, based on the current state, and the element it is currently invoked in.
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.Job
+				import kotlin.coroutines.CoroutineContext
+
+				fun main() {
+				    val ctx = CoroutineName("Name1") + Job()
+
+				    ctx.fold("") { acc, element -> "$acc$element" }
+				        .also(::println)
+				    // CoroutineName(Name1)JobImpl{Active}@5910e440
+
+				    val empty = emptyList<CoroutineContext>()
+				    ctx.fold(empty) { acc, element -> acc + element }
+				        .joinToString()
+				        .also(::println)
+				    // CoroutineName(Name1), JobImpl{Active}@5910e440
+				}
+				========================================================================
+
+	<Coroutine context and builders>
+		- CoroutineContext is just a way to hold and pass data.
+			ex)
+				========================================================================
+				import kotlinx.coroutines.*
+
+				fun CoroutineScope.log(msg: String) {
+				    val name = coroutineContext[CoroutineName]?.name
+				    println("[$name] $msg")
+				}
+
+				fun main() = runBlocking(CoroutineName(name = "main")) {
+				    log("Started")              // [main] Started
+				    val v1 = async {
+				        delay(500)
+				        log("Running async")    // [main] Running async
+				        42
+				    }
+				    launch {
+				        delay(1000)
+				        log("Running launch")   // [main] Running launch
+				    }
+				    log("The answer is ${v1.await()}") // [main] The answer is 42
+				}
+
+				// prints
+				/*
+				 * [main] Started
+				 * [main] Running async
+				 * [main] The answer is 42
+				 * [main] Running launch
+				 */
+				========================================================================
+
+		- Each child might have a specific context defined in the argument.
+			-> This context overrides the one from the parent
+			ex)
+				========================================================================
+				import kotlinx.coroutines.*
+
+				fun CoroutineScope.log(msg: String) {
+				    val name = coroutineContext[CoroutineName]?.name
+				    println("[$name] $msg")
+				}
+
+				fun main() = runBlocking(CoroutineName(name = "main")) {
+				    log("Started")              // [main] Started
+				    val v1 = async(CoroutineName("c1")) {
+				        delay(500)
+				        log("Running async")    // [c1] Running async
+				        42
+				    }
+				    launch(CoroutineName("c2")) {
+				        delay(1000)
+				        log("Running launch")   // [c2] Running launch
+				    }
+				    log("The answer is ${v1.await()}") // [main] The answer is 42
+				}
+				========================================================================
+
+		* "Job"
+			-> only context that is not inherited because each coroutine must have its own job!
+
+	<Accessing context in a suspending function>
+		- CoroutineScope has a "coroutineContext" property that can be used to access the context.
+			-> coroutineContext property is available in every suspending scope.
+			
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import kotlin.coroutines.coroutineContext
+
+				suspend fun printName() {
+				    println(coroutineContext[CoroutineName]?.name)
+				}
+
+				fun main() = runBlocking(CoroutineName("Outer")) {
+				    printName() // Outer
+				    launch(CoroutineName("Inner")) {
+				        printName() // Inner
+				    }
+				    delay(10)
+				    printName() // Outer
+				}
+
+				========================================================================
+
+		- Coroutine scope functions capture the context from the scope they are "called" in.
+			-> their scope also inherits the context from the parent scope.
+
+	<Changing context in suspending functions>
+		- you can use "withContext" to modify a context for a suspend function.
+			-> behaves like coroutineScope but changes the context for the coroutine it creates.
+
+			ex)
+				========================================================================
+				suspend fun readSave() = withContext(Dispatchers.IO) {
+				    val file = File("save.txt")
+				    file.readText()
+				}
+				========================================================================
+
+	<Creating our own context>
+
+	<Coroutines and thread elements>
+		* A coroutine might start on one thread, get suspended, and then be resumed on another thread.
+
+			ex)
+				========================================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.runBlocking
+
+				fun main() = runBlocking(CoroutineName("My Coroutine")) {
+				    println("Running in thread: ${Thread.currentThread().name}")
+				}
+
+				// Running in thread: main
+				========================================================================
+
+
+
+
+
