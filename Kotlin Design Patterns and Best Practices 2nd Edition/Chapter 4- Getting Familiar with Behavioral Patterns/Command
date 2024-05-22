@@ -1,0 +1,86 @@
+Command
+
+	- allows you to encapsulate actions inside an object to be executed sometime later.
+	- we can execute one action later, also execute many, or even schedule exactly when to execute them.
+
+
+	* Practical whenever you want to enqueue multiple actions or schedule an action to be executed later
+
+	ex)
+		================================================
+		typealias Command = () -> Unit
+		private val commands = mutableListOf<Command>()
+		fun main() {
+		    commands.add {
+		        println("hello")
+		        println("world")
+		        println("!!")
+		    }
+		    for(command in commands){
+		        command.invoke()
+		    }
+		}
+		================================================
+
+
+
+	ex)
+		================================================
+		// Receiver
+		class Light {
+		    fun turnOn() {
+		        println("Light is turned on")
+		    }
+
+		    fun turnOff() {
+		        println("Light is turned off")
+		    }
+		}
+
+		// Command interface
+		interface Command {
+		    fun execute()
+		}
+
+		// Concrete Command
+		class TurnOnCommand(private val light: Light) : Command {
+		    override fun execute() {
+		        light.turnOn()
+		    }
+		}
+
+		// Concrete Command
+		class TurnOffCommand(private val light: Light) : Command {
+		    override fun execute() {
+		        light.turnOff()
+		    }
+		}
+
+		// Invoker
+		class RemoteControl {
+		    private var command: Command? = null
+
+		    fun setCommand(command: Command) {
+		        this.command = command
+		    }
+
+		    fun pressButton() {
+		        command?.execute()
+		    }
+		}
+
+		// Client code
+		fun main() {
+		    val light = Light()
+		    val turnOnCommand = TurnOnCommand(light)
+		    val turnOffCommand = TurnOffCommand(light)
+
+		    val remote = RemoteControl()
+
+		    remote.setCommand(turnOnCommand)
+		    remote.pressButton() // we can execute one action later
+
+		    remote.setCommand(turnOffCommand)
+		    remote.pressButton() // we can execute one action later
+		}
+		================================================
