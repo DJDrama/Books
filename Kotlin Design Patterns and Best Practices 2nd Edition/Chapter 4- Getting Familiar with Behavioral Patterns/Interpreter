@@ -1,0 +1,29 @@
+Interpreter
+	- deals with translating specific languages. (Why would we need that? Don't we have compilers to do that anyway?)
+
+	ex) DSL
+		ex)
+			====================================================================================
+			class SelectCalus(private val columns: String){
+				// ...
+				override fun toString() = "SELECT $columns $from"
+			}
+
+			class FromClause(private val table: String){
+				// ...
+				override fun toString() = "FROM $table $where"
+			}
+
+			class WhereClause(private val conditions: String){
+				// ...
+				override fun toString() = "WHERE $conditions"
+			}
+
+			// usage (Call suffix)
+			val sql = select("name", "age") {
+				from("users"){
+					where("age>25")
+				}
+			}
+			====================================================================================
+			-> "Call suffix": if function receives another function as its last argument, we can pass it out of parentheses.
