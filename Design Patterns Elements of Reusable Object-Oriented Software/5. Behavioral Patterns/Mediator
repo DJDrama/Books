@@ -1,0 +1,40 @@
+Mediator
+
+	(Intent)
+		- define an object that encapsulates how a set of objects interact.
+		- promotes loose coupling by keeping objects from referring to each other explicitly, and it lets you vary their interaction independently.
+
+	(Motivation)
+		- Object-oriented design encourages the distribution of behavior among objects.
+			-> worst case, every object ends up knowing about every other.
+
+		- lots of interconnections
+			-> make less likely that an object can work without the support of others
+
+	(Applicability)
+		Use it when
+			1. set of objects communicate in well-defined but complex ways.
+
+			2. reusing an object is difficult because it refers to and communicates with many other objects.
+
+			3. behavior that's distributed between several classes should be customizable without a lot of subclassing.
+
+	(Consequences)
+		1. limits subclassing
+
+		2. decouples colleagues
+
+		3. simplifies object protocols
+
+		4. abstracts how objects cooperate
+
+		5. centralizes control
+
+	(Related Patterns)
+		- Facade differs from Mediator
+			-> it abstracts a subsystem of objects to provide a more convenient interface.
+			* facade objects make requests of the subsystem classes but not vice versa.
+
+		<-> Mediator enables cooperative behavior that colleague objects don't or can't provide, and the protocol is multidirectional.
+
+		- Colleagues can communicate with the mediator using the Observer pattern.
