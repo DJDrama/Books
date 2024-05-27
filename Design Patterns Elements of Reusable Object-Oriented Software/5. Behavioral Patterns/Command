@@ -1,0 +1,53 @@
+Command
+	
+	(Intent)
+		- encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations.
+
+	(Also Known As)
+		- Action, Transaction
+
+	(Motivation)
+		- when user selects a MenuItem, the MenuItem calls Execute on its command, and Execute carries out the operation.
+		- MenuItems don't know which subclass of Command they use.
+		- Command subclasses store the receiver of the request and invoke one or more operations on the receiver.
+
+	(Applicability)
+		Use when you want to
+			1. parameterize objects by an action to perform
+				-> in a procedural language with a callback function
+				-> Commands are an object-oriented replacement for callbacks.
+
+			2. specify, queue, and execute requests at different times.
+				-> Command object can have a lifetime independent of the original request.
+				-> you can transfer a command object for the request to a different process and fulfill the request there.
+
+			3. support undo.
+				-> Command's Execute operation can store state for reversing its effects in the command itself.
+				-> Executed commands are stored in a history list.
+				-> Unlimited-level undo and redo is achieved by traversing this list backwards and forwards calling Unexecute and Execute, respectively.
+
+			4. support logging changes so that they can be reapplied in case of a system crash.
+				-> by augmenting the Command interface with load and store operations, you can keep a persistent log of changes.
+
+			5. structure a system around high-level operations built on primitives operations.
+				-> such a structure is common in information systems that support "Transactions".
+				-> "transaction" encapsulates a set of changes to data.
+
+	(Consequences)
+		1. decouples the object that invokes the operation from the one that knows how to perform it.
+
+		2. Commands are first-class objects.
+			-> can be manipulated and extended like any other object.
+
+		3. assemble commands into a composite command.
+			-> composite commands are an instance of the Composite pattern.
+
+		4. easy to add new commands, because you don't have to change existing classes.
+
+	(Related patterns)
+		- Composite can be used to implement MacroCommands
+
+		- Memento can keep state the command requires to undo its effect
+
+		- command that must be copied before being placed on the history list acts as a Prototype.
+		

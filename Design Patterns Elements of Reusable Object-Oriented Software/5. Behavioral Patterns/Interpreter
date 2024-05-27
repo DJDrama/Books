@@ -1,0 +1,35 @@
+Interpreter
+	
+	(Intent)
+		- given a language, define a representation for its grammar along with an interpreter that uses the representation to interpret sentences in the language.
+
+	(Motivation)
+		- describes how to define a grammar for simple languages, represent senteces in the language, and interpret these sentences.
+
+		- uses a class to represent each grammar rule.
+
+	(Applicability)
+		- pattern works best when
+
+			1. the grammar is simple
+
+			2. efficiency is not a critical concern.
+
+	(Consequences)
+		1. easy to change and extend the grammar.
+			-> can use inheritance to change or extend the grammar.
+		
+		2. implementing the grammar is easy
+
+		3. complex grammars are hard to maintain.
+
+		4. adding new ways to interpret expressions.
+
+	(Related Patterns)
+		- Composite
+
+		- Flyweight
+
+		- Iterator
+
+		- Visitor

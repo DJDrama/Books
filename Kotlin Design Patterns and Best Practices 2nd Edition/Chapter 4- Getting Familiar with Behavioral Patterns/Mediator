@@ -1,0 +1,23 @@
+Mediator
+	- a control freak.
+		-> it doesn't like it when one object speaks to the other directly.
+
+	- reduces coupling between objects.
+		-> Instead of knowing some other objects, everybody should know only them, the mediator.
+
+	(Two flavors)
+		1. strict
+			-> tell the mediator exactly what to do and expect and answer from it
+
+		2. loose
+			-> expect us to notify the mediator of what happened, but not to expect an immediate answer.
+			-> instead if they need to notify us in return, they should call us.
+
+	(Caveats)
+		1. centralizes control
+			-> may become a God Object
+
+	(examples)
+		- Usecase "CAN" be a mediator which receives an action from ui layer and fetch data from the data layer. BUT Usecase is not always a Mediator.
+
+		- Usecase decouples presentation and domain layer.

@@ -1,0 +1,27 @@
+Iterator
+
+	(Intent)
+		- provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
+
+	(Also Known As)
+		- Cursor
+
+	(Motivation)
+		- way to access its elements without exposing its internal sturcture.
+
+		- key idea in this pattern is to take the responsibility for access and traversal out of the list object and put it into an iterator object.
+
+	(Applicability)
+		use it when
+			1. to access an aggregate object's contents without exposing its internal representation.
+
+			2. to support multiple traversals of aggregate objects.
+
+			3. to provide a uniform interface for traversing different aggregate structures(that is, to support polymorphic iteration).
+
+	(Consequences)
+		1. supports variations in the traversal of an aggregate.
+
+		2. simplify the aggregate interface.
+
+		3. more than one traversal can be pending on an aggregate.
