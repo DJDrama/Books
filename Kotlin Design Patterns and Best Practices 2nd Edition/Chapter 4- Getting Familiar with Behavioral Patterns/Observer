@@ -1,0 +1,7 @@
+Observer
+
+	- One publisher(Subject) that may have many subscribers(Observers).
+
+	- Subscribers should be able to register or unregister themselves at runtime.
+
+	- publisher doesn't need to know anything about the subscribers, except the signature of the function it invokes.

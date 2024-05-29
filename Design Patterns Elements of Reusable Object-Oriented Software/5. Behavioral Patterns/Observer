@@ -1,0 +1,48 @@
+Observer
+	
+	(Intent)
+		- define one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically.
+
+	(AKA)
+		- Depdents
+		- Publish-Subscribe
+
+	(Applicability)
+		USe it when
+			1. when an abstraction has two aspects, one dependent on the other.
+
+			2. When a change to one object requires changing others, and you don't know how many objects need to be changed.
+
+			3. When an object should be able to notify other objects without making assumptions about who these objects are.
+				-> you don't want these objects tightly coupled.
+
+	(Consequences)
+		1. Abstract coupling between Subject and Observer.
+			-> the subject doesn't know the concrete class of any observer.
+			-> coupling between subjects and observers is a abstract and minimal.
+			-> Because Subject and Observer aren't tightly coupled, they can belong to different layers of abstraction in a system.
+
+			ex) lower-level subject can communicate and inform a higher-level observer thereby keeping the system's layering intact.
+
+		2. Support for broadcast communication.
+
+		3. Unexpected updates.
+			-> because observers have no knowledge of each other's presence, they can be blind to the ultimate cost of changing the subject.
+
+		4. Dangling references to deleted subjects.
+
+		5. Making sure Subject state is self-consistent before notification.
+
+		6. Avoiding observer-specific update protocols: the push and pull models.
+
+		7. Specifying modifications of interest explicitly.
+
+		8. Encapsulating complex update semantics.
+			-> Change Manager
+
+		9. Combinging the Subject and Observer classes.
+
+	(Related Patterns)
+		- Mediator
+
+		- Singleton 
