@@ -1,0 +1,49 @@
+Memento
+
+	(Intent)
+		- without violating encapsulation, capture and externalize an object's internal state so that the object can be restored to this state later.
+
+	(AKA)
+		- Token
+
+	(Motivation)
+		- implementing checkpoints and undo mechanisms that let users back out of tentative operations or recover from errors.
+
+		* Exposing state would violate encapsulation
+			-> which can compromise the app's reliability and extensibility.
+
+		- Memento
+			-> object that stores a snapshot of the internal state of another object - the memento's originator.
+
+			-> originator intializes the memento with info that characterizes its current state.
+
+			-> only the originator can store and retrieve info from the memento
+
+			-> the memento is "opaque" to other objects.
+
+	(Applicability)
+		Use it when
+			1. snapshot of an object's state must be saved so that it can be restored to that state later
+
+			2. direct interface to obtaining the state would expose implementation details and break the object's encapsulation.
+
+	(Consequences)
+		1. Preserving encapuslation boundaries.
+			-> avoids exposing info that only an originator should manage but that must be stored nevertheless outside the originator.
+
+		2. It simplifies Originator.
+
+		3. Using mementos might be expensive.
+			-> might incur overhead if originator must copy large amounts of information to store in the memento.
+
+		4. Defining narrow and wide interfaces.
+
+		5. Hidden costs in caring for mementos.
+			-> caretaker has no idea how much state is in the memento.
+
+	(Related Patterns)
+		- Command
+			-> commands can use mementos to maintain state for undoable operations.
+
+		- Iterator
+			-> mementos can be used for iteration

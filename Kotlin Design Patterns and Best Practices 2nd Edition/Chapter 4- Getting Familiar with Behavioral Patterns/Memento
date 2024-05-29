@@ -1,0 +1,23 @@
+Memento
+
+	- saves the internal state of an object, which can't be altered from the outside.
+
+	- In Kotlin, we can use inner class to implement Memento.
+		ex)
+			========================================================================
+			class Manager {
+				// ...
+
+				inner class Memory(private val mindState: List<String>){
+					fun restore(){
+						thoughts = mindState.toMutableList()
+					}
+				}
+			}
+			========================================================================
+			-> inner classes have access to private fields of the outer class.
+			-> Memory class can change the internal state of the Manager class easily.
+
+	- Useful in some types of apps that need to recover to some previous state.
+	
+
