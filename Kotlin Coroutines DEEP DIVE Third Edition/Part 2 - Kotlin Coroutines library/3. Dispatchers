@@ -1,0 +1,277 @@
+Dispatchers
+	
+	* CoroutineContext determines which thread a certain coroutine will run on.
+
+	<Default Dispatcher>
+		- if you don't set any dispatcher, the one chosen by default by asynchronous coroutine builders is "Dispatchers.Default"
+			-> desgined to run CPU-intensive operations.
+
+			-> has pool of threads whose size is equal to the number of cores in the machine your code is running on (but not less than two).
+
+			ex)
+				================================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.launch
+				import kotlin.random.Random
+
+				suspend fun main() = coroutineScope {
+				    repeat(1000) {
+				        launch {
+				            List(1_000_000) {
+				                Random.nextLong()
+				            }.maxOrNull()
+
+				            val threadName = Thread.currentThread().name
+				            println("Running on thread: $threadName")
+				        }
+				    }
+				}
+				================================================================
+				(prints - My Computer is quad core - 4 cores)
+					Running on thread: DefaultDispatcher-worker-4
+					Running on thread: DefaultDispatcher-worker-2
+					Running on thread: DefaultDispatcher-worker-3
+					Running on thread: DefaultDispatcher-worker-1
+					Running on thread: DefaultDispatcher-worker-4
+					Running on thread: DefaultDispatcher-worker-3
+					Running on thread: DefaultDispatcher-worker-2
+					Running on thread: DefaultDispatcher-worker-4
+					Running on thread: DefaultDispatcher-worker-1
+					Running on thread: DefaultDispatcher-worker-3
+					Running on thread: DefaultDispatcher-worker-2
+
+		* If we use runBlocking, then it will run on "main".
+
+	<Limiting the default dispatcher>
+		- "limitedParallelism"
+			-> limited to using not more than a certain number of them at the same time.
+				
+				ex)
+					================================================================
+					private val dispatcher = Dispatchers.Default
+						.limitedParallelism(5)
+					================================================================
+
+	<Main dispatcher>
+		- To run a coroutine on the Main thread, we use "Dispatchers.Main".
+
+			ex)
+				================================================================
+				suspend fun showUserName(name: String){
+					withContext(Dispatchers.Main){
+						userNameTextView.text = name
+					}
+				}
+				================================================================
+
+	<IO Dispatcher>
+		- used when we block threads with I/O operations
+			-> such as when we read/write files or call blocking functions.
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.launch
+				import kotlin.system.measureTimeMillis
+
+				suspend fun main(){
+				    val time = measureTimeMillis {
+				        coroutineScope {
+				            repeat(50){
+				                launch(Dispatchers.IO){
+				                    Thread.sleep(1000)
+				                }
+				            }
+				        }
+				    }
+				    println(time) // 1098
+				}
+				========================================================
+				-> Dispatchers.IO allows more than 50 active threads at the same time!
+				* If we use Dispatchers.Default, it took about 11000. (because repeat 50, and 4 threads, 50/4 = 12.5)
+
+		* Dispatchers.IO is only needed if you have an API that blocks threads!
+			-> If you use suspending functions, you can use any dispatcher!
+			-> don't need to use Dispatchers.IO
+
+		* If a network or database library provides suspending functions, you don't need to use Dispatchers.IO at all.
+
+		(How does IO dispatcher work?)
+			- pool of threads initially empty but more threads are created as we need them and kept active until they are not used for some time.
+
+			* but it wouldn't be safe to use it directly because too many active threads cause performance to degrade in a slow but unlimited manner -> causing out-of-memory errors. (Thread = 1mb)
+
+			-> This is why all basic dispatchers have a limited number of threads they can use at the same time.
+
+			* Limit of Dispatchers.IO is 64(or the number of cores if there are more.)
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.launch
+
+				suspend fun main() = coroutineScope {
+				    repeat(1000) {
+				        launch(Dispatchers.IO) {
+				            Thread.sleep(200)
+
+				            val threadName = Thread.currentThread().name
+				            println("Running on thread: $threadName")
+				        }
+				    }
+				}
+				========================================================
+				(Prints)
+					...
+					Running on thread: DefaultDispatcher-worker-65
+					Running on thread: DefaultDispatcher-worker-59
+					Running on thread: DefaultDispatcher-worker-64
+					Running on thread: DefaultDispatcher-worker-62
+					Running on thread: DefaultDispatcher-worker-61
+					Running on thread: DefaultDispatcher-worker-57
+					Running on thread: DefaultDispatcher-worker-60
+					Running on thread: DefaultDispatcher-worker-56
+					Running on thread: DefaultDispatcher-worker-1
+					Running on thread: DefaultDispatcher-worker-4
+					Running on thread: DefaultDispatcher-worker-3
+					Running on thread: DefaultDispatcher-worker-5
+
+		* Dispatchers.Default and Dispatchers.IO share the same pool of threads.
+			-> Threads are reused, and redispatching is often not needed.
+
+			-> running on Dispatchers.Default, and then execution reaches withContext(Dispatchers.IO){...}, Most often, you will stay on the same thread!
+
+			-> But! thread counts towards not the Dispatchers.Default limit but the Dispatchers.IO limit.
+				(Their limits are independent, so they will never starve each other!)
+
+			ex)
+				======================================================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.withContext
+
+				suspend fun main(): Unit = coroutineScope {
+				    launch(Dispatchers.Default) {
+				        println(Thread.currentThread().name) // DefaultDispatcher-worker-1
+				        withContext(Dispatchers.IO) {
+				            println(Thread.currentThread().name) // DefaultDispatcher-worker-1
+				        }
+				    }
+				}
+				======================================================================================
+
+		* If you use both Dispatchers.Default and Dispatchers.IO to the maximum, your number of active threads will be the sum of their limits.
+			-> If you allow 64 threads in Dispatchers.IO and you have 8 cores, you will have 72 active threads in the shared pool.
+			-> we have efficient thread reuse and both dispatchers have strong independence.
+
+		(Why need limit?)
+			-> IF no limit with Disptachers.IO, if you have 100,000 emails to send, it will try to start 100,000 threads which would require 100GB of RAM, so it would crash your application(OOM).
+
+			* when 100,000 emails to send, and Dispatchers.IO limited to 64 threads
+				-> It will take nearly 3 minutes to send all emails.
+
+				-> It will limit for the whole application, so one service might block another.
+				-> When two services both use Dispatchers.IO, then latter would wait in a queue for threads until the former job is done.(THIS should NEVER happen!)
+
+	<Dispatcher with a custom limit>
+		- start 100 coroutines, each of which blocks a thread for a second -> if you run on Dispatchers.IO, it will take 2 seconds.
+
+			ex)
+				===========================================================================
+				import kotlinx.coroutines.*
+				import kotlin.system.measureTimeMillis
+
+				@OptIn(ExperimentalCoroutinesApi::class)
+				suspend fun main(): Unit = coroutineScope {
+				    launch {
+				        printCoroutinesTime(Dispatchers.IO) // Dispatchers.IO took: 2074
+				    }
+				    launch {
+				        val dispatcher = Dispatchers.IO
+				            .limitedParallelism(100)
+				        printCoroutinesTime(dispatcher) // LimitedDispatcher@XXX took: 1082
+				    }
+				}
+
+				suspend fun printCoroutinesTime(
+				    dispatcher: CoroutineDispatcher
+				) {
+				    val test = measureTimeMillis {
+				        coroutineScope {
+				            repeat(100) {
+				                launch(dispatcher) {
+				                    Thread.sleep(1000)
+				                }
+				            }
+				        }
+				    }
+				    println("$dispatcher took: $test")
+				}
+				===========================================================================
+
+		- "limitedParallelism" on Dispatchers.IO
+			-> create a new dispatcher with an independent pool of threads (completely independent of Dispatchers.IO limit)
+
+		* Question is what the size of their limits should be.
+			-> performance or resource usage?
+
+			1. performance: we should se the limit to the number of threads that will be used most of the time
+
+			2. resource usage: set the limit to number of threads that will be used at the peak time.
+
+	<Unconfined dispatcher>
+		- it does not change any threads.
+		- when it is started, it runs on the therad on which it was started.
+			-> it runs on the thread that resumed it.
+
+		* might choose if we don't care at all which thread our code runs on
+			-> no thread switching (cheap)
+
+		* BUT!, do not use in production code if you have at least one reason to use.
+			-> if we accidentally miss a blocking call, then main thread will be blocked.
+
+	<Immediate main dispatching>
+		- "withContext"
+			-> coroutine needs to be suspended, possibly wait in a queue, and then be resumed.
+				(Unnecessary if we are already on this thread.)
+
+		- if we are on the main dispatcher, and called withContext(Dispatchers.Main)
+			-> unnecessary cost of "redispatching"
+
+			ex)
+				============================================================
+				suspend fun showUser(user: User) = 
+					withContext(Dispatchers.Main.immediate){
+						userNameElement.text = user.name
+						// ...
+					}
+				============================================================
+				-> If the function is called on the Main thread, it won't be redispatched: it will be called immediately.
+
+	<Continuation interceptor>
+		- "ContinuationInterceptor"
+			-> "interceptContinuation" method is used to modify a continuation when a coroutine is suspended.
+
+			-> "releaseInterceptedContinuation" method that is called when a continuation is ended.
+
+
+	<Performance of dispatchers when executing different tasks>
+		- run 100 independent coroutines with the same task.
+		
+							Suspending	   Blocking		CPU 	Memory
+			single thread 		1002		100003		39103	94358
+			Default(8 threads) 	1002 		13003		8473	21461
+			IO(64 threads)		1002		2003		9893	20776
+			100 threads 		1002		1003 		10379 	21004
+
+		1. when we are just suspending, it doesn't really matter how many threads we are using.
+		2. when we are blocking, more threads we are using, the faster all these coroutines will be finished.
+		3. With CPU-intensive operations, Dispatchers.Default is the "BEST" option.
+			-> more threads, more time the processor needs to spend switching between them.
+			-> Dispatchers.IO should not be used for CPU-intensive operations because it is used to block operations, and some other process might block all its threads.
+		4. If we are dealing with a memory-intensive problem, more threads might provide some improvement.(But not significant)
+		
+
