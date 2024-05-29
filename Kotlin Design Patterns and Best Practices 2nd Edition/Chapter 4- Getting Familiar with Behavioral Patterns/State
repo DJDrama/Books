@@ -1,0 +1,45 @@
+State
+	- Strategy pattern is usually replaced from the outside by the client, the state may change internally based solely on the input it gets.
+
+	- we can use sealed classe or interface to write down states.
+
+		ex)
+			========================================================
+			interface UiState {
+			    fun handleAction()
+			}
+
+			class Loading : UiState {
+			    override fun handleAction() {
+			        println("Loading")
+			    }
+			}
+
+			class Complete : UiState {
+			    override fun handleAction() {
+			        println("Completed")
+			    }
+			}
+
+			class UiStateManager {
+			    private var currentState: UiState = Loading()
+
+			    fun setState(state: UiState) {
+			        currentState = state
+			    }
+
+			    fun performAction() {
+			        currentState.handleAction()
+			    }
+			}
+
+			fun main() {
+			    val uiStateManager = UiStateManager()
+
+			    uiStateManager.setState(Loading())
+			    uiStateManager.performAction() // Loading
+
+			    uiStateManager.setState(Complete())
+			    uiStateManager.performAction() // Completed
+			}
+			========================================================

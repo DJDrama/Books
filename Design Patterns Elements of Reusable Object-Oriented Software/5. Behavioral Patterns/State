@@ -1,0 +1,26 @@
+State
+
+	(Intent)
+		- Allow an object to alter its behavior when its internal state changes.
+		- The object will appear to change its class.
+
+	(AKA)
+		- Objects for States
+
+	(Applicability)
+		Use it when
+			1. An object's behavior depends on its state, and it must change its behavior at run-time depending on that state.
+
+			2. Operations have large, multipart conditional statements that depend on the object's state.
+
+	(Consequences)
+		1. It localizes state-specific behavior and partitions behavior for different states.
+
+		2. It makes state transitions explicit.
+
+		3. State objects can be shared.
+
+	(Related Patterns)
+		- Flyweight explains when and how State objects can be shared.
+
+		- State objects are often Singletons.
