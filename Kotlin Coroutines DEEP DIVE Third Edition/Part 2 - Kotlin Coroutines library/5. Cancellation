@@ -1,0 +1,538 @@
+Cancellation
+
+	<Basic cancellation>
+		- job.cancel()
+			-> all the children of this job are also cancelled.
+			-> the job cannot be used as a parent for any new coroutines
+			-> at the first suspension point, a CancellationException is thrown.
+				* CancellationException is ignored by the coroutine builder, so it is not necessary to catch it, but it is used to complete this coroutine body as soon as possible.
+
+			-> once the body is completed and all its children are completed too, it changes its state to "Cancelled".
+
+			ex)
+				=============================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+
+				suspend fun main(): Unit = coroutineScope {
+				    val job = launch {
+				        repeat(1_000) {
+				            delay(200)
+				            println("Printing $it")
+				        }
+				    }
+				    delay(1100)
+				    job.cancel()
+				    job.join()
+				    println("Cancelled!")
+				}
+				=============================================
+				-> launch starts a process
+				-> after 1100ms, we cancel this process, coroutine changes state to "Cancelling"
+				-> "CancellationException" is thrown at the first suspension point
+				-> exception ends coroutine body, coroutine changes state to "Cancelled"
+				-> join resumes, and we see "Cancelled!"
+
+
+	<The finally block>
+		- "CancellationException" is ignored by the coroutine builder, but it is considered good practice to rethrow this exception to some outer scope that should know about the cancellation.
+
+			ex)
+				=============================================
+				import kotlinx.coroutines.CancellationException
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+
+				suspend fun main(): Unit = coroutineScope {
+				    val job = launch {
+				        try {
+				            repeat(1_000) {
+				                delay(200)
+				                println("Printing $it")
+				            }
+				        } catch (e: CancellationException) {
+				            println("Cancelled with $e")
+				            throw e
+				        } finally {
+				            println("Finally")
+				        }
+				    }
+				    delay(700)
+				    job.cancel()
+				    job.join()
+				    println("Cancelled!")
+				    delay(1000)
+				}
+				=============================================
+				(prints)
+					Printing 0
+					Printing 1
+					Printing 2
+					Cancelled with kotlinx.coroutines.JobCancellationException: StandaloneCoroutine was cancelled; job=StandaloneCoroutine{Cancelling}@49cea756
+					Finally
+					Cancelled!
+
+				-> "join" is used to wait for the cancellation to finish before we can proceed.
+				-> without "join", we may see "Cancelled!" before "Cancelled with ..." (race condition)
+
+				* Common Pattern
+					-> cancel() -> join() or "cancelAndJoin()"
+
+	<invokeOnCompletion>
+		- another way to handle coroutine cancellation or completion is to use the "invokeOnCompletion" function from Job
+			-> used to set a handler to be called when the job reaches a terminal state, namely either "Completed" or "Cancelled".
+
+		* guaranteed to be called exactly once, even if the job had already completed when the handler was set.
+			
+			ex)
+				=============================================
+				import kotlinx.coroutines.*
+
+				suspend fun main(): Unit = coroutineScope {
+				    val job = launch {
+				        repeat(1_000) {
+				            delay(200)
+				            println("Printing $it")
+				        }
+				    }
+				    job.invokeOnCompletion {
+				        if (it is CancellationException) {
+				            println("Cancelled with $it")
+				        }
+				        println("Finally")
+				    }
+				    delay(700)
+				    job.cancelAndJoin()
+				    println("Cancelled!")
+				}
+				=============================================
+				(prints)
+					Printing 0
+					Printing 1
+					Printing 2
+					Cancelled with kotlinx.coroutines.JobCancellationException: StandaloneCoroutine was cancelled; job=StandaloneCoroutine{Cancelled}@266c3617
+					Finally
+					Cancelled!
+
+		- "invokeOnCompletion" handler is called with:
+			1. null if the job finished with no exception
+			2. CancellationException if the coroutine was cancelled
+			3. exception that finished a coroutine
+
+		* called syncrhonously during cancellation, and we can't control the thread in which it will be running.
+
+	<Cancellation of children>
+		- When a job is cancelled, all its children are also cancelled.
+			-> cancels all its subprocesses.
+
+			-> prevents memory leaks and frees resources!!
+
+			ex)
+				=============================================
+				import kotlinx.coroutines.*
+
+				suspend fun main(): Unit = coroutineScope {
+				    var childJob: Job? = null
+				    val job = launch {
+				        launch {
+				            try {
+				                delay(1000)
+				                println("A")
+				            } finally {
+				                println("A finished")
+				            }
+				        }
+				        childJob = launch {
+				            try {
+				                delay(2000)
+				                println("B")
+				            } catch (e: CancellationException) {
+				                println("B cancelled")
+				            }
+				        }
+				        launch {
+				            delay(3000)
+				            println("C")
+				        }.invokeOnCompletion {
+				            println("C finished")
+				        }
+				    }
+				    delay(700)
+				    job.cancelAndJoin()
+				    println("Cancelled!")
+				    println(childJob?.isCancelled)
+				}
+				=============================================
+				(prints)
+					A finished
+					B cancelled
+					C finished
+					Cancelled!
+					true
+
+	<Cancellation in a coroutine scope>
+		- when we don't specify a Job, CoroutineScope creates a default job.
+
+		* scope with a cancelled job is not useful anymore!
+			-> trying to start a new coroutine in such a scope will silently do nothing.
+
+		* use "cancelChildren" function from CoroutineContext, which cancels all the children of a job but leaves the job itself in the active state.
+
+	<Just one more call>
+		- "Cancelling" -> cleans up resources and complete.
+
+		* when cleaning up resources requires making suspending calls or starting coroutines, we cannot do that because these operations are not allowed in the "Cancelling" state!
+			-> cancelling suspending functions in this state will throw "CancellationException"
+			-> starting a new coroutine will be ignored!
+
+			ex)
+				=============================================
+				import kotlinx.coroutines.*
+
+				suspend fun main(): Unit = coroutineScope {
+				    val job = Job()
+				    launch(job) {
+				        try {
+				            println("Coroutine started")
+				            delay(200)
+				            println("Coroutine finished")
+				        } finally {
+				            println("Finally")
+				            launch {
+				                println("Children executed")
+				            }
+				            delay(1000)
+				            println("Cleanup done!")
+				        }
+				    }
+				    delay(100)
+				    job.cancelAndJoin()
+				    println("Done!")
+				}
+				=============================================
+				(prints)
+					Coroutine started
+					Finally
+					Done!
+
+		* withContext(NonCancellable)
+			-> use it for all suspending calls that should be executed even in the "Cancelling" state (so even in the case of cancellation)
+
+			-> job that is always active!
+
+			* SHOULD NOT be used outside this particular situation
+
+				ex)
+					=============================================
+					import kotlinx.coroutines.*
+
+					suspend fun main(): Unit = coroutineScope {
+					    val job = Job()
+					    launch(job) {
+					        try {
+					            println("Coroutine started")
+					            delay(200)
+					            println("Coroutine finished")
+					        } finally {
+					            println("Finally")
+					            withContext(NonCancellable) {
+					                launch {
+					                    println("Children executed")
+					                }
+					                delay(1000)
+					                println("Cleanup done!")
+					            }
+					        }
+					    }
+					    delay(100)
+					    job.cancelAndJoin()
+					    println("Done!")
+					}
+					=============================================
+					(prints)
+					Coroutine started
+					Finally
+					Children executed
+					Cleanup done!
+					Done!
+
+		* EVEN if you just implement a suspending function and you specify some cleanup in the finally block that requires a suspending call, you should use withContext(NonCancellable) to make sure that the cleanup will be done even in the case of cancellation!
+
+			ex)
+				=============================================
+				suspend fun operation() {
+				    try {
+				        // operation
+				    } finally {
+				        withContext(NonCancellable) {
+				            // clean up that requires suspending call
+				        }
+				    }
+				}
+				=============================================
+
+	<Stopping the unstoppable>
+		* Because cancellation happens at suspension points, it won't happen until a suspension.
+
+			ex)
+				=============================================
+				import kotlinx.coroutines.*
+
+				suspend fun main(): Unit  = coroutineScope {
+				    val job = Job()
+				    launch(job){
+				        repeat(1_000){
+				            Thread.sleep(200)
+				            println("Printing $it")
+				        }
+				    }
+				    delay(1000)
+				    job.cancelAndJoin()
+				    println("Cancelled!")
+				}
+				=============================================
+				(prints)
+					Printing 0
+					Printing 1
+					Printing 2
+					Printing 3
+					... until the end
+
+
+				-> Never stops! because there is no any suspension point inside the launch block.
+
+		- we can use "yield()" function
+			-> suspends and immediately resumes a coroutine.
+
+				ex)
+					=============================================
+					import kotlinx.coroutines.*
+
+					suspend fun main(): Unit = coroutineScope {
+					    val job = Job()
+					    launch(job) {
+					        repeat(1_000) {
+					            Thread.sleep(200)
+					            yield() // <-- yield()
+					            println("Printing $it")
+					        }
+					    }
+					    delay(1000)
+					    job.cancelAndJoin()
+					    println("Cancelled!")
+					}
+					=============================================
+					(prints)
+						Printing 0
+						Printing 1
+						Printing 2
+						Printing 3
+						Cancelled!
+
+			-> good practice to use "yield" between blocks of non-suspended CPU-intensive or time-intensive operations.
+				ex)
+					======================================================
+					suspend fun cpu() = withContext(Dispatchers.Default){
+						cpuIntensiveOperation1()
+						yield()
+						cpuIntensiveOperation2()
+						yield()
+						cpuIntensiveOperation3()
+					}
+					======================================================
+
+		- we can track the state of the Job.
+			-> using "isActive" Boolean state
+				
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main(): Unit = coroutineScope {
+					    val job = Job()
+					    var i = 1
+					    launch(job) {
+					        do {
+					            Thread.sleep(200)
+					            println("Printing ${i++}")
+					        } while (isActive) // isActive?
+					    }
+					    delay(1000)
+					    job.cancelAndJoin()
+					    println("Cancelled!")
+					}
+					======================================================
+					(prints)
+						Printing 1
+						Printing 2
+						Printing 3
+						Printing 4
+						Printing 5
+						Cancelled!
+
+		- we can use "ensureActive()" function
+			-> throws CancellationException if Job is not active.
+
+				ex)
+					======================================================
+					import kotlinx.coroutines.*
+
+					suspend fun main(): Unit = coroutineScope {
+					    val job = Job()
+					    launch(job) {
+					        repeat(1000) {
+					            Thread.sleep(200)
+					            ensureActive()
+					            println("Printing $it")
+					        }
+					    }
+					    delay(1000)
+					    job.cancelAndJoin()
+					    println("Cancelled!")
+					}
+					======================================================
+					(prints)
+						Printing 0
+						Printing 1
+						Printing 2
+						Printing 3
+						Cancelled!
+
+			* "ensureActive()" should be called on a CoroutineScope(or CoroutineContext, or Job)
+				-> throws an exception if the job is no longer active!
+
+			* ensureActive is lighter than "yield()"
+
+			* "yield()" is a top-level suspension function that does not need any scope!
+				-> can be used in regular suspending functions.
+
+				-> SHOULD BE USED in suspending functions that make multiple CPU-intensive or blocking operations.
+
+	<CancellationException does not propagate to its parent>
+
+		- CancellationException does not propagate to its parent
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.*
+
+				suspend fun main(): Unit = coroutineScope {
+				    launch {
+				        launch {
+				            delay(2000)
+				            println("Will not be printed")
+				        }
+				        delay(1000)
+				        throw CancellationException()
+				    }
+				    launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+				}
+				======================================================
+				(prints)
+					Will be printed
+
+				-> CancellationException only cancels the current parent.
+
+		- TRAP (Mistake example)
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.*
+
+				class UserNotFoundException : CancellationException()
+
+				suspend fun main(): Unit = coroutineScope {
+				    try {
+				        updateUserData()
+				    } catch (e: UserNotFoundException) {
+				        println("User not found!")
+				    }
+				}
+
+				suspend fun updateUserData() = coroutineScope {
+				    launch {
+				        updateUser()
+				    }
+				    launch {
+				        updateTweets()
+				    }
+				}
+
+				suspend fun updateUser() {
+				    throw UserNotFoundException()
+				}
+
+				suspend fun updateTweets() {
+				    delay(1000)
+				    println("Updating!!!")
+				}
+				======================================================
+				(prints)
+					Updating!!!
+
+				-> updateUser() just cancels its launch block!
+
+				-> use RuntimeException() instead of CancellationException()
+					ex)	
+						======================================================
+						class UserNotFoundException : RuntimeException()
+						======================================================
+						(prints)
+							User not found!
+
+	<withTimeout>
+		- useful for testing.
+		- test if some function takes more or less than a specified time.
+		- when testing, will operate in virtual time
+
+		* Throws TimeoutCancellationException, which is a subtype of CancellationException.
+			-> only cancels it and does not affect its parent!
+
+		- "withTimeoutOrNull"
+			-> does not throw an exception!
+			-> just returns "null" when timeout
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.withTimeoutOrNull
+				import kotlinx.coroutines.yield
+
+				suspend fun main(): Unit = coroutineScope {
+				    val user = getUserOrNull()
+				    println("User: $user")  
+				}
+
+				suspend fun getUserOrNull(): User? =
+				    withTimeoutOrNull(5000) {
+				        fetchUser()
+				    }
+
+				suspend fun fetchUser(): User {
+				    while (true) {
+				        yield()
+				    }
+				    return User()
+				}
+
+				data class User(val id: Int = 0)
+				======================================================
+				(prints)
+					User: null
+
+
+	<suspendCancellableCoroutine>
+
+		ex)
+			=====================================================================
+			suspend fun someTask(): Unit = suspendCancellableCoroutine{ cont->
+				cont.invokeOnCancellation{
+					// Cleanup
+				}
+			}
+			=====================================================================
