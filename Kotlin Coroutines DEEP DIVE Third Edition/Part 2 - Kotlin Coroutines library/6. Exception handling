@@ -1,0 +1,341 @@
+Exception handling
+	
+	<Exceptions and structured concurrency>
+
+		ex) concurrently fetches user data and preferences and combines into a single object
+			===============================================================
+			suspend fun fetchUserDetails(): UserDetails = 
+				coroutineScope {
+					val userdata = async { fetchUserData() }
+					val userPreferences = async { fetchUserPreferences() }
+
+					UserDetails(userData.await(), userPreferences.await() )
+				}
+			===============================================================
+			(what happens if "fetchUserPreferences" throws an exception?)
+				-> exception occurs in the "fetchUserPreferences" coroutine. (inside async)
+				-> it ends this coroutine builder body and therefore propagates to the parent of async, which is coroutineScope.
+				-> coroutineScope treats this exception like it occurred in its body, so it throws this exception
+				-> exception is thrown from fetchUserDetails and coroutineScope also gets cancelled, so all its children are also cancelled.
+				-> This is why the "fetchUserData" coroutine is cancelled.
+
+
+		- General rule of exception handling in Kotlin Coroutines
+			1. suspending functions and syncrhonous coroutines, including coroutine scope functions and runBlocking, throw exceptions that end their body.
+
+			2. Asynchronous coroutine builders(Async and Launch) propagate exceptions that end their body to their parents via the scope. An exception received this way is treated as if it occurred in the parent coroutine.
+
+			ex)
+				===============================================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+
+				fun main(): Unit = runBlocking {
+				    launch {
+				        launch {
+				            delay(1000)
+				            throw Error("Some error") // DON'T DO "throw CancellationException()"
+				        }
+
+				        launch {
+				            delay(2000)
+				            println("Will not be printed")
+				        }
+
+				        launch {
+				            delay(500)
+				            println("Will be printed")
+				        }
+				    }
+				    launch {
+				        delay(2000)
+				        println("Will not be printed")
+				    }
+				}
+				===============================================================
+				(prints)
+					Will be printed
+					Exception in thread "main" java.lang.Error: Some error ...
+
+		- How can we stop exception propagation?
+			-> One obvious way is catching exceptions from suspending functions, but we can also catch them from scope functions, or before they reach coroutine builders.
+				ex)
+					===============================================================
+					suspend fun fetchUserDetails(): UserDetails = 
+						coroutineScope {
+							val userData = async { fetchUserData() }
+							val userPreferences = async {
+								try {
+									fetchUserPreferences()
+								} catch (e: Throwable) {
+									println("Error in fetchUserPreferences: $e")
+									null
+								}
+							}
+
+							UserDetails(userData.await(), userPreferences.await())
+						}
+					===============================================================
+
+				ex)
+					===========================================================================
+					suspend fun fetchUserDetails(): UserDetails? = try {
+								coroutineScope {
+									val userData = async { fetchUserData() }
+									val userPreferences = async { fetchUserPreferences() }
+
+									Userdetails(userData.await(), userPreferences.await())
+								}
+							} catch(e: Throwable) {
+								println("Error in fetchUserDetails: $e")
+								null
+							}
+					===========================================================================
+
+	<SupervisorJob>
+		- special kind of job that ignores all exceptions in its children.
+		- generally used as part of a scope in which we start multiple coroutines.
+
+		* Exception in one coroutine won't cancel this scope and all its children.
+			ex)
+				===========================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val scope = CoroutineScope(SupervisorJob())
+
+				    scope.launch {
+				        delay(1000)
+				        throw Error("Some Error")
+				    }
+
+				    scope.launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+
+				    delay(3000)
+				    println(scope.isActive)
+				}
+				===========================================================================
+				(prints)
+					Exception in thread "DefaultDispatcher-worker-1" java.lang.Error: Some Error ...
+					Will be printed
+					true
+
+		[Do not use SupervisorJob as a builder argument]
+			* Common mistake
+				-> use a SupervisorJob as an argument to a parent coroutine, like below.
+					ex)
+						===========================================================================
+						import kotlinx.coroutines.SupervisorJob
+						import kotlinx.coroutines.delay
+						import kotlinx.coroutines.launch
+						import kotlinx.coroutines.runBlocking
+
+						fun main(): Unit = runBlocking {
+						    // DON'T DO THIS!
+						    launch(SupervisorJob()) {
+						        launch {		 // SupervisorJob not inherited
+						            delay(1000)
+						            throw Error("Some Error")
+						        }
+
+						        launch {		 // SupervisorJob not inherited
+						            delay(2000)
+						            println("Will not be printed")
+						        }
+						    }
+						    delay(3000)
+						}
+						===========================================================================
+						(prints)
+							Exception in thread "main" java.lang.Error: Some Error ...
+
+					* "Job" is not inherited, so it becomes a parent when it is passed to a coroutine builder.
+						-> SupervisorJob has only one direct child.
+						-> when an exception occurs in this child, it propagates to the parent which uses a regular Job, so this coroutine cancels all its children.
+
+						-> THERE IS NO ADVANTAGE of using SupervisorJob over Job.
+
+		[supervisorScope]
+			- The only simple way to start a coroutine with a SupervisorJob is to use "supervisorScope".
+				-> It uses a "SupervisorJob" instead of a regular "Job".
+				-> exceptions from its children are ignored(they only print stacktrace).
+
+				ex)
+					===========================================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.launch
+					import kotlinx.coroutines.runBlocking
+					import kotlinx.coroutines.supervisorScope
+
+					fun main(): Unit = runBlocking {
+					    supervisorScope {
+					        launch {
+					            delay(1000)
+					            throw Error("Some Error")
+					        }
+					        launch {
+					            delay(2000)
+					            println("Will be printed")
+					        }
+					        launch {
+					            delay(1800)
+					            println("Will be printed")
+					        }
+					    }
+					    println("Done")
+					}
+					===========================================================================
+					(prints)
+						Exception in thread "main" java.lang.Error: Some Error ... // (Just prints stacktrace)
+						Will be printed
+						Will be printed
+						Done
+
+					* If we use "coroutineScope" instead of "supervisorScope"
+						-> the exception would propagate to runBlocking, and the program would end with an exception without printing anything.
+
+					* "supervisorScope" only ignores exceptions from its children.
+						-> If an exception occurs in "supervisorScope" itself, it breaks this coroutine builder and the exception propagates to its parent.
+
+			- Often used to start multiple independent processes and we don't want an exception in one of them to cancel the others.
+
+				ex)
+					===========================================================================
+					suspend fun notifyAnalytics(actions: List<UserAction>) = 
+						supervisorScope {
+							actions.forEach { action ->
+								launch {
+									notifyAnalytics(action)
+								}
+							}
+						}
+					===========================================================================
+
+			* supervisorScope does not support changing context.
+				-> If you need to both change context and use a "SupervisorJob", you need to wrap supervisorScope with "withContenxt".
+					
+					ex)
+						===========================================================================
+						suspend fun notifyAnalytics(actions: List<UserAction>) = 
+							withContext(dispatcher) {
+								supervisorScope {
+									actions.forEach { action ->
+										launch {
+											notifyAnalytics(action)
+										}
+									}
+								}
+							}
+						===========================================================================
+
+		[Do not use withContext(SupervisorJob())]
+			- You cannot replace supervisorScope with "withContext(SupervisorJob())"!!!!!
+				-> Job cannot be set from the outside, and withContext always uses a regular Job.
+
+					ex)
+						===========================================================================
+						import kotlinx.coroutines.*
+
+						val testScope = CoroutineScope(SupervisorJob())
+						fun main(): Unit = runBlocking {
+						    // DON'T DO THIS!
+						    withContext(SupervisorJob()) { // withContext always uses a regular Job.
+
+						    	println(this.coroutineContext[Job]) // UndispatchedCoroutine{Active}@3c679bde
+						        
+						        launch {
+						            delay(1000)
+						            throw Error("Some error")
+						        }
+						        launch {
+						            delay(2000)
+						            println("Will be printed")
+						        }
+						        launch {
+						            delay(2000)
+						            println("Will be printed")
+						        }
+
+						    }
+						    delay(1000)
+						    println("Done!")
+						}
+						===========================================================================
+						(prints)
+							Exception in thread "main" java.lang.Error: Some error ...
+
+					* "Job" is the only context that is not inherited.
+						-> Each coroutine needs its own job, and passing a job to a coroutine makes it a parent.
+
+						-> So, SupervisorJob here is a parent of the "withContext" coroutine.
+						-> When a child has an exception, it propagates to the withContext coroutine, cancels its Job, cancels its children, and throws an exception. (The fact that SupervisorJob is a parent changes nothing.)
+
+	<Exceptions and await call>
+		- we also need to catch the exception when calling await.
+			ex)
+				===========================================================================
+				import kotlinx.coroutines.async
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.supervisorScope
+
+				class MyException : Throwable()
+
+				suspend fun main() = supervisorScope {
+				    val str1 = async<String> {
+				        delay(1000)
+				        throw MyException()
+				    }
+
+				    val str2 = async {
+				        delay(2000)
+				        "Text2"
+				    }
+
+				    try {
+				        println(str1.await())
+				    } catch (e: MyException) {
+				        println(e)
+				    }
+				    println(str2.await())
+				}
+				===========================================================================
+				(prints)
+					MyException
+					Text2
+
+	<CoroutineExceptionHandler>
+		- define default behavior for all exceptions.
+			-> "CoroutineExceptionHandler" context
+
+		- It can be used to define what should happen in the case of an exception.
+
+			ex)
+				===========================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    val handler = CoroutineExceptionHandler { ctx, exception ->
+				        println("$ctx, Caught $exception")
+				    }
+
+				    val scope = CoroutineScope(SupervisorJob() + handler)
+				    scope.launch {
+				        delay(1000)
+				        throw Error("Some error")
+				    }
+
+				    scope.launch {
+				        delay(2000)
+				        println("Will be printed")
+				    }
+
+				    delay(3000)
+				}
+				===========================================================================
+				(prints)
+					[MainKt$main$1$invokeSuspend$$inlined$CoroutineExceptionHandler$1@7321c836, StandaloneCoroutine{Cancelling}@13f4f9b7, Dispatchers.Default], Caught java.lang.Error: Some error
+					Will be printed
