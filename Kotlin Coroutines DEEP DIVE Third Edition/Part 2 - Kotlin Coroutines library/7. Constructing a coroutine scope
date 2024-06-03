@@ -1,0 +1,143 @@
+Constructing a coroutine scope
+
+	<CoroutineScope factory function>
+		- CoroutineScope is an interface with a single property: coroutineContext.
+			ex)
+				================================================
+				interface CoroutineScope {
+					val coroutineContext: CoroutineContext
+				}
+				================================================
+
+		- we can make a class implement this interface and just directly call coroutine builders on it.
+			ex)
+				================================================
+				class SomeClass : CoroutineScope {
+					override val coroutineContext: CoroutineContext
+						= Job()
+
+					fun onStart(){
+						launch {
+							// ...
+						}
+					}
+				}
+				================================================
+				* This approach is not very popular
+					-> someone might cancel the whole scope, therefore coroutines won't start anymore.
+
+
+		- We generally hold a coroutine scope as an object in a property and use it to call coroutine builders.
+			ex)
+				================================================
+				class SomeClass {
+					val scope: CoroutineScope = ...
+
+					fun onStart(){
+						scope.launch {
+							// ...
+						}
+					}
+				}
+				================================================
+
+		* Easiest way to create a coroutine scope object is by using the CoroutineScope factory function.
+			-> It creates a scope with the provided context(and an additional Job for structured concurrency if no job is already part of the context).
+
+			ex)
+				=======================================================================
+				public fun CoroutineScope(
+					context: CoroutineContext
+				): CoroutineScope = 
+					ContextScope(
+						if(context[Job] != null) context
+						else context + Job()
+					)
+
+				internal class ContextScope(
+					context: CoroutineContext
+				) : CoroutineScope {
+					override val coroutineContext: CoroutineContext = context
+					override fun toString(): String = 
+						"CoroutineScope(coroutineContext=$coroutineContext)"
+				}
+				=======================================================================
+
+	<Constructing a background scope>
+		- If you want to start a new process, you need a custom scope.
+			-> we typically name it "scope" or "backgroundScope".
+
+			ex)
+				=====================================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.isActive
+				import kotlinx.coroutines.launch
+
+				class CacheRefreshService(
+				    private val userService: UserService,
+				    private val newsService: NewsService,
+				    private val backgroundScope: CoroutineScope,
+				) {
+				    fun refresh() {
+				        backgroundScope.launch {
+				            userService.refresh()
+				            newsService.refresh()
+				        }
+				    }
+				}
+
+				class DataSyncManager(
+				    backgroundScope: CoroutineScope
+				) {
+				    init {
+				        backgroundScope.launch {
+				            while (isActive) {
+				                retryOnFailure {
+				                    syncDataWithServer()
+				                    delay(syncIntervalMillis)
+				                }
+				            }
+				        }
+				    }
+				}
+				=====================================================================
+				(How to construct such scope?)
+				1. have a specified dispatcher.
+
+				2. include "SupervisorJob" so all coroutines started in this scope are not cancelled if one fails;
+
+				3. optionally, include some "CoroutineExceptionHandler" to set custom logging, to respond with proper error codes, or to send dead letters.
+
+				(Most popular options are)
+				1. Dispatchers.Default
+					-> great choice if we are sure that we won't make any blocking calls.
+
+				2. Dispatchers.IO
+					-> if we plan to block threads, only remember to use "limitedParllelism" on services.
+
+				3. Disptchers.IO.limitedParallelism(n)
+					-> plan to block threads, or don't plan this, but you want to be prepared if some developer blocks threads by accident.
+
+				4. A dispatcher made from Executors.
+					-> if you want to configure your threads in ways that are not possible with Kotlin Coroutines dispatchers (like setting priorities, names, types, etc)
+
+	<Constructing a scope on Android>
+		- we typically want to
+			1. use "Dispatchers.Main.immediate", as the default dispatcher;
+
+			2. use "SupervisorJob" to prevent all coroutines being cancelled if one fails;
+
+			3. cancel all coroutines when the view or view model is destroyed
+
+			4. use a "CoroutineExceptionHandler" to set default ways to handle exceptions.
+
+
+		- use "lifecycleScope" or "viewModelScope"
+
+
+
+
+
+
+
+
