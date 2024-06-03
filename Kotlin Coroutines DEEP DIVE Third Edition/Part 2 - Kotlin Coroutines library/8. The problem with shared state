@@ -1,0 +1,262 @@
+The problem with shared state
+
+	- without syncrhonization, the result will be smaller because of the conflicts.
+
+		ex)
+			========================================================
+			import kotlinx.coroutines.Dispatchers
+			import kotlinx.coroutines.launch
+			import kotlinx.coroutines.runBlocking
+			import kotlinx.coroutines.withContext
+
+			var counter = 0
+			fun main() = runBlocking {
+			    massiveRun {
+			        counter++
+			    }
+			    println(counter) // 976170 NOT 1000000
+			}
+
+			suspend fun massiveRun(action: suspend () -> Unit) =
+			    withContext(Dispatchers.Default) {
+			        repeat(1000) {
+			            launch {
+			                repeat(1000) {
+			                    action()
+			                }
+			            }
+			        }
+			    }
+			========================================================
+			-> initial value is 0
+			-> the first thread takes the current value 0
+			-> second thread thread takes 0 as well, increments it to 1, and stores it in the variable.
+			-> we switch to the first thread where it has finished: it has 0, so increments it to 1 and stores it.
+
+			* As a result, the variable is 1, but it should be 2. (Some operations are lost!)
+
+			-> Leading to data corruption, exceptions, or even deadlocks.
+
+	<Blocking syncrhonization>
+		- we can use "syncrhonized" block to solve the above issue.
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.withContext
+
+				var counter = 0
+				fun main() = runBlocking {
+				    val lock = Any()
+				    massiveRun {
+				        synchronized(lock) {
+				            counter++
+				        }
+				    }
+				    println(counter) // 1000000
+				}
+
+				suspend fun massiveRun(action: suspend () -> Unit) =
+				    withContext(Dispatchers.Default) {
+				        repeat(1000) {
+				            launch {
+				                repeat(1000) {
+				                    action()
+				                }
+				            }
+				        }
+				    }
+				========================================================
+
+			1) Biggest disadvantage : It blocks Threads!
+				-> if the code is executed on Dispatchers.Main or Dispatchers.Default, we might block threads that should not be blocked.
+
+			2) we cannot use suspending functions inside the syncrhonized block.
+				-> Blocking other processes waiting for the lock
+
+			3) syncrhonized block introduces costs related to context switching and thread blocking.
+
+	<Atomics>
+		- use of atomic values (Atomic)
+			-> fast and gauranteed to be "thread-safe".
+			-> operaionts are implemented at a low level without locks.
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.withContext
+				import java.util.concurrent.atomic.AtomicInteger
+
+				var counter = AtomicInteger(0)
+				fun main() = runBlocking {
+				    val lock = Any()
+				    massiveRun {
+				        counter.incrementAndGet()
+				    }
+				    println(counter) // 1000000
+				}
+
+				suspend fun massiveRun(action: suspend () -> Unit) =
+				    withContext(Dispatchers.Default) {
+				        repeat(1000) {
+				            launch {
+				                repeat(1000) {
+				                    action()
+				                }
+				            }
+				        }
+				    }
+				========================================================
+
+	<A dispatcher limited to a single thread>
+		- easiest solution with shared states.
+			
+			ex) 
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.withContext
+
+				val dispatcher = Dispatchers.IO
+				    .limitedParallelism(1)
+
+				var counter = 0
+
+				fun main() = runBlocking {
+				    massiveRun {
+				        withContext(dispatcher) {
+				            counter++
+				        }
+				    }
+				    println(counter) // 1000000
+				}
+
+				suspend fun massiveRun(action: suspend () -> Unit) =
+				    withContext(Dispatchers.Default) {
+				        repeat(1000) {
+				            launch {
+				                repeat(1000) {
+				                    action()
+				                }
+				            }
+				        }
+				    }
+				========================================================
+
+			* Coarse-grained : wrap the whole function.
+			* Fine-grained : wrap only those statements which modify the state.
+
+	<Mutex>
+		- allows us to implement patterns that are hard or impossible to implement using other tools, but is also easy to make mistakes when using it.
+			-> Primiarily used in libraries, not in business logic!
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.sync.Mutex
+
+				suspend fun main() = coroutineScope {
+				    repeat(5) {
+				        launch {
+				            delayAndPrint()
+				        }
+				    }
+				}
+
+				val mutex = Mutex()
+
+				suspend fun delayAndPrint() {
+				    mutex.lock()
+				    delay(1000)
+				    println("Done")
+				    mutex.unlock()
+				}
+				========================================================
+				(prints)
+					Done
+					Done
+					Done
+					Done
+					Done
+
+		* using "lock" and "unlock" is risky.
+			-> as any exception in between would lead to led to the key never being given back(unlock never been called)
+			-> no other coroutines would be able to pass through the lock.
+
+			-> DEADLOCK!
+
+		(withLock function)
+			-> starts with lock but calls unlock on the finally block so that any exceptions thrown inside the block will successfully release the lock.
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.sync.Mutex
+				import kotlinx.coroutines.sync.withLock
+				import kotlinx.coroutines.withContext
+
+				val mutex = Mutex()
+				var counter = 0
+
+				fun main() = runBlocking {
+				    massiveRun {
+				        mutex.withLock {
+				            counter++
+				        }
+				    }
+				    println(counter) // 1000000
+				}
+
+				suspend fun massiveRun(action: suspend () -> Unit) =
+				    withContext(Dispatchers.Default) {
+				        repeat(1000) {
+				            launch {
+				                repeat(1000) {
+				                    action()
+				                }
+				            }
+				        }
+				    }
+				========================================================
+				* We suspend a coroutine instead of "blocking" a thread. (syncrhonized blocks)
+
+	<Semaphore>
+		- mutex: single lock (lock, unlock, and withLock)
+
+		- semaphore: acquire, release and withPermit
+
+			ex)
+				========================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.sync.Semaphore
+				import kotlinx.coroutines.sync.withPermit
+
+				suspend fun main() = coroutineScope {
+				    val semaphore = Semaphore(2)
+
+				    repeat(5) {
+				        launch {
+				            semaphore.withPermit {
+				                delay(1000)
+				                print(it)
+				            }
+				        }
+				    }
+				}
+				========================================================
+				(prints)
+				01 (delay) 32 (delay) 4
+
+
+
