@@ -1,0 +1,543 @@
+Testing Kotlin Coroutines
+	
+	- we need to wrap our tests with "runBlocking" or "runTest" to start a coroutine.
+
+		ex)
+			======================================================================
+			import kotlinx.coroutines.async
+			import kotlinx.coroutines.coroutineScope
+
+			data class User(
+			    val name: String,
+			    val friends: List<Friend>,
+			    val profile: Profile
+			)
+
+			data class Friend(
+			    val id: String
+			)
+
+			data class Profile(
+			    val desc: String
+			)
+
+			interface UserDataRepository {
+			    suspend fun getName(): String
+			    suspend fun getFriends(): List<Friend>
+			    suspend fun getProfile(): Profile
+			}
+
+			class FetchUserUseCase(
+			    private val repo: UserDataRepository
+			) {
+			    suspend fun fetchUserData(): User = coroutineScope {
+			        val name = async { repo.getName() }
+			        val friends = async { repo.getFriends() }
+			        val profile = async { repo.getProfile() }
+			        User(
+			            name = name.await(),
+			            friends = friends.await(),
+			            profile = profile.await()
+			        )
+			    }
+			}
+			======================================================================
+
+		ex)
+			======================================================================
+			import kotlinx.coroutines.runBlocking
+			import org.testng.annotations.Test
+
+			class FetchUserDataTest {
+
+			    @Test
+			    fun `should construct user`() = runBlocking {
+			        // given
+			        val repo = FakeDataRepository()
+			        val useCase = FetchUserUseCase(repo = repo)
+
+			        // when
+			        val result = useCase.fetchUserData()
+
+			        // then
+			        val expectedUser = User(
+			            name = "Ben",
+			            friends = listOf(Friend("some-friend-id-1")),
+			            profile = Profile("Example description")
+			        )
+
+			        assert(expectedUser == result)
+			    }
+
+			}
+
+			class FakeDataRepository : UserDataRepository {
+			    override suspend fun getName(): String {
+			        return "Ben"
+			    }
+
+			    override suspend fun getFriends(): List<Friend> {
+			        return listOf(
+			            Friend("some-friend-id-1")
+			        )
+			    }
+
+			    override suspend fun getProfile(): Profile {
+			        return Profile("Example description")
+			    }
+
+			}
+			======================================================================
+
+	<Testing time dependencies>
+		- to simulate a delayed data loading scnerio
+			-> use "delay()" function.
+
+	<TestCoroutineScheduler and StandardTestDisPatcher>
+		- "TestCoroutineScheduler"
+			-> makes "delay" operate in virtual time, which is fully simulated and does not depend on real time.
+
+			-> virtual time is manually advanced by us, using functions like "advanceTimeBy" or "advanceUntilIdle".
+
+			ex)
+				======================================================================
+				fun main() {
+				    val scheduler = TestCoroutineScheduler()
+
+				    println(scheduler.currentTime) // 0
+				    scheduler.advanceTimeBy(1_000)
+				    println(scheduler.currentTime) // 1000
+				    scheduler.advanceTimeBy(1_000)
+				    println(scheduler.currentTime) // 2000
+				}
+				======================================================================
+
+		- To use "TestCoroutineScheduler" on coroutines, we should use a dispatcher that supports it.
+			-> The standard option is "StandardTestDisptacher".
+
+			* Coroutines started with such a dispatcher won't run until we advance its scheduler's virtual time.
+
+				-> use "advanceUntilIdle": advances virtual time and invokes all the operations from those coroutines.
+
+				ex)
+					======================================================================
+					import kotlinx.coroutines.CoroutineScope
+					import kotlinx.coroutines.ExperimentalCoroutinesApi
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.launch
+					import kotlinx.coroutines.test.StandardTestDispatcher
+					import kotlinx.coroutines.test.TestCoroutineScheduler
+
+					@OptIn(ExperimentalCoroutinesApi::class)
+					fun main() {
+					    val scheduler = TestCoroutineScheduler()
+
+					    val testDispatcher = StandardTestDispatcher(scheduler)
+
+					    CoroutineScope(testDispatcher).launch {
+					        println("Some work 1")
+					        delay(1000)
+					        println("Some work 2")
+					        delay(1000)
+					        println("Coroutine Done!")
+					    }
+
+					    CoroutineScope(testDispatcher).launch {
+					        delay(500)
+					        println("Different work")
+					    }
+
+					    println("[${scheduler.currentTime}] Before")
+					    scheduler.advanceUntilIdle()
+					    println("[${scheduler.currentTime}] After")
+					}
+					======================================================================
+					(prints)
+						[0] Before
+						Some work 1
+						Some work 2
+						Coroutine Done!
+						[2000] After
+
+		- StandardTestDisptacher creates "TestCoroutineScheduler" by default.
+			-> no need to do so explicitly
+				ex)
+					======================================================================
+					val dispatcher = StandardTestDispatcher()
+
+					// ...
+
+					println("[${dispatcher.scheduler.currentTime}] Before")
+					dispatcher.scheduler.advanceUntilIdle()
+					println("[${dispatcher.scheduler.currentTime}] After")
+					======================================================================
+
+		- we can use "TestScope"
+			ex)
+				======================================================================
+				fun main(){
+					val scope = TestScope()
+
+					scope.launch {
+						// ...
+					}
+
+					scope.advanceTimeBy(1000)
+					// ...
+					scope.runCurrent()
+					// ...
+					scope.advanceUntilIdle()
+					// ...
+				}
+				======================================================================
+
+	<runTest>
+		- It starts a coroutine with "TestScope" and immediately advances it until idle.
+		- we can check "currentTime" at any point.
+		- runTest behaves like runBlocking, but it operates on virtual time.
+
+			ex)
+				======================================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.test.currentTime
+				import kotlinx.coroutines.test.runTest
+				import org.testng.Assert.assertEquals
+				import org.testng.annotations.Test
+
+				class Test {
+				    @Test
+				    fun test1() = runTest {
+				        assertEquals(0, currentTime)
+				        delay(1000)
+				        assertEquals(1000, currentTime)
+				    }
+
+				    @Test
+				    fun test2() = runTest {
+				        assertEquals(0, currentTime)
+				        coroutineScope {
+				            launch { delay(1000) }
+				            launch { delay(1500) }
+				            launch { delay(2000) }
+				        }
+				        assertEquals(2000, currentTime)
+				    }
+				}
+				======================================================================
+
+		* "runTest" includes "TestScope", that includes "StandardTestDispatcher", that includes "TestCoroutineScheduler".
+
+	<Background scope>
+		* runTest function creates a scope; like all such functions, it awaits the completion of its children.
+			-> if you start a process that never ends, your test will never stop.
+
+		- "backgroundScope"
+			-> start all the processes we don't want our test to wait for.
+
+			ex)
+				======================================================================
+				@Test
+				fun `should increment counter`() = runTest{
+					var i=0
+					backgroundScope.launch{
+						while(true){
+							delay(1000)
+							i++
+						}
+					}
+
+					delay(1001)
+					assertEquals(1, i)
+					delay(1000)
+					assertEquals(2, i)
+				}
+				======================================================================
+
+	<Testing cancellation and context passing>
+
+	<UnconfinedTestDispatcher>
+		- "StandardTestDispatcher" does not invoke any operations until we use its scheduler.
+
+		- "UnconfinedTestDispatcher" immediately invokes all the operations before the first delay on started coroutines.
+
+
+	<Using mocks>
+		- Many developers prefer to call "Delay" in the test function.
+			-> one way to do this is using mocks.
+
+			ex) MockK library
+				======================================================================
+				@Test
+				fun `should load data concurrently`() = runTest{
+					// given
+					val userRepo = mockk<UserDataRepository>()
+					coEvery { userRepo.getName() } coAnswers {
+						delay(600)
+						aName
+					}
+
+					coEvery { userRepo.getFriends() } coAnswers {
+						delay(700)
+						someFriends
+					}
+
+					coEvery { userRepo.getProfile() } coAnswers {
+						delay(800)
+						aProfile
+					}
+
+					val useCase = FetchUserUseCase(userRepo)
+
+					// when
+					useCase.fetchUserData()
+
+					// then
+					assertEquals(800, currentTime)
+				}
+				======================================================================
+
+	<Testing functions that change a dispatcher>
+		* Inject dispatcher to a class, instead of using Dispatchers directly.
+			-> we can replace it in unit tests with StandardTestDispatcher from runTest
+				ex)
+					======================================================================
+					class FetchUserUseCase(
+						private val userRepo: UserDataRepository,
+						private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+					) {
+						suspend fun fetchUserData() = withContext(ioDispatcher) {
+							val userId = readUserId() // blocking call
+							val name = async { userRepo.getName(userId) }
+							val friends = async { userRepo.getFriends(userId) }
+							val profile = async { userRepo.getProfile(userId) }
+							User(
+								name = name.await(),
+								friends = friends.await(),
+								profile = profile.await()
+							)
+						}
+					}
+					======================================================================
+			
+			-> Instead of providing "Dispatchers.IO" in unit tests, we should use "StandardTestDispatcher" from runTest.
+
+			-> We can get it from coroutineContext using the ContinuationInterceptor key.
+				ex)
+					======================================================================
+					val testDispatcher = this.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher
+
+					// or
+					val testDispatcher = this.coroutineContext[CoroutineDispatcher]
+
+					val useCase = FetchUserUseCase(
+						userRepo = userRepo,
+						ioDispatcher = testDispatcher
+					)
+
+					======================================================================
+
+			-> Another possibility is to type "ioDispatcher" as "CoroutineContext", and replace it in unit tests with EmptyCoroutineContext.
+				ex)
+					======================================================================
+					import kotlinx.coroutines.Dispatchers
+					import kotlinx.coroutines.withContext
+					import kotlin.coroutines.CoroutineContext
+					import kotlin.coroutines.EmptyCoroutineContext
+
+					class SomeUseCase(
+					    private val ioDispatcher: CoroutineContext = Dispatchers.IO
+					) {
+					    suspend fun doSomething() = withContext(ioDispatcher) {
+
+					    }
+					}
+
+					val something = SomeUseCase(EmptyCoroutineContext)
+					======================================================================
+
+	<Testing what happends during function execution>
+		- imagine a function which during it execution first shows a progress bar and later hides it.
+			ex)
+				======================================================================
+				suspend fun sendUserData(){
+					val userData = database.getUserData()
+					progressBarVisible.value = true
+					userRepository.sendUserData(userData)
+					progressBarVisible.value = false
+				}
+				======================================================================
+
+		- we can advance virtual time by ourselves (advanceTimeBy, runCurrent, and advanceUntilIdle)
+			ex)
+				======================================================================
+				@Test
+				fun `should show progress bar when sending data`() = runTest{
+					// given
+					val database = FakeDatabase()
+					val vm = UserViewModel(database)
+
+					// when
+					launch {
+						vm.sendUserData()
+					}
+
+					// then
+					assertEquals(false, vm.progressBarVisible.value)
+
+					// when
+					advanceTimeBy(1000)
+
+					// then
+					assertEquals(false, vm.progressBarVisible.value)
+
+					// when
+					runCurrent()
+
+					// then
+					assertEquals(true, vm.progressBarVisible.value)
+
+					// when
+					advanceUntilIdle()
+
+					// then
+					assertEquals(false, vm.progressBarVisible.value)
+				}
+				======================================================================
+				-> "runCurrent": we can precisely check when some value changes.
+
+		- we can also use "delay"
+			ex)
+				======================================================================
+				@Test
+				fun `should show progress bar when sending data`() = runTest{
+					// given
+					val database = FakeDatabase()
+					val vm = UserViewModel(database)
+
+					// when
+					launch {
+						vm.sendUserData()
+					}
+
+					// then
+					assertEquals(false, vm.progressBarVisible.value)
+					delay(1000)
+					assertEquals(true, vm.progressBarVisible.value)
+					delay(1000)
+					assertEquals(false, vm.progressBarVisible.value)
+				}
+				======================================================================
+
+	<Testing functions that launch new coroutines>
+
+	<Replacing the main dispatcher>
+		* There is no main function in unit tests.
+			-> "setMain" extension function
+			-> we can run our coroutines on Dispatchers.Main
+			-> we should also reset the main dispatcher to the initial state with Dispatchers.resetMain()
+
+			ex)
+				======================================================================
+				class BaseUnitTest {
+					lateinit var scheduler: TestCoroutineScheduler
+					lateinit var dispatcher: TestDispatcher
+
+					@Before
+					fun setup() {
+						scheduler = TestCoroutineScheduler()
+						dispatcher = StandardTestDispatcher(scheduler)
+						Dispatchers.setMain(dispatcher)
+					}
+
+					@After
+					fun tearDown(){
+						Dispatchers.resetMain()
+					}
+				}
+				======================================================================
+
+	<Testing Android functions that launch coroutines>
+		- we should use "StandardTestDispatcher" as a part of the scope, to operate on virtual time.
+
+	<Setting a test dispatcher with a rule>
+		- TestWatcher
+			-> provides test lifecycle methods, like "starting" and "finished, which we override."
+
+			-> It composes "TestCoroutineScheduler" and "TestDispatcher"
+
+			-> Before each test in a class using this rule, "TestDispatcher" will be set as Main.
+
+			-> After each test, the Main dispatcher will be reset.
+
+			ex) JUnit4
+				======================================================================
+				class MainCoroutineRule : TestWatcher() {
+					lateinit var scheduler: TestCoroutineScheduler
+						private set
+
+					laetinit var dispatcher: TestDispatcher
+						private set
+
+					override fun starting(description: Description) {
+						scheduler = TestCoroutineScheduler()
+						dispatcher = StandardTestDispatcher(scheduler)
+						Dispatchers.setMain(dispatcher)
+					}
+
+					override fun finished(description: Description) {
+						Dispatchers.resetMain()
+					}
+				}
+
+				class MainViewModelTests {
+					@get:Rule
+					var mainCoroutineRule = MainCoroutineRule()
+
+					// ...
+					@Test
+					fun `...`() {
+						// ...
+						mainCoroutineRule.scheduler.advanceUntilIdle()
+
+						// ...
+					}
+				}
+				======================================================================
+
+			ex) Junit5
+				======================================================================
+				class MainCoroutineExtension : BeforeEachCallback, AfterEachCallback {
+
+					lateinit var scheduler: TestCoroutineScheduler
+						private set
+					lateinit var dispatcher: TestDispatcher
+						private set
+
+					override fun beforeEach(context: ExtensionContext?) {
+						scheduler = TestCoroutineScheduler()
+						dispatcher = StandardTestDispatcher(scheduler)
+						Dispatchers.setMain(dispatcher)
+					}
+
+					override fun afterEach(context: ExtensionContext?) {
+						Dispatchers.resetMain()
+					}
+
+				}
+
+				@JvmField
+				@ReigsterExtension
+				var mainCoroutineExtension = MainCoroutineExtension
+				======================================================================
+				-> unlike JUnit4, @get:Rule -> @JvmField and @RegisterExtension
+
+
+
+
+
+
+
+
+
