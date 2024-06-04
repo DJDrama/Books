@@ -1,0 +1,45 @@
+[Strategy]
+
+	(Intent)
+		Define a family of algorithms, encapsulate each one, and make them interchangeable.
+		Stragey lets the algorithm vary independently from clients that use it.
+
+	(Aka)
+		Policy
+
+	(Applicability)
+		Use it when
+			1. many related classes differ only in their behavior.
+
+			2. need different variants of an algorithm.
+
+			3. an algorithm uses data that clients shouldn't know about.
+
+			4. class defines many behaviors, and these appear as multiple conditional statements in its operations.
+
+	(Consequences)
+		1. Families of realted algorithms.
+
+		2. Alternative to subclassing.
+			-> you can subclass a Context class directly to give it different behaviors.
+			(BUT) harder to understand, maintain, and extend.
+				-> you can't vary algorithm dynamically.
+
+			-> encapsulating the algorithm in separate Streatgy classes lets you vary the algorithm independently of its context, making it easier to switch, understand, and extend.
+
+		3. Strategies eliminate conditional statements.
+			-> without strategies, we need switch or if-else statement.
+
+		4. A choice of implementations.
+			-> can provide different implementations of the same behavior.
+
+		5. Clients must be aware of different Strategies. (Drawaback)
+			-> client must understand how Strategies differ before it can select the appropriate one.
+
+		6. Communication overhead between Strategy and Context.
+			-> There will be times when the context creates and initializes parameters that never get used.
+
+		7. Increased number of objects.
+
+	(Related Patterns)
+		- Flyweight: Strategy objects often make good flyweights.

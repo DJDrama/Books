@@ -1,0 +1,41 @@
+[Strategy]
+	(goal)
+		- to allow an object to alter its behavior at runtime.
+
+	- Valuable when your app needs to change its behavior at runtime.
+
+		ex)
+			========================================================================
+			interface PaymentStrategy {
+			    fun pay(amount: Double)
+			}
+
+			object CreditCardPayment : PaymentStrategy {
+			    override fun pay(amount: Double) {
+			        println("Paying $amount using credit card.")
+			    }
+			}
+
+			object CashPayment : PaymentStrategy {
+			    override fun pay(amount: Double) {
+			        println("Paying $amount using cash.")
+			    }
+			}
+
+			class ShoppingCart(private val paymentStrategy: PaymentStrategy) {
+			    fun checkOut(amount: Double) {
+			        paymentStrategy.pay(amount = amount)
+			    }
+			}
+
+			fun main() {
+			    val shoppingCart = ShoppingCart(paymentStrategy = CreditCardPayment)
+			    shoppingCart.checkOut(amount = 100.0)
+
+			    val shoppingCart2 = ShoppingCart(paymentStrategy = CashPayment)
+			    shoppingCart2.checkOut(amount = 50.0)
+			}
+			========================================================================
+			(prints)
+				Paying 100.0 using credit card.
+				Paying 50.0 using cash.
