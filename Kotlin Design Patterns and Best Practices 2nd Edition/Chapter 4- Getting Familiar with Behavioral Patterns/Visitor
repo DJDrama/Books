@@ -1,0 +1,57 @@
+Visitor
+	- The Visitor pattern is useful in situations where you have a complex object structure with multiple types of elements, and you want to perform various operations or algorithms on these elements without modifying their individual classes. 
+
+
+	ex)
+		======================================================================
+		interface Shape {
+		    fun accept(visitor: ShapeVisitor)
+		}
+
+		// Concrete classes
+		class Circle(val radius: Double) : Shape {
+		    override fun accept(visitor: ShapeVisitor) {
+		        visitor.visit(circle = this)
+		    }
+		}
+
+		class Rectangle(val width: Double, val height: Double) : Shape {
+		    override fun accept(visitor: ShapeVisitor) {
+		        visitor.visit(rectangle = this)
+		    }
+
+		}
+
+		// Visitor interface
+		interface ShapeVisitor {
+		    fun visit(circle: Circle)
+		    fun visit(rectangle: Rectangle)
+		}
+
+		// Concrete visitor: AreaCalculator
+		class AreaCalculator : ShapeVisitor {
+		    var totalArea: Double = 0.0
+		    override fun visit(circle: Circle) {
+		        totalArea += circle.radius * circle.radius * Math.PI
+		    }
+
+		    override fun visit(rectangle: Rectangle) {
+		        totalArea += rectangle.height * rectangle.width
+		    }
+		}
+
+		fun main() {
+		    val shapes = listOf(
+		        Circle(5.0),
+		        Rectangle(3.0, 4.0),
+		        Circle(2.0)
+		    )
+
+		    val areaCalculator = AreaCalculator()
+		    shapes.forEach {
+		        it.accept(visitor = areaCalculator)
+		    }
+		    println("Total area: ${areaCalculator.totalArea}") 
+		    // Total area: 103.106186954104
+		}
+		======================================================================

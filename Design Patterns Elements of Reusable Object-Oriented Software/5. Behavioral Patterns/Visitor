@@ -1,0 +1,32 @@
+Visitor
+	
+	(Intent)
+		- lets you define a new operation without changing the classes of the elements on which it operates.
+
+	(Applicability)
+		Use it when
+			1. an object structure contains many classes of objects with differing interfaces, and you want to perform operations on these objects that depend on their concrete classes.
+
+			2. many distinct and unrelated operations need to be performed on objects in an obejct structure, and you wnat to avoid "polluting" their classes with these operations.
+
+			3. the classes defining the object structure rarely change, but you often want to define new operations over the structure.
+				-> Changing the object structure classes requires redefining the interface to all visitors, which is potentially costly.
+
+	(Consequences)
+		1. Visitor makes adding new operations easy.
+			-> by simply adding a new visitor.
+
+		2. A visitor gathers related operations and separates unrelated ones.
+
+		3. Adding new ConcreteElement is hard.
+
+		4. Visiting across class hierarchies.
+
+		5. Accumulating State.
+
+		6. Breaking encapsulation.
+
+	(Related Patterns)
+		- Composite
+
+		- Interpreter
