@@ -1,0 +1,43 @@
+Template Method
+
+	- example: creating a base class that defines the skeleton of an algorithm and allows subclasses to override certain steps of that algorithm.
+
+		ex) BaseActivity, BaseXXX, and etc.
+
+	- "Don't call us, we'll call you!"
+		ex)
+			======================================================================
+			abstract class BaseActivity: AppCompatActivity(){
+				
+				// ...
+
+				override fun onCreate(savedInstanceState: Bundle?){
+					super.onCreate(savedInstanceState)
+					setcontentView(getLayoutResId())
+
+					displayWelcomeMessage() // Hollywood Principle
+				}
+
+				fun displayWelcomeMessage(){
+					val message = createWelcomeMessage()
+					showMessage(message) // using Toast
+				}
+
+				abstract fun createWelcomeMessage(): String
+
+				abstract fun getLayoutResId(): Int
+			}
+
+			class SomeActivity: BaseActivity(){
+
+				// ...
+
+				override fun createWelcomeMessage(): String{
+					return "Welcome to SomeActivity Screen!"
+				}
+
+				override fun getLayoutResId(): Int {
+					return R.layout.activity_some
+				}
+			}
+			======================================================================

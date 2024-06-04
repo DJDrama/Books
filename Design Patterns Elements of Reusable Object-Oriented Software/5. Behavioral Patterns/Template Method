@@ -1,0 +1,33 @@
+Template Method
+	
+	(Intent)
+		- Define the skeleton of an algorithm in an operation, deferiing some steps to subclasses.
+		- Lets subclasses redefine certain steps of an algorithm without changing the algorithm's structure.
+
+	(Applicability)
+		Use it when
+			1. implement the invariant parts of an algorithm once and leave it up to subclasses to implement the behavior that can vary.
+
+			2. when common behavior among subclasses should be factored and localized in a common class to avoid code duplication.
+
+			3. to control subclasses extensions.
+
+	(Consequences)
+		- techincal for code reuse.
+		- lead to an inverted control structure that's sometimes referred to as "the Hollywood principle"
+			-> "Don't call use, we'll call you"
+
+		- Template methods call the following kinds of operations:
+			+ concrete operations
+			+ concrete AbstractClass operations
+			+ primitive operations
+			+ factory methods
+			+ hook operations
+				-> provide default behavior that subclasses can extend if necessary.
+				-> often does nothing by default.
+
+	(Related Patterns)
+		- Factory Methods are often called by template methods.
+
+		- Strategy: template methods use inheritance to vary part of an algorithm.
+			-> Strategies use delegation to vary the entire algorithm.
