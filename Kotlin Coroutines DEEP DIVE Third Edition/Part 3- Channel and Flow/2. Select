@@ -1,0 +1,161 @@
+[Select]
+	
+	- lets us await the result of the first coroutine that completes.
+
+	<Selecting deferred values>
+		- we are only interested in the fastest response
+			
+			ex)
+				==============================================================
+				import kotlinx.coroutines.async
+				import kotlinx.coroutines.cancelChildren
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.selects.select
+
+				suspend fun main(): Unit = coroutineScope {
+				    println(askMultipleForData())
+				}
+
+				suspend fun askMultipleForData(): String = coroutineScope {
+				    select<String> {
+				        async { requestData1() }.onAwait { it }
+				        async { requestData2() }.onAwait { it }
+				    }.also { coroutineContext.cancelChildren() }
+				}
+
+				suspend fun requestData1(): String {
+				    delay(100_000)
+				    return "Data1"
+				}
+
+				suspend fun requestData2(): String {
+				    delay(1000)
+				    return "Data2"
+				}
+				==============================================================
+				(prints)
+					Data2
+
+		- simple helper function that takes a lmabda expression with multiple async tasks and returns the result of the first one that completes. (Use Splitties library)
+			ex)
+				==============================================================
+				suspend fun askMultipleForData(): String = raceOf({
+				    requestData1()
+				}, {
+				    requestData2()
+				})
+				==============================================================
+
+	<Selecting from channels>
+		- select function can also be used with channels.
+
+			1) onReceive
+				-> Selected when this channel has a value.
+
+			2) onReceiveCatching
+				-> selected when this channel has a value or is closed.
+				-> receives "ChannelResult"
+
+			3) onSend
+				-> selected when this channel has space in the buffer.
+
+			ex)
+				==============================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.cancelChildren
+				import kotlinx.coroutines.channels.consumeEach
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.selects.select
+
+				fun main() = runBlocking {
+				    val fooChannel = produceString("foo", 210L)
+				    val barChannel = produceString("BAR", 500L)
+
+				    repeat(7) {
+				        select {
+				            fooChannel.onReceive {
+				                println("From fooChannel: $it")
+				            }
+				            barChannel.onReceive {
+				                println("From barChannel: $it")
+				            }
+				        }
+				    }
+				    coroutineContext.cancelChildren()
+				}
+
+				suspend fun CoroutineScope.produceString(s: String, time: Long) = 
+					produce {
+					    while (true) {
+					        delay(time)
+					        send(s)
+					    }
+					}
+				==============================================================
+				(prints)
+					From fooChannel: foo
+					From fooChannel: foo
+					From barChannel: BAR
+					From fooChannel: foo
+					From fooChannel: foo
+					From barChannel: BAR
+					From fooChannel: foo
+
+			ex) "onSend" to send to the first channel that has space in the buffer
+				==============================================================
+				import kotlinx.coroutines.*
+				import kotlinx.coroutines.channels.Channel
+				import kotlinx.coroutines.channels.consumeEach
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.selects.select
+
+				fun main(): Unit = runBlocking {
+				    val c1 = Channel<Char>(capacity = 2)
+				    val c2 = Channel<Char>(capacity = 2)
+
+				    launch {
+				        for (c in 'A'..'H') {
+				            delay(400)
+				            select<Unit> {
+				                c1.onSend(c) {
+				                    println("Sent $c to 1")
+				                }
+				                c2.onSend(c) {
+				                    println("Sent $c to 2")
+				                }
+				            }
+				        }
+				    }
+				    launch {
+				        while (true) {
+				            delay(1000)
+				            val c = select<String> {
+				                c1.onReceive { "$it from 1" }
+				                c2.onReceive { "$it from 2" }
+				            }
+				            println("Received $c")
+				        }
+				    }
+				}
+				==============================================================
+				(prints)
+					Sent A to 1
+					Sent B to 1
+					Received A from 1
+					Sent C to 1
+					Sent D to 2
+					Received B from 1
+					Sent E to 1
+					Sent F to 2
+					Received C from 1
+					Sent G to 1
+					Received E from 1
+					Sent H to 1
+					Received G from 1
+					Received H from 1
+					Received D from 2
+					Received F from 2
+
