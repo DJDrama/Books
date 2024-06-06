@@ -1,0 +1,29 @@
+[Hot and cold data sources]
+	- Kotlin Coroutines initially had only Channel
+	- Channels are a hot stream of values.
+
+	(Hot)
+		+ collections(List, Set)
+		+ Channel
+
+	(Cold)
+		+ Sequence, Stream
+		+ Flow, RxJava streams
+
+	<Hot vs Cold>
+		- Hot data streams are eager, produce elements independently of their consumption, and store the elements.
+
+		- Cold data streams are lazy, perform their operations on-demand, and store nothing.
+
+		* Cold data streams
+			-> can be infinite
+			-> do a minimal number of operations
+			-> use less memory(no need to allocate all the intermediate collections)
+
+		* Hot data streams
+			-> always ready to be used(each operation can be a terminal operation)
+			-> do not need to recalculate the result when used multiple times.
+
+
+	<Hot channels, cold flow>
+		- flow: production happens on demand. (lazy)
