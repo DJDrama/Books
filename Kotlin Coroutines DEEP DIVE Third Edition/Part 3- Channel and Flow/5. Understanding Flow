@@ -1,0 +1,41 @@
+[Understanding Flow]
+
+	ex)
+		================================================================
+		fun interface FlowCollector<T> {
+		    suspend fun emit(value: T)
+		}
+
+		interface Flow<T> {
+		    suspend fun collect(collector: FlowCollector<T>)
+		}
+
+		fun <T> flow(
+		    builder: suspend FlowCollector<T>.() -> Unit
+		) = object : Flow<T> {
+		    override suspend fun collect(collector: FlowCollector<T>) {
+		        collector.builder()
+		    }
+
+		}
+
+		suspend fun main() {
+		    val f: Flow<String> = flow {
+		        emit("A")
+		        emit("B")
+		        emit("C")
+		    }
+
+		    f.collect { print(it) }
+		    f.collect { print(it) }
+		}
+		================================================================
+
+	<How Flow processing works>
+
+	<Flow is synchronous>
+		- Flow is synchronous by nature, just like suspending functions: the collect call is suspended until the flow is completed.
+			-> flow doesn't start any new coroutines.
+
+	<Flow and shared state>
+		- if shared state is defined outside a flow function, it needs synchronization.
