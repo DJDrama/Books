@@ -1,0 +1,37 @@
+[Flow introduction]
+	- "collect" is the only member function in flow.
+
+		ex)
+			======================================================================
+			interface Flow<out T> {
+				suspend fun collect(collector: FlowCollector<T>)
+			}
+			======================================================================
+
+	<Comparing flow to other ways of representing values>
+		- "Sequences" are perfect for representing a flow of values calculated on demand when calculating them might be CPU-intensive.
+			* BUT forEach is not suspending, so any suspension inside a sequence builder means blocking the thread that waits for the value.
+
+		- terminal operations (like forEach) would be blocking the thread instead of the suspending coroutine, which could lead to unexpected thread-blocking.
+
+		* Sequences are perfect for sources of data whose size might be big and elements might be heavy, so we want to calculate or read them on demand, lazily.
+
+			ex)
+				======================================================================
+				fun countCharactersInFile(path: String): Int = 
+					File(path).useLines { lines ->
+						lines.sumBy { it.length }
+					}
+				======================================================================
+
+		- Flow should be used for "streams of data" that need to use coroutines.
+
+	<The characteristics of Flow>
+		- terminal operation: "collect"
+			-> suspend a coroutine instead of blocking a thread.
+
+	<Flow nomenclature>
+		- between the start and terminal operation, we might have "intermediate operations", each of which modifies the flow in some way.
+
+	<Real-life use cases>
+		
