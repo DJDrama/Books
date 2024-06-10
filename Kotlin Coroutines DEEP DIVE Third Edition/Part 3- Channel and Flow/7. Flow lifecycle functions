@@ -1,0 +1,424 @@
+[Flow lifecycle functions]
+
+	(onEach)
+		- onEach lambda expression is suspending
+		- elements are processed one after another in order (sequentially)
+			ex)
+				==========================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.collect
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onEach
+
+				suspend fun main() {
+				    flowOf(1, 2, 3, 4)
+				        .collect {
+				            print(it)
+				        }
+
+				    flowOf(1, 2, 3, 4)
+				        .onEach {
+				            print(it)
+				        }.collect()
+
+				    flowOf(1, 2, 3, 4)
+				        .onEach {
+				            delay(1000)
+				        }.collect {
+				            print(it)
+				        }
+				}
+				==========================================
+
+	(onStart)
+		- called immediately once the flow is started.
+		- onStart does not wait for the first element: it is called when we request the first element.
+			ex)
+				==========================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onEach
+				import kotlinx.coroutines.flow.onStart
+
+				suspend fun main() {
+				    flowOf(1, 2)
+				        .onEach { delay(1000) }
+				        .onStart { println("Before") }
+				        .collect {
+				            println(it)
+				        }
+				}
+				==========================================
+				(prints)
+					Before
+					1
+					2
+
+		- we can emit inside "onStart"
+			ex)
+				==========================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onEach
+				import kotlinx.coroutines.flow.onStart
+
+				suspend fun main() {
+				    flowOf(1, 2)
+				        .onEach { delay(1000) }
+				        .onStart { emit(0) }
+				        .collect {
+				            println(it)
+				        }
+				}
+				==========================================
+				(prints)
+					0
+					1
+					2
+
+	(onCompletion)
+		- also happens in the case of an uncaught exception or a coroutine cancellation.
+			ex)
+				======================================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onCompletion
+				import kotlinx.coroutines.flow.onEach
+
+				suspend fun main() {
+				    flowOf(1, 2)
+				        .onEach { delay(1000) }
+				        .onCompletion { println("Completed") }
+				        .collect {
+				            println(it)
+				        }
+				}
+				======================================================
+				(prints)
+					1
+					2
+					Completed
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onCompletion
+				import kotlinx.coroutines.flow.onEach
+				import kotlinx.coroutines.launch
+
+				suspend fun main() = coroutineScope {
+				    val job = launch {
+				        flowOf(1, 2)
+				            .onEach { delay(1000) }
+				            .onCompletion { println("Completed") }
+				            .collect {
+				                println(it)
+				            }
+				    }
+				    delay(1100)
+				    job.cancel()
+				}
+				======================================================
+				(prints)
+					1
+					Completed
+
+	(onEmpty)
+		- flow might complete without emitting any value
+			-> indication of an unexpected event.
+
+		- might be used to emit some default value.
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flow
+				import kotlinx.coroutines.flow.onEmpty
+
+				suspend fun main() = coroutineScope {
+				    flow<List<Int>> { delay(1000) }
+				        .onEmpty { emit(emptyList()) }
+				        .collect { println(it) }
+				}
+				======================================================
+				(prints)
+					[]
+
+	(catch)
+		- an exception will flow down, closing each processing step on the way.
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.flow.catch
+				import kotlinx.coroutines.flow.flow
+				import kotlinx.coroutines.flow.onEach
+
+				class MyError : Throwable("My error")
+
+				val flow = flow {
+				    emit(1)
+				    emit(2)
+				    throw MyError()
+				}
+
+				suspend fun main() {
+				    flow.onEach {
+				        println("Got $it")
+				    }.catch {
+				        println("Caught $it")
+				    }.collect {
+				        println("Collected $it")
+				    }
+				}
+				======================================================
+				(prints)
+					Got 1
+					Collected 1
+					Got 2
+					Collected 2
+					Caught MyError: My error
+
+		- "catch" method stops an exception by catching it.
+			-> but still can emit new values and keep the rest of the flow alive.
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.flow.catch
+				import kotlinx.coroutines.flow.flow
+
+				class MyError : Throwable("My Error")
+
+				val flow = flow {
+				    emit("Message1")
+				    throw MyError()
+				}
+
+				suspend fun main() {
+				    flow.catch {
+				        emit("Error")
+				    }.collect {
+				        println("Collected $it")
+				    }
+				}
+				======================================================
+				(prints)
+					Collected Message1
+					Collected Error
+
+		* "catch" will only react to the exceptions thrown in the function defined upstream.
+
+		- we can use "catch" to emit default data to display on the screen(ex: emptyList)
+			ex)
+				======================================================
+				fun updateNews() {
+				    scope.launch {
+				        newsFlow()
+				            .catch {
+				                view.handleError(it)
+				                emit(emptyList())
+				            }.onStart { showProgressBar() }
+				            .onCompletion { hideProgressBar() }
+				            .collect {
+				                view.showNews(it)
+				            }
+				    }
+				}
+				======================================================
+
+	(Uncaught exceptions)
+		- uncaught exceptions in a flow immediately cancel this flow, and collect rethrows this exception.
+
+		- exceptions can be caught outside flow using the classic "try-catch" block.
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.flow.flow
+
+				class MyError : Throwable("My Error")
+
+				val flow = flow {
+				    emit("Message1")
+				    throw MyError()
+				}
+
+				suspend fun main(): Unit {
+				    try {
+				        flow.collect { println("Collected $it") }
+				    } catch (e: MyError) {
+				        println("Caught!")
+				    }
+				}
+				======================================================
+				(prints)
+					Collected Message1
+					Caught!
+
+		* we can't catch after the "collect" block. (cannot be placed after the last operation.)
+			-> exception in the collect will be rethrown.
+
+		* Common practice: move the operation from "collect" to "onEach" and place it before the "catch"
+			ex)
+				======================================================
+				import kotlinx.coroutines.flow.*
+
+				class MyError : Throwable("My Error")
+
+				val flow = flow {
+				    emit("Message1")
+				    emit("Message2")
+				}
+
+				suspend fun main(): Unit {
+				    flow.onStart { println("Before") }
+				        .onEach { throw MyError() }
+				        .catch { println("Caught $it") }
+				        .collect()
+				}
+				======================================================
+				(prints)
+					Before
+					Caught MyError: My Error
+
+	(retry)
+		- retry, retryWhen functions.
+			ex)
+				======================================================
+				import kotlinx.coroutines.flow.flow
+				import kotlinx.coroutines.flow.retry
+
+				suspend fun main(): Unit {
+				    flow {
+				        emit(1)
+				        emit(2)
+				        error("E")
+				        emit(3)
+				    }.retry(3) {
+				        print(it.message)
+				        true
+				    }.collect {
+				        print(it)
+				    }
+				}
+				======================================================
+				12E12E12E12(exception thrown)
+
+		- popular usage: retry with some logging and introduce some delay between new connection attempts.
+			ex)
+				======================================================
+				fun makeConnection(config: ConnectionConfig) = api
+					.startConnection(config)
+					.retry { e ->
+						delay(1000)
+						log.error(e) { "Error for $config" }
+						true
+					}
+				======================================================
+
+		- gradually increasing the delay between subsequent connection attempts.
+			ex)
+				======================================================
+				fun makeConnection(config: ConnectionConfig) = api
+					.startConnection(config)
+					.retryWhen { e, attempt -> 
+						delay(100 * attempt)
+						log.error(e) { "Error for $config" }
+						e is ApiException && e.code !in 400..499
+					}
+				======================================================
+
+	(flowOn)
+		- functions take context from the context where "collect" is called.
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.currentCoroutineContext
+				import kotlinx.coroutines.flow.Flow
+				import kotlinx.coroutines.flow.flow
+				import kotlinx.coroutines.withContext
+
+				fun usersFlow(): Flow<String> = flow {
+				    repeat(2) {
+				        val ctx = currentCoroutineContext()
+				        val name = ctx[CoroutineName]?.name
+				        println("User$it in $name")
+				    }
+				}
+
+				suspend fun main() {
+				    val users = usersFlow()
+				    withContext(CoroutineName("Name1")) {
+				        users.collect { println(it) }
+				    }
+				    withContext(CoroutineName("Name2")) {
+				        users.collect { println(it) }
+				    }
+				}
+				======================================================
+				(prints)
+					User0 in Name1
+					User1 in Name1
+					User0 in Name2
+					User1 in Name2
+
+			ex)
+				======================================================
+				import kotlinx.coroutines.CoroutineName
+				import kotlinx.coroutines.flow.*
+				import kotlinx.coroutines.withContext
+				import kotlin.coroutines.coroutineContext
+
+				suspend fun present(place: String, message: String) {
+				    val ctx = coroutineContext
+				    val name = ctx[CoroutineName]?.name
+				    println("[$name] $message on $place")
+				}
+
+				fun messagesFlow(): Flow<String> = flow {
+				    present("flow builder", "Message")
+				    emit("Message")
+				}
+
+				suspend fun main() {
+				    val users = messagesFlow()
+				    withContext(CoroutineName("Name1")) {
+				        users
+				            .flowOn(CoroutineName("Name3"))
+				            .onEach { present("onEach", it) }
+				            .flowOn(CoroutineName("Name2"))
+				            .collect { present("collect", it) }
+				    }
+				}
+				======================================================
+				(prints)
+					[Name3] Message on flow builder
+					[Name2] Message on onEach
+					[Name1] Message on collect
+
+		* "flowOn" works only for functions that are upstream in the flow.
+
+	(launchIn)
+		- launches "collect" in a new coroutine on the scope object passed as the only argument.
+
+		- often used to start flow processing in a separate coroutine.
+			
+			ex)
+				======================================================
+				import kotlinx.coroutines.coroutineScope
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.launchIn
+				import kotlinx.coroutines.flow.onEach
+
+				suspend fun main(): Unit = coroutineScope {
+				    flowOf(1, 2, 3)
+				        .onEach { println(it) }
+				        .launchIn(this)
+				}
+				======================================================
+				(prints)
+					1
+					2
+					3
