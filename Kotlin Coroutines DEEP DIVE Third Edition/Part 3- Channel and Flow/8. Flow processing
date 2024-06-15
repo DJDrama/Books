@@ -1,0 +1,476 @@
+[Flow processing]
+	
+	(map)
+		- use cases
+			-> unpacking
+			-> converting values into a different type.
+
+			ex)
+				=============================================
+				fun getAllUser(): Flow<UserJson> = 
+					userRepository.getAllUsers()
+						.map { it.toUserJson() }
+				=============================================
+
+	(filter)
+		- typically used to eliminate elements we are not interested in
+			ex)
+				=============================================
+				fun actionsFlow(): Flow<UserAction> = 
+					observeInputEvents()
+						.filter { isValidAction(it.code) }
+						.map { toAction(it.code) }
+				=============================================
+
+	(take and drop)
+		1. take
+			-> pass only a certain number of elements.
+				ex)
+					=============================================
+					suspend fun main(){
+						('A'..'Z').asFlow()
+							.take(5)
+							.collect { print(it) }
+					}
+					=============================================
+					(prints)
+						ABCDE
+
+		2. drop
+			-> ignore a certain number of elements
+				ex)
+					=============================================
+					suspend fun main(){
+						('A'..'Z').asFlow()
+							.drop(20)
+							.colelct { print(it) }
+					}
+					=============================================
+					(prints)
+						UVXYZ
+
+	(merge, zip and combine)
+		1. merge (top-level function)
+			ex)
+				=============================================
+				import kotlinx.coroutines.flow.Flow
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.merge
+				import kotlinx.coroutines.flow.toList
+
+				suspend fun main() {
+				    val ints: Flow<Int> = flowOf(1, 2, 3)
+				    val doubles: Flow<Double> = flowOf(0.1, 0.2, 0.3)
+
+				    val together = merge(ints, doubles)
+				    print(together.toList())
+				}
+				=============================================
+				(prints)
+					[1, 0.1, 0.2, 0.3, 2, 3]
+					[1, 2, 3, 0.1, 0.2, 0.3]
+					... or any other combination
+
+			* when using merge, one flow do not wait for another flow!
+				ex)
+					==============================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.*
+
+					suspend fun main() {
+					    val ints: Flow<Int> = flowOf(1, 2, 3)
+					        .onEach { delay(1000) }
+					    val doubles: Flow<Double> = flowOf(0.1, 0.2, 0.3)
+
+					    val together = merge(ints, doubles)
+					    together.collect {
+					        println(it)
+					    }
+					}
+					==============================================================
+					(prints)
+						0.1
+						0.2
+						0.3
+						1
+						2
+						3
+
+			* we use merge when we have multiple sources of events that should lead to the same actions.
+				ex)
+					====================================================================
+					fun listenForMessages() {
+					    merge(userSentMessages, messageNotifications)
+					        .onEach { displayMessage(it) }
+					        .launchIn(scope)
+					}
+					====================================================================
+
+		2. zip (top-level function)
+			- makes pairs from both flows.
+			- we also need to specify a function that decides how elements are paired (transformed into one what will be emitted in the new flow)
+
+			* Elements left without a pair are lost, so when the zipping of a flow is complete, the resulting flow is also complete (as is the other flow)
+				
+				ex)
+					====================================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.onEach
+					import kotlinx.coroutines.flow.zip
+
+					suspend fun main() {
+					    val flow1 = flowOf("A", "B", "C")
+					        .onEach { delay(400) }
+
+					    val flow2 = flowOf(1, 2, 3, 4)
+					        .onEach { delay(1000) }
+
+					    flow1.zip(flow2) { f1, f2 -> "$f1 $f2" }
+					        .collect { println(it) }
+					}
+					====================================================================
+					(prints)
+						A 1
+						B 2
+						C 3
+
+		3. combine (top-level function)
+			- just like zip, also forms pairs from elements.
+			* every new element replaces its predecessor.
+				-> if the first pair has been formed already, it will produce a new pair together with the previous element from the other flow.
+
+			- it will emit until both flows are closed.
+
+				ex)
+					====================================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.combine
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.onEach
+
+					suspend fun main() {
+					    val flow1 = flowOf("A", "B", "C")
+					        .onEach { delay(400) }
+
+					    val flow2 = flowOf(1, 2, 3, 4)
+					        .onEach { delay(1000) }
+
+					    flow1.combine(flow2) { f1, f2 -> "$f1 $f2" }
+					        .collect { println(it) }
+					}
+					====================================================================
+					(prints)
+						B 1
+						C 1
+						C 2
+						C 3
+						C 4
+
+			* typically used when we need to actively observe two sources of changes.
+
+			- typical use case might be when a view needs to be either of two observable element changes.
+				ex)
+					====================================================================
+					userStateFlow
+						.combine(notificationsFlow) { userState, notifications ->
+							updateNotificationBadge(userState, notifications)
+						}
+						.collect()
+					====================================================================
+
+	(fold and scan)
+		- fold is a terminal operation for flow
+			-> but will suspend until this flow is completed (just like collect).
+				ex)
+					====================================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.fold
+					import kotlinx.coroutines.flow.onEach
+
+					suspend fun main() {
+					    val list = flowOf(1, 2, 3, 4)
+					        .onEach { delay(1000) }
+					    val res = list.fold(0) { acc, i -> acc + i }
+					    println(res)
+					}
+					====================================================================
+					(prints)
+						(delay 4 seconds)
+						10
+
+		- scan is useful with Flow because it produces a new value immediately after receiving one from the previous step
+			ex)
+				====================================================================
+				import kotlinx.coroutines.delay
+				import kotlinx.coroutines.flow.flowOf
+				import kotlinx.coroutines.flow.onEach
+				import kotlinx.coroutines.flow.scan
+
+				suspend fun main() {
+				    flowOf(1, 2, 3, 4)
+				        .onEach { delay(1000) }
+				        .scan(0) { acc, v -> acc + v }
+				        .collect { println(it) }
+				}
+				====================================================================
+				(prints)
+					0
+					1
+					3
+					6
+					10
+
+			* typical use case for "scan" is when we have a flow of updates or changes, and we need an object that is the result of these changes.
+				ex)
+					====================================================================
+					val userStateFlow: Flow<User> = userChangesFlow
+						.scan(user) { user, change -> user.withChange(change) }
+
+					val messagesListFlow: Flow<List<Message>> = messagesFlow
+						.scan(messages) { acc, message -> acc + message }
+					====================================================================
+
+	(flatMapConcat, flatMapMerge and flatMapLatest)
+		* flatMap : similar to map but the transformation function needs to return a collection that is then flattened.
+			ex)
+				====================================================================
+				val allEmployees: List<Employee> = departments
+					.flatMap { department -> department.employees }
+
+				// when using map, list of lists instead(not list)
+				val listOfListsOfEmployee: List<List<Employee>> = departments
+					.map { department -> department.employees}
+				====================================================================
+
+		* there is no flatMap function for Flow
+			-> flow elements can be spread in time
+			-> should the flow produced from the second element wait for the one produced from the first one, or should it process them concurrently? (NO clear answer)
+
+
+		1. flatMapConcat
+			- sequential option, that do not introduce any "Asynchrony".
+			* Only after the first flow is done, the second one can start.
+				ex)
+					==========================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.flatMapConcat
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.map
+					import kotlinx.coroutines.flow.onEach
+
+					suspend fun main() {
+					    flowOf("A", "B", "C")
+					        .flatMapConcat { flowFrom(it) }
+					        .collect { println(it) }
+					}
+
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+					    .onEach { delay(1000) }
+					    .map { "${it}_${elem}" }
+					==========================================================
+					(prints)
+						1_A
+						2_A
+						3_A
+						1_B
+						2_B
+						3_B
+						1_C
+						2_C
+						3_C
+
+		2. flatMapMerge
+			- introduces "asyncrhony"
+			- each flow is started on a new coroutine, so they can be processed concurrently.
+				ex)
+					==========================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.*
+
+					suspend fun main() {
+					    flowOf("A", "B", "C")
+					        .flatMapMerge { flowFrom(it) }
+					        .collect { println(it) }
+					}
+
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+					    .onEach { delay(1000) }
+					    .map { "${it}_${elem}" }
+					==========================================================
+					(prints)
+						1_A
+						1_B
+						1_C
+						(1 second)
+						2_B
+						2_C
+						2_A
+						(1 second)
+						3_C
+						3_A
+						3_B
+
+			* number of flows that can be concurrently processed can be set using the "concurrency" parameter.
+				-> "Default" is 16.
+
+				ex)
+					==========================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.flatMapMerge
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.map
+					import kotlinx.coroutines.flow.onEach
+
+					suspend fun main() {
+					    flowOf("A", "B", "C")
+					        .flatMapMerge(concurrency = 2) { flowFrom(it) }
+					        .collect { println(it) }
+					}
+
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+					    .onEach { delay(1000) }
+					    .map { "${it}_${elem}" }
+				    ==========================================================
+				    (prints)
+				    1_A
+				    1_B
+				    (1 second)
+				    2_A
+				    2_B
+				    (1 second)
+				    3_A
+				    3_B
+				    (1 second)
+				    1_C
+				    (1 second)
+				    2_C
+				    (1 second)
+				    3_C
+				    (1 second)
+
+			- typical use of "flatMapMerge" is when we need to request data for each element in a flow.
+				-> instead of "async", there are two advantages of using a flow with "flatMapMerge" instead
+					
+					1) we can control the concurrency parameter and decide how many categories we want to fetch at the same time
+
+					2) we can return Flow and send the enxt elements as they arrive
+
+		3. flatMapLatest
+			- forgets the previous flow once a new one appears.
+				ex)
+					==========================================================
+					import kotlinx.coroutines.delay
+					import kotlinx.coroutines.flow.flatMapLatest
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.map
+					import kotlinx.coroutines.flow.onEach
+
+					suspend fun main() {
+					    flowOf("A", "B", "C")
+					        .flatMapLatest { flowFrom(it) }
+					        .collect { println(it) }
+					}
+
+					fun flowFrom(elem: String) = flowOf(1, 2, 3)
+					    .onEach { delay(1000) }
+					    .map { "${it}_${elem}" }
+					==========================================================
+					(prints)
+						1_C
+						2_C
+						3_C
+
+	(Distinct until changed)
+		- helps us eliminate repeating elements that are considered identical.
+		* only eliminates elements that are identical to the corresponding previous element.
+			ex)
+				==========================================================
+				import kotlinx.coroutines.flow.distinctUntilChanged
+				import kotlinx.coroutines.flow.flowOf
+
+				suspend fun main() {
+				    flowOf(1, 2, 2, 3, 2, 1, 1, 3)
+				        .distinctUntilChanged()
+				        .collect { print(it) }
+				}
+				==========================================================
+				(prints)
+					123213
+
+
+		- "distinctUntilChangedBy"
+			-> specifies a key selector to be compared in order to check if two elements are equal.
+
+		- "distinctUntilChanged"
+			-> specifies how two elements should be compared (instead of "equals", used by default)
+				ex)
+					==========================================================
+					import kotlinx.coroutines.flow.distinctUntilChanged
+					import kotlinx.coroutines.flow.distinctUntilChangedBy
+					import kotlinx.coroutines.flow.flowOf
+					import kotlinx.coroutines.flow.toList
+
+					data class User(val id: Int, val name: String) {
+					    override fun toString(): String = "[$id] $name"
+					}
+
+					suspend fun main() {
+					    val users = flowOf(
+					        User(1, "Alex"),
+					        User(1, "Bob"),
+					        User(2, "Bob"),
+					        User(2, "Celine"),
+					    )
+
+					    println(users.distinctUntilChangedBy { it.id }.toList())
+					    println(users.distinctUntilChangedBy { it.name }.toList())
+					    println(users.distinctUntilChanged { old, new -> 
+					    	old.id == new.id || old.name == new.name 
+					    }.toList())
+					}
+					==========================================================
+					(prints)
+						[[1] Alex, [2] Bob]
+						[[1] Alex, [1] Bob, [2] Celine]
+						[[1] Alex, [2] Bob]
+
+	(Terminal operations)
+		- count
+		- first
+		- firstOrNull
+		- fold
+		- reduce
+			ex)
+				==========================================================
+				import kotlinx.coroutines.flow.*
+
+				suspend fun main() {
+				    val flow = flowOf(1, 2, 3, 4)
+				        .map { it * it }
+
+				    println(flow.first())
+				    println(flow.count())
+
+				    println(flow.reduce { acc, value -> acc * value })
+				    println(flow.fold(0) { acc, value -> acc + value })
+				}
+				==========================================================
+				(prints)
+					1
+					4
+					576
+					30
+
+		* sometimes we can create our own implementation
+			ex)
+				==========================================================
+				suspend fun Flow<Int>.sum(): Int {
+				    var res = 0
+				    collect {
+				        res += it
+				    }
+				    return res
+				}
+				==========================================================
