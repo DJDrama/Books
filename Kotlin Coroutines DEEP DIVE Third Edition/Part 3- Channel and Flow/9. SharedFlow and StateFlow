@@ -1,0 +1,52 @@
+[SharedFlow and StateFlow]
+
+	(SharedFlow)
+		- like a broadcast channel
+			-> everyone can send (emit) messages which will be received by every coroutine that is listening (collecting)
+
+	(shareIn)
+		- turn a flow into a sharedflow by using the "shareIn" function.
+		- "replay", 0 by default.
+		- options for Sharing(started)
+			1) SharingStarted.Eagerly
+				-> immediately starts listening for values and sending them to a flow.
+				-> you might lose some values (if your replay is 0, you will lose all such values)
+
+			2) SharingStarted.Lazily
+				-> starts listening when the first subscriber appears.
+
+			3) SharingStarted.WhileSubscribed()
+				-> starts listening on the flow when the first subscriber appears
+				-> stops when the last subscriber disappears
+				-> additional optional configuration parameters:
+					1) stopTimeoutMillis
+						-> how long to listen after the last subscriber disappears (0 by default)
+
+					2) replayExpirationMillis
+						-> how long to keep replay after stopping, (Long.MAX_VALUE by default)
+
+		* DO not create a new sharedflow for each call.
+			-> Create one, and store it in a property.
+
+	(StateFlow)
+		- extension of the SharedFlow concept
+			-> works similarly to SharedFlow when the replay parameter is set to 1.
+			(always stores one value, which can be accessed using the "value" property)
+
+		- initial value needs to be passed to the constructor.
+
+		* In Android, StateFlow is used as a modern alternative to LiveData.
+			-> full support for coroutines
+			-> has an initial value
+			-> does not need to be nullable
+
+		* Stateflow is conflated.
+			-> slower observers might not receive some intermediate state changes.
+			-> to receive all events, use SharedFlow.
+
+		- represents the current state, and we might assume that nobody is interested in an outdated state.
+
+	(stateIn)
+		- has same options as "shareIn"
+
+		- we typically use "stateIn" when we want to observe a value from one source of changes.
