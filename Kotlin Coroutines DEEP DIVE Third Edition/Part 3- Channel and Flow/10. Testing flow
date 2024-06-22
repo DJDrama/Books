@@ -1,0 +1,19 @@
+[Testing flow]
+	(Transformation functions)
+		- "take"
+			-> easiest way to test an infinite flow is by limiting the number of its elements using "take".
+
+	(Testing infinite flows)
+		- testing classes that use StateFlow or SharedFlow is a bit more complictaed.
+
+			1) they need a scope
+				-> if we define our test using runTest, this scope should be backgroundScope, not this, so our test does not await this scope's completion.
+
+			2) These flows are infinite
+				-> they don't complete unless their scope is cancelled.
+
+	(Determining how many connections were opened)
+
+	(Testing view models)
+		- using SharedFlow as a source and emitting elements in the test.
+		
