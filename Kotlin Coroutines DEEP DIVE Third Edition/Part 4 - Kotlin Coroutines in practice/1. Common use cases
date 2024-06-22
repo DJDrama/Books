@@ -1,0 +1,302 @@
+[Common use cases]
+	- Modern applications can be divided into three layesr
+		1) Data/Adapters Layer
+			-> responsible for data storage or interaction with other systems.
+			-> consists of repositories that can each contain one or more data sources.
+			-> coroutines interact with other libraries, including some that might not support them.
+
+		2) Domain Layer
+			-> business logic is implemented.
+			-> includes classes that encapsulate specific operations, like usecases, services, facades, etc.
+			-> coroutines are used to optimize our core processes.
+
+		3) Presentation/Api/UI Layer
+			-> entry to our application
+			-> start coroutines and handle their execution results.
+
+	(Data / Adapters Layer)
+		- implement repositories, providers, adapters, data sources, etc.
+
+		<Callback functions>
+			- if a library does not support Kotlin Coroutines, turn them into suspending functions using the "suspendCancellableCoroutine".
+				-> when a callback is called, the coroutine should be resumed using the "resume" method on "Continuation".
+
+				-> if this callback is cancellable, it should be cancelled inside the "invokeOnCancellation" lambda expression.
+
+				ex)
+					====================================================
+					suspend fun requestNews(): News {
+						return suspendCancellableCoroutine<News> { cont ->
+							val call = requestNewsApi { news ->
+								cont.resume(news)
+							}
+							cont.invokeOnCancellation {
+								call.cancel()
+							}
+						}
+					}
+					====================================================
+
+				ex) using "Result"
+					====================================================
+					suspend fun requestNews(): Result<News> {
+						return suspendCancellableCoroutine<News> { cont ->
+							val call = requestNewsApi (
+								onSuccess = { news -> 
+									cont.resume(Result.success(true))
+								},
+								onError = { e ->
+									cont.resume(Result.failure(e))
+								}
+							)
+							cont.invokeOnCancellation {
+								call.cancel()
+							}
+						}
+					}
+					====================================================
+
+				ex) returning "null" value
+					====================================================
+					suspend fun requestNews(): News? {
+						return suspendCancellableCoroutine<News> { cont ->
+							val call = requestNewsApi (
+								onSuccess = { news -> 
+									cont.resume(news)
+								},
+								onError = { e ->
+									cont.resume(null)
+								}
+							)
+							cont.invokeOnCancellation {
+								call.cancel()
+							}
+						}
+					}
+					====================================================
+
+
+				ex) with an exception
+					====================================================
+					suspend fun requestNews(): News {
+						return suspendCancellableCoroutine<News> { cont ->
+							val call = requestNewsApi (
+								onSuccess = { news -> 
+									cont.resume(news)
+								},
+								onError = { e ->
+									cont.resumeWithException(e) // exception
+								}
+							)
+							cont.invokeOnCancellation {
+								call.cancel()
+							}
+						}
+					}
+					====================================================
+
+		<Blocking functions>
+			- when we need to make a blocking call, we should specify the dispatcher suing "withContext".
+				-> it is enough to use "Dispatchers.IO".
+
+				ex)
+					==================================================================
+					class DiscSaveRepository(
+						private val discReader: DiscReader
+					) : SaveRepository {
+
+						override suspend fun loadSave(name: String): SaveData =
+							withContext(Dispatchers.IO) {
+								discReader.read("save/$name")
+							}
+					}
+					==================================================================
+
+			* Dispatchers.IO is limited to 64 threads, which might not be enough on the backend and Android.
+				-> If every request needs to make a blocking call, and you have thousands of requests per second, the queue for these 64 threads might start growing quickly.
+
+					-> You might consider using "limitedParallelism" on "Dispatchers.IO" to make a new dispatcher with an independent limit that is greater than 64 threads.
+
+		<Observing with Flow>
+			- when we expect more than one value, we should use Flow instead.
+				ex) WebSocket and listen for messages
+					==================================================================
+					fun listenMessages(): Flow<List<Message>> = callbackFlow {
+						socket.on("NewMessage") { args ->
+							trySendBlocking(args.toMessage())
+						}
+						awaitClose()
+					}
+					==================================================================
+
+			- popular use of Flow is observing UI events, like button clicks or text changes.
+				ex)
+					==================================================================
+					fun EditText.listenTextChange(): Flow<String> = callbackFlow {
+						val watcher = doAfterTextChanged {
+							trySendBlocking(it.toString())
+						}
+						awaitClose { removeTextChangedListener(watcher) }
+					}
+					==================================================================
+
+			- can be also used for other callback functions, and should be used when these callbacks might produce multiple values.
+				ex)
+					==================================================================
+					fun flowFrom(api: CallbackBasedApi): Flow<T> = callbackFlow {
+						val callback = object: Callback {
+							override fun onNextValue(value: T) {
+								trySendBlocking(value)
+							}
+							override fun onApiError(cause: Throwable) {
+								cancel(CancellationException("API Error", cause))
+							}
+							override fun onCompleted() = channel.close()
+						}
+						api.register(callback)
+						awaitClose { api.unregister(callback) }
+					}
+					==================================================================
+
+			- when need to use a specific dispatcher in a flow builder, use "flowOn" on the produced flow.
+				ex)
+					==================================================================
+					fun fibonacciFlow(): Flow<BigDecimal> = flow {
+						var a = BigDecimal.ZERO
+						var b = BigDecimal.ONE
+						emit(a)
+						emit(b)
+						while(true) {
+							val temp = a
+							a = b
+							b += temp
+							emit(b)
+						}
+					}.flowOn(Dispatchers.Default)
+					==================================================================
+
+	(Domain Layer)
+		* avoid operating on coroutine scope objects and exposing suspending functions.
+		* layer below this (the presentation layer) is responsible for starting coroutines on scope objects; in the domain layer, we should use coroutine scope functions to start coroutines.
+
+		<Concurrent calls>
+			- wrap function body with coroutineScope and use "async" builder inside.
+				ex)
+					==================================================================
+					suspend fun produceCurrentUser(): User = coroutineScope {
+						val profile = async { repo.getProfile() }
+						val friends = async { repo.getFriends() }
+						User(profile.await(), friends.await())
+					}
+					==================================================================
+
+				ex) fewer coroutines and creates fewer objects. (Same with the above)
+					==================================================================
+					suspend fun produceCurrentUser(): User = coroutineScope {
+						val profile = async { repo.getProfile() }
+						val friends = repo.getFriends()
+						User(profile.await(), friends)
+					}
+					==================================================================
+
+			- limit concurrent calls with flatMapMerge
+				ex)
+					==================================================================
+					fun getOffers(
+						categories: List<Category>
+					): Flow<List<Offer>> = categories
+						.asFlow()
+						.flatMapMerge(concurrency = 20) {
+							suspend { api.requestOffers(it) }.asFlow()
+							// or flow { emit(api.requestOffers(it)) }
+						}
+					==================================================================
+
+			- use supervisorScope which ignores exceptions in its children.
+				ex)
+					==================================================================
+					suspend fun notifyAnalytics(actions: List<UserAction>) = 
+						supervisorScope {
+							actions.forEach { action ->
+								launch {
+									notifyAnalytics(action)
+								}
+							}
+						}
+					==================================================================
+
+			- limit execution time of process (withTimeout or withTimeoutOrNull)
+				ex)
+					==================================================================
+					suspend fun getUserOrNull(): User? = 
+						withTimeoutOrNull(5000) {
+							fetchUser()
+						}
+					==================================================================
+
+		<Flow transformations>
+			- scan
+				ex)
+					==================================================================
+					class UserStateProvider(
+						private val userRepository: UserRepository
+					) {
+						fun userStateFlow(): Flow<User> = userRepository
+							.observeUserChanges()
+							.filter { it.isSignificantChange }
+							.scan(userRepository.currentUser()) { user, update ->
+								user.with(update)
+							}
+							.map { it.toDomainUser() }
+					}
+					==================================================================
+			
+			- merge two flows together
+				ex)
+					==================================================================
+					class ArticlesProvider(
+						private val ktAcademy: KtAcademyRepository,
+						private val kotlinBlog: KtAcademyRepository,
+					) {
+						fun observeArticles(): Flow<Article> = merge(
+							ktAcademy.observeArticles().map { it.toArticle() },
+							kotlinBlog.observeArticles().map { it.toArticle() }
+						)
+					}
+					==================================================================
+
+	(Presentation / API / UI Layer)
+		<Creating custom scope>
+
+		<Using runBlocking>
+			1) wrap the "main" function.
+				-> we need to block the thread until the coroutine started by runBlocking is finished.
+
+			2) wrap test functions.
+				-> let test doesn't finish execution until the coroutine completes.
+
+		<Working with Flow>
+			- when a property representing a state depends only on a single flow, we might use the "stateIn" method.
+				ex)
+					==================================================================
+					class NewsViewModel: BaseViewModel() {
+						private val _loading = MutableStateFlow(false)
+						val loading: StateFlow<Boolean> = _loading
+
+						val newsState: StateFlow<List<News>> = newsFlow()
+							.onStart { _loading.value = true }
+							.onCompletion { _loading.value = false }
+							.catch { _failure.value = it }
+							.stateIn(
+								scope = viewModelScope,
+								started = SharingStarted.Lazily,
+								initialValue = emptyList()
+							)
+					}
+					==================================================================
+
+
+
+
+
+
