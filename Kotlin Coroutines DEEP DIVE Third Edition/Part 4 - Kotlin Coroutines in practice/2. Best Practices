@@ -142,5 +142,6 @@
 		-> means "no relation", "no cancellation", and is hard to override for testing.
 
 	* Functions that return Flow should not be suspending.
-		
+
+	* Prefer a suspending function instead of Flow when you expect only one value!
 
