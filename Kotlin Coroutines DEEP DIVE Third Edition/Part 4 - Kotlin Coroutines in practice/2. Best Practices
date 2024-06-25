@@ -1,0 +1,146 @@
+[Best Practices]
+
+	* Don't use async with an immediate await.
+		- makes no sense to define an asyncrhonous task with async if we want to await its completion without doing any operations during that time.
+			ex)
+				===============================================================
+				// DON'T
+				suspend fun getUser(): User = coroutineScope {
+					val user = async { repo.getUser() }.await()
+					user.toUser()
+				}
+
+				// DO
+				suspend fun getUser(): User {
+					val user = repo.getUser()
+					return user.toUser()
+				}
+				===============================================================
+
+		- "coroutineScope"
+			-> use it when you need a scope
+
+		- "withContext"
+			-> use it when you need to set a context
+
+	* when few async tasks, all of them except the last one need to use async.
+		-> suggest using "async" for all of them for readability.
+			ex)
+				===============================================================
+				fun showNews(){
+					viewModelScope.launch {
+						val config = async { getConfigFromApi() }
+						val news = async { getNewsFromApi(config.await()) }
+						val user = async { getUserFromApi() } // async not necessary, but for readability
+
+						view.showNews(user.await(), news.await())
+					}
+				}
+				===============================================================
+
+	* Use awaitAll
+		-> should be preferred over "map { it.await() }"
+		-> "awaitAll" stops waiting when the first async task throws an exception, while "map { it.await() }" awaits these coroutines one after another until this process reaches one that fails.
+
+	
+	* inject a dispatcher so it can be overriden for unit testing.
+		ex)
+			===============================================================
+			class DiscSaveRepository(
+				private val discReader: DiscReader,
+				private val dispatcher: CoroutineContext = Dispatchers.IO
+			): SaveRepository {
+
+				override suspend fun loadSave(name: String) = withContext(Dispatchers.IO) {
+					discReader.read("ssave/$name")
+				}
+			}
+			===============================================================
+
+	* Use Dispatchers.Main.immediate instead of Dispatchers.Main
+		-> avoids coroutine "redispatching" if it isn't necessary.
+
+	* Remeber to use "yield" in heavy functions.
+		ex)
+			===============================================================
+			suspend fun cpuIntensiveOperations() = 
+				withContext(Dispatchers.Default) {
+					cpuIntensiveOperation1()
+					yield()
+					cpuIntensiveOperation2()
+					yield()
+					cpuIntensiveOperation3()
+				}
+			===============================================================
+			-> "yield": suspends and immediately resumes the coroutine, supporting "cancellation".
+
+	* "Job" is not inherited!
+		- do not use SupervisorJob() as a Job
+			ex)
+				===============================================================
+				fun main() = runBlocking(SupervisorJob()) {
+					launch {
+						// ...
+						throw Error()
+					}
+
+					launch {
+						// ...
+					}
+
+					launch {
+						// ...
+					}
+				}
+				===============================================================
+				(prints)
+					Error...
+
+		- "Job" is the only context that is not inherited.
+
+		- passing a job to a coroutine makes the passed job the parent of this coroutine job.
+			-> "SupervisorJob" is the parent of "runBlocking" above.
+			-> when a child has a exception, it propagates to the "runBlocking" coroutine, breaks the Job coroutine, cancels its children, and throws an exception.
+
+			!! SupervisorJob is a parent has no practical implication !!
+
+		- use "supervisorScope"
+			ex)
+				===============================================================
+				suspend fun sendNotifications(
+					notifications: List<Notification>
+				) = supervisorScope {
+
+					for(notification in notifications)
+						launch {
+							client.send(notification)
+						}
+				}
+				===============================================================
+
+		- "withContext(Job())" is pointless, and should also be considered a mistake!!
+
+	* "SupervisorJob" instead of Job, which is used by default
+		ex)
+			===============================================================
+			val scope = CoroutineScope(SupervisorJob())
+			===============================================================
+
+	* Consider cancelling scope children
+		ex)
+			===============================================================
+			fun onCleared() {
+				scope.coroutineContext.cancelChildren()
+
+				// DON'T
+				scope.cancel()
+			}
+			===============================================================
+			-> Keeping a scope active costs nothing.
+
+	* Don't use GlobalScope
+		-> means "no relation", "no cancellation", and is hard to override for testing.
+
+	* Functions that return Flow should not be suspending.
+		
+
