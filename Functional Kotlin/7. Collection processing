@@ -1,0 +1,713 @@
+Collection processing
+	(forEach and onEach)
+		- forEach returns "Unit" (Terminal operation)
+		- onEach: in the middle of collection processing.
+
+			ex)
+				=======================================================
+				users
+					.filter { it.isActive }
+					.onEach { log("sending messages for user $it") }
+					.flatMap { it.remianingMessages }
+					.filter { it.isToBesent }
+					.forEach { sendMessage(it) }
+				=======================================================
+
+	(filter)
+		- returns a collection of only the elements that satisfy its predicate.
+
+			ex)
+				=======================================================
+				val activeUsers = users
+					.filter { it.isActive }
+
+				val publicArticles = articles
+					.filter { it.visibility == PUBLIC }
+				=======================================================
+
+		- "filterNot"
+			-> keeps the elements that do not satisfy its predicate.
+
+	(map)
+		- transform all elements in a collection.
+		- produces a collection of the same size, but the elements might be transformed and their type might be different from the original collection.
+
+			ex)
+				=======================================================
+				val olderUsers = users
+					.map { it.copy(age = it.age + 1) }
+				=======================================================
+
+	(mapNotNull)
+		- skips null values.
+		- useful when you want to implement one processing step that is both transforming and filtering.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val old = listOf("1", "A", "2", "3", "B", "4")
+				    println(old.mapNotNull { it.toIntOrNull() }) // [1, 2, 3, 4]
+
+				    val numbers = listOf(-1, 2, -3, 4)
+				    println(numbers.mapNotNull { prod(it) }) // [2, 24]
+
+				    println(numbers.mapNotNull { if (it > 0) it else null }) // [2, 4]
+				}
+
+				fun prod(num: Int): Int? {
+				    if (num <= 0) return null
+				    var res = 1
+				    for (i in 1..num) {
+				        res *= i
+				    }
+				    return res
+				}
+				===============================================================================
+
+	(flatMap)
+		- first maps elements into another collection of elements, then it flattens them.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val old = listOf(1, 2, 3)
+				    val new = old.flatMap { listOf(it, it + 10) } // [1, 11, 2, 12, 3, 13]
+				    println(new)
+				}
+				===============================================================================
+
+		* if map returns List<List<T>>, flatMap returns List<T>
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf("Ann", "Bob", "Cale")
+				    val chars1: List<Char> = names.flatMap { it.toList() }
+				    println(chars1) // [A, n, n, B, o, b, C, a, l, e]
+
+				    val mapRes: List<List<Char>> = names.map { it.toList() }
+				    println(mapRes) // [[A, n, n], [B, o, b], [C, a, l, e]]
+
+				    val chars2 = mapRes.flatten()
+				    println(chars2) // [A, n, n, B, o, b, C, a, l, e]
+				    println(chars1 == chars2) // true
+				}
+				===============================================================================
+
+	(fold)
+		- accumulates all elements into a single variable(called on "accumulator") using a define doperation.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val numbers = listOf(1, 2, 3, 4)
+				    val sum = numbers.fold(0) { acc, i -> acc + i }
+				    println(sum) // 10
+
+				    val joinedString = numbers.fold("") { acc, i -> acc + i }
+				    println(joinedString) // 1234
+
+				    val product = numbers.fold(1) { acc, i -> acc * i }
+				    println(product) // 24
+				}
+				===============================================================================
+
+	(scan or runningFold)
+		- when you need intermediate values.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val numbers = listOf(1, 2, 3, 4)
+				    println(numbers.fold(0) { acc, i -> acc + i }) // 10
+				    println(numbers.scan(0) { acc, i -> acc + i }) // [0, 1, 3, 6, 10]
+				    println(numbers.runningFold(0) { acc, i -> acc + i }) // [0, 1, 3, 6, 10]
+				}
+				===============================================================================
+
+	(reduce)
+		- similar to "fold", but no initial value!
+		- faster than fold because it has one operation less to do.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val numbers = listOf(1, 2, 3, 4, 5)
+				    println(numbers.fold(0) { acc, i -> acc + i }) // 15
+				    println(numbers.reduce { acc, i -> acc + i }) // 15
+				}
+				===============================================================================
+
+		* "list.reduce(oper)" is a lot like "list.drop(1).fold(list[0], oper)"
+
+
+	(sum, sumOf)
+		- getting sum of something
+		- sum()
+		- sumOf { (predicate) }
+
+	(withIndex and indexed variants)
+
+		ex)
+			===============================================================================
+			fun main() {
+			    listOf("A", "B", "C", "D", "E")
+			        .withIndex()
+			        .filter { (index, value) ->
+			            index % 2 == 0
+			        }.map { (index, value) ->
+			            "[$index] $value"
+			        }.forEach {
+			            println(it)
+			        }
+			}
+			===============================================================================
+			(prints)
+				// [0] A
+				// [2] C
+				// [4] E
+
+		* "withIndex" adds the current index to each element, and this index stays the same for all steps, while the "indexed" function operates on the current index for each step.
+
+
+	(take, takeLast, drop, dropLast, and subList)
+		- "take(n)"
+			-> returns a collection with only the first n elements.
+
+		- "takeLast(n)"
+			-> returns a collection with only the last n elements.
+
+		- "drop(n)"
+			-> returns a collection without the first n elements.
+
+		- "dropLast(n)"
+			-> returns a collection without the last n elements.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val chars = ('a'..'z').toList()
+
+				    println(chars.take(10))
+
+				    println(chars.takeLast(10))
+
+				    println(chars.drop(10))
+
+				    println(chars.dropLast(10))
+				}
+				===============================================================================
+				(prints)
+					[a, b, c, d, e, f, g, h, i, j]
+					[q, r, s, t, u, v, w, x, y, z]
+					[k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+					[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]
+
+		- subList(index, index)
+			-> start index(inclusive), end index(exclusive)
+
+		* take, drop is safer since subList may throw IndexOutOfBoundsException
+
+	(Getting elements at certain positions)
+		* "orNull"
+			ex)
+				===============================================================================
+				fun main() {
+					val c = listOf<Char>()
+
+					println(c.firstOrNull()) // null
+					println(c.lastOrNull()) // null
+					println(c.getOrNull(3)) // null
+				}
+				===============================================================================
+
+	(Finding an element)
+		- find a single one that fulfills a predicate.
+		- an alias for "firstOrNull"	
+		* returns "null" if not found.
+
+	(Counting elements)
+		- count()
+		- count { (predicate) }
+
+	(any, all and none)
+		- "any" : is there any?
+		- "all" : are there all?
+		- "none" : is none of them?
+
+		* For empty collections
+			-> "any" returns false
+			-> "all" returns true
+			-> "none" returns true
+
+	(partition)
+		- returns a pair of lists
+		- 1st list : contains all elements that satisfy its predicate
+		- 2nd list : contains those that do not.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val nums = listOf(1, 2, 6, 11)
+				    val partitioned = nums.partition { it in 2..10 }
+				    println(partitioned) // ([2, 6], [1, 11])
+
+				    val (inRange, notInRange) = partitioned
+				    println(inRange)    // [2, 6]
+				    println(notInRange) // [1, 11]
+				}
+				===============================================================================
+
+	(groupBy)
+		- groups elements by keys and returns a "map" from each key into a list of elements with this key(Map<K, List<E>>).
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf("Marcin", "Maja", "Cookie")
+
+				    val byCapital = names.groupBy { it.first() }
+				    println(byCapital)  // {M=[Marcin, Maja], C=[Cookie]}
+
+				    val byLength = names.groupBy { it.length }
+				    println(byLength)   // {6=[Marcin, Cookie], 4=[Maja]}
+				}
+				===============================================================================
+
+		- "groupingBy" is more efficient but also harder to use.
+
+	(Associating to a map)
+		- transform an iterable into a map, we use the "associate" method.
+		- if you want to use the elements of your list as the keys of your new map, a better alternative to associate is "associateWith".
+		- if you want to use elements of your list as values of your new map, a better alternative to associate is "associateBy".
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf("Alex", "Ben", "Cal")
+				    println(names.associate { it.first() to it.drop(1) }) // {A=lex, B=en, C=al}
+
+				    println(names.associateWith { it.length }) // {Alex=4, Ben=3, Cal=3}
+
+				    println(names.associateBy { it.first() }) // {A=Alex, B=Ben, C=Cal}
+				}
+				===============================================================================
+
+	(distinct and distinctBy)
+		- "distinct": keep operating on a list but at the same time eliminate duplicates.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val numbers = listOf(1, 2, 4, 2, 3, 1)
+				    println(numbers)    // [1, 2, 4, 2, 3, 1]
+				    println(numbers.distinct()) // [1, 2, 4, 3]
+
+				    val names = listOf("Marta", "Maciek", "Marta", "Daniel")
+				    println(names)      // [Marta, Maciek, Marta, Daniel]
+				    println(names.distinct())   // [Marta, Maciek, Daniel]
+				}
+				===============================================================================
+
+		- "distinctBy": uses a selector and keeps only the elements with the distinct values returned by this selector.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf("Marta", "Maciek", "Marta", "Daniel")
+				    println(names)      // [Marta, Maciek, Marta, Daniel]
+				    println(names.distinct())   // [Marta, Maciek, Daniel]
+				    println(names.distinctBy { it[0] }) // [Marta, Daniel]
+				    println(names.distinctBy { it.length }) // [Marta, Maciek]
+				}
+				===============================================================================
+
+
+	(Sorting: sorted, sortedBy and sortedWith)
+		- "sorted()"
+			-> can be only used on a list of elements with natural order for elements that implement the "Comparable" interface.
+
+			(Most important types with natural order are)
+				+ Int, Long, Double, and other basic classes representing numbers
+				
+				+ Char (treated as a number in UTF-16 code under the hood)
+					* Capitals come before lowercase
+				
+				+ String, natural order is lexicographical (generalization of the alphabetical order that is used in dictionaries)
+
+				+ Boolean (places false before true)
+					-> false is 0 and true is 1
+
+		- "reversed()"
+			-> reverse the order.
+
+		- "sortedDescending()" == "sorted().reversed()"
+
+		- "sortedBy", "sortedByDescending"
+			-> want to sort elements by one of their properties
+
+			* sortedBy and sortedByDescending accept "null"(considered less than all other values.)
+
+		- "sortedWith"
+			-> returns a collection sorted according to a comparator it receives as an argument.
+
+				ex)
+					===============================================================================
+					fun main() {
+					    val names = listOf(
+					        FullName("B", "B"),
+					        FullName("B", "A"),
+					        FullName("A", "A"),
+					        FullName("A", "B"),
+					    )
+
+					    println(names.sortedBy { it.name }) // [A A, A B, B B, B A]
+					    println(names.sortedBy { it.surname }) // [B A, A A, B B, A B]
+					    println(names.sortedWith(compareBy( // [A A, B A, A B, B B]
+					        { it.surname },
+					        { it.name }
+					    )))
+					    println(names.sortedWith(compareBy( // [A A, A B, B A, B B]
+					        { it.name },
+					        { it.surname }
+					    )))
+					}
+
+					data class FullName(val name: String, val surname: String) {
+					    override fun toString(): String {
+					        return "$name $surname"
+					    }
+					}
+					===============================================================================
+
+		- "then" or "thenComparator"
+			-> add another comparator that is used when the previous comparator considers elements equal
+
+		- "thenBy"
+			-> compares values using a selector when the previous comparator considers elements equal
+
+		- "reversed"
+			-> reverses the comparator order.
+
+				ex)
+					===============================================================================
+					class Student(
+					    val name: String,
+					    val surname: String,
+					    val score: Double,
+					    val year: Int,
+					) {
+					    companion object {
+					        val ALPHABETICAL_ORDER =
+					            compareBy<Student>({ it.surname }, { it.name })
+					        val BY_SCORE_ORDER =
+					            compareByDescending<Student> { it.score }
+					        val BY_YEAR_ORDER =
+					            compareByDescending<Student> { it.year }
+					    }
+					}
+
+					val students = listOf<Student>(
+					    // ...
+					)
+
+					fun presentStudentsForYearBook() = students
+					    .sortedWith(
+					        Student.BY_YEAR_ORDER.then(Student.ALPHABETICAL_ORDER)
+					    )
+
+					fun presentStudentsForTopScores() = students
+					    .sortedWith(
+					        Student.BY_YEAR_ORDER.then(Student.BY_SCORE_ORDER)
+					    )
+					===============================================================================
+
+	(Sorting mutable collections)
+		* if you want to sort a mutable collection, you can use the "sort" function.
+			-> "sort()" returns Unit
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val list = listOf(4, 2, 3, 1)
+				    val sortedRes = list.sorted()
+
+				    println(list)   // [4, 2, 3, 1]
+				    println(sortedRes)  // [1, 2, 3, 4]
+
+				    val mutableList = mutableListOf(4, 2, 3, 1)
+				    val sortRes = mutableList.sort()
+				    
+				    println(mutableList) // [1, 2, 3, 4]
+				    println(sortRes) // kotlin.Unit
+				}
+				===============================================================================
+
+	(Maximum and minimum)
+		- "max()", "min()"
+		- "maxOrNull()", "minOrNull()"
+		
+		- "maxByOrNull{}", "minByOrNull{}"
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf(
+				        FullName("B", "B"),
+				        FullName("B", "A"),
+				        FullName("A", "A"),
+				        FullName("A", "B"),
+				    )
+
+				    println(
+				        names.maxWithOrNull(compareBy(
+				            { it.surname },
+				            { it.name }
+				        ))
+				    ) // FullName(name=B, surname=B)
+
+				    println(
+				        names.minWithOrNull(compareBy(
+				            { it.surname },
+				            { it.name }
+				        ))
+				    ) // FullName(name=A, surname=A)
+				}
+
+				data class FullName(val name: String, val surname: String)
+				===============================================================================
+
+		- "minOfOrNull{}", "maxOfOrNull{}"
+			ex)
+				===============================================================================
+				fun main() {
+				    val players = listOf(
+				        Player("Jake", 234),
+				        Player("Megan", 567),
+				        Player("Beth", 123),
+				    )
+
+				    println(players.map { it.score }.maxOrNull()) // 567
+				    println(players.maxBy { it.score })           // Player(name=Megan, score=567)
+				    println(players.maxByOrNull { it.score })     // Player(name=Megan, score=567)
+
+				    println(players.maxOf { it.score })           // 567
+				    println(players.maxOfOrNull { it.score })     // 567
+
+				    println(players.map { it.score }.minOrNull()) // 123
+				    println(players.minBy { it.score })           // Player(name=Beth, score=123)
+				    println(players.minByOrNull { it.score })     // Player(name=Beth, score=123)
+
+				    println(players.minOf { it.score })           // 123
+				    println(players.minOfOrNull { it.score })     // 123
+
+
+				}
+
+				data class Player(val name: String, val score: Int)
+				===============================================================================
+
+	(shuffled and random)
+		- random : get a random number from a collection
+		- shuffled : to shuffle an iterable
+
+			ex)
+				===============================================================================
+				import kotlin.random.Random
+
+				fun main() {
+				    val range = (1..100)
+				    val list = range.toList()
+
+				    println(list.random())  // random number
+				    println(list.randomOrNull())    // random number
+
+				    println(list.random(Random(123)))   // 7
+				    println(list.randomOrNull(Random(123))) // 7
+
+				    println(range.shuffled())   // shuffled Iterable
+				}
+				===============================================================================
+
+	(zip and zipWithNext)
+		- to connect two collections into one in a way that forms pairs of elements that are in the same positions.
+		- zip between List<T1> and List<T2> returns List<Pair<T1, T2>>
+
+		* result list ends when the shortest zipped collection ends!
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val nums = 1..4
+				    val chars = 'A'..'F'
+
+				    println(nums.zip(chars)) // [(1, A), (2, B), (3, C), (4, D)]
+				}
+				===============================================================================
+
+		- "unzip"
+			-> reverse "zip" operation using "unzip", that transform a list of pairs into a pair of lists.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val zipped = (1..4) zip ('a'..'d')
+				    println(zipped) // [(1, a), (2, b), (3, c), (4, d)]
+
+				    val (numbers, letters) = zipped.unzip()
+				    println(numbers) // [1, 2, 3, 4]
+				    println(letters) // [a, b, c, d]
+				}
+				===============================================================================
+
+		- "zipWithNext"
+			-> when we need to connect adjacent elements of a collection into pairs, there is "zipWithNext".
+
+			ex)
+				===============================================================================
+				fun main() {
+				    println((1..4).zipWithNext())
+				    // [(1, 2), (2, 3), (3, 4)]
+
+				    val person = listOf(
+				        "Ashley",
+				        "Barbara",
+				        "Cyprian"
+				    )
+
+				    println(person.zipWithNext())
+				    // [(Ashley, Barbara), (Barbara, Cyprian)]
+				}
+
+				// custom transformation
+				fun main() {
+				    val person = listOf("A", "B", "C", "D", "E")
+				    println(person.zipWithNext { prev, next -> "$prev-$next" })
+				    // [A-B, B-C, C-D, D-E]
+				}
+				===============================================================================
+
+	(Windowing)
+		- "windowed"
+			-> returns a list of sublists of our list, where each is the next window of a given size.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val person = listOf(
+				        "Ashley",
+				        "Barbara",
+				        "Cyprian",
+				        "David",
+				    )
+
+				    println(person.windowed(size = 1, step = 1))
+				    // [[Ashley], [Barbara], [Cyprian], [David]]
+
+				    println(person.windowed(size = 2, step = 1))
+				    // [[Ashley, Barbara], [Barbara, Cyprian], [Cyprian, David]]
+
+				    println(person.windowed(size = 1, step = 2))
+				    // [[Ashley], [Cyprian]]
+
+				    println(person.windowed(size = 2, step = 2))
+				    // [[Ashley, Barbara], [Cyprian, David]]
+
+				    println(person.windowed(size = 3, step = 1))
+				    // [[Ashley, Barbara, Cyprian], [Barbara, Cyprian, David]]
+
+				    println(person.windowed(size = 3, step = 2))
+				    // [[Ashley, Barbara, Cyprian]]
+
+				    println(person.windowed(size = 3, step = 1, partialWindows = true))
+				    // [[Ashley, Barbara, Cyprian], [Barbara, Cyprian, David], [Cyprian, David], [David]]
+
+				    println(person.windowed(size = 3, step = 2, partialWindows = true))
+				    // [[Ashley, Barbara, Cyprian], [Cyprian, David]]
+				}
+				===============================================================================
+
+		- "chunked" (simpler than windowed when partialWindows is true)
+			-> divides our collection into chunks that are sub collections of a certain size.
+			-> does not lose elements, so the last chunk might be smaller than the argument value.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val person = listOf(
+				        "Ashley",
+				        "Barbara",
+				        "Cyprian",
+				        "David",
+				    )
+
+				    println(person.chunked(size = 1))
+				    // [[Ashley], [Barbara], [Cyprian], [David]]
+
+				    println(person.chunked(size = 2))
+				    // [[Ashley, Barbara], [Cyprian, David]]
+
+				    println(person.chunked(size = 3))
+				    // [[Ashley, Barbara, Cyprian], [David]]
+
+				    println(person.chunked(size = 4))
+				    // [[Ashley, Barbara, Cyprian, David]]
+				}
+				===============================================================================
+
+	(joinToString)
+		- arguments
+			+ separator(", " by default)
+				-> decides what should be between the values in the produced string.
+			+ prefix("" by default) and postfix("" by default)
+				-> decide what should be at the beginning and at the end of the string.
+			+ limit(-1 by default, which means no limit) and truncated("..." by default)
+				-> limit: decides how many elements can be displayed.
+				-> truncated: once the limit is reached, truncated is shown instead of the rest of the elements.
+			+ transform(toString by default)
+				-> decides how each element should be transformed to string.
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val names = listOf("Maja", "Norbert", "Ola")
+				    println(names.joinToString())
+				    // Maja, Norbert, Ola
+
+				    println(names.joinToString { it.uppercase() })
+				    // MAJA, NORBERT, OLA
+
+				    println(names.joinToString(separator = "; "))
+				    // Maja; Norbert; Ola
+
+				    println(names.joinToString(limit = 2))
+				    // Maja, Norbert, ...
+
+				    println(names.joinToString(limit = 2, truncated = "etc."))
+				    // Maja, Norbert, etc.
+
+				    println(
+				        names.joinToString(
+				            prefix = "{names=[",
+				            postfix = "]}",
+				        )
+				    )
+				    // {names=[Maja, Norbert, Ola]}
+				}
+				===============================================================================
+
+	(Map, Set and String processing)
+		- Map
+			-> does not implement Collection or Iterable, so it needs custom collection processing functions.
+			* Most of the functions are also defined for the Map interface!
+
+		- String
+			-> does not implement Iterable or Collection.
+			* However most collection processing functions are also implemented for String.
+
+
+
+
+
+
+
+
