@@ -1,0 +1,171 @@
+Scope Functions
+
+	1) let
+		- compared to the "map" function but for a single object
+			-> transforms an object using a lambda expression.
+
+				ex)
+					================================================================================
+					fun main() {
+						println(listOf("a", "b", "C").map { it.uppercase() }) // [A, B, C]
+
+						println("a".let { it.uppercase() }) // A
+					}
+					================================================================================
+
+		- we can use it conditionally with a safe call.
+			ex)
+				================================================================================
+				getUser()?.let {
+					doSomethingAndGetSomething(it)
+				}?.let {
+					doSomethingFinally(it)
+				}
+				================================================================================
+
+		* sometimes forming a flow with multiple lets is hard to debug, so you need to decide yourself whether to use this approach in your applications.
+			ex)
+				================================================================================
+				something()?.let{
+					// ...
+				}?.let{
+					// ...
+				}?.let {
+					// ...
+				}
+
+				// debugging is hard: need to find where the null is produced.
+				================================================================================
+
+			ex) Imperative approach
+				================================================================================
+				fun getActiveCourses(token: String): UserCourses? {
+					val user = userRepository.getUser(token) ?: return null
+					val activeCourses = coursesRepository.getActiveCourses(user.id) ?: return null
+
+					return userCoursesFactory.produce(activeCourses)
+				}
+				================================================================================
+
+			ex) Functional approach
+				==========================================================================================
+				fun getActiveCourses(token: String): UserCourses? = 
+					userRepository.getUser(token)
+						?.let { coursesRepository.getActiveCourses(it.id) }
+						?.let { userCoursesFactory.produce(it) } // or .let(usercoursesFactory::produce)
+				==========================================================================================
+
+		* Avoid using member extensions!
+
+		* let: a transformation function and should therefore have no side effects
+		* also: is dedicated to use for side effects.
+
+
+		(Dealing with nullability)
+			- let is often called just to help with nullability.
+				ex)
+					==========================================================================================
+					class User(val name: String)
+
+					var user: User? = null
+
+					fun showUserNameIfPresent() {
+					    // Smart cast to 'User' is impossible, 
+					    // because 'user' is a mutable property that could have been changed by this time
+					    if (user != null) {
+					        println(user.name) // Compile Error
+					    }
+
+					    // WORKS
+					    val u = user
+					    if (u != null) {
+					        println(u.name)
+					    }
+
+					    // PERFECT
+					    u?.let {
+					        println(it.name)
+					    }
+					}
+					==========================================================================================
+					* ?.let for mutable properties is PERFECT (Thread-safe)
+						-> "it" of ?.let is the reference to the user that was used at the time of the nullability check.
+
+	2) "also"
+		- it returns the object it is invoked on.
+			-> if "let" is like "map" for a single object
+			-> then, "also" can be considered an "onEach" for a single object, as "also" returns the object as it is.
+
+		- used to invoke an operation on an object.
+			-> such operations typically include some side effects.
+
+			ex) printing logs or storing a value in a cache.
+				====================================================================================
+				fun addUser(request: UserCreationRequest): User = 
+					request.toUserDto()
+						.also { userRepository.addUser(it) }
+						.also { log("User created: $it") }
+						.toUser()
+				====================================================================================
+
+		* "also" can be also used instead of "let" to unpack a nullable object or move an operation to the end.
+			ex)
+				====================================================================================
+				user?.also { println(it.name) }
+				====================================================================================
+
+	3) takeIf and takeUnless
+		- similar to "filter" and "filternot" for a single object.
+		- returns "true" and "null" if the predicate returned false.
+
+			ex)
+				====================================================================================
+				val lines = File("SomeFile")
+					.takeIf { it.exists() }
+					?.readLines()
+
+				fun readUser(token: String): User? = 
+					userRepository.findUser(token = token)
+						.takeIf { it.isValid() }
+						?.toUser()
+				====================================================================================
+				-> helps us drop incorrect results.
+
+	4) apply
+		- receiver -> "this"
+			ex)
+				====================================================================================
+				fun createDialog() = Dialog().apply {
+					title = "some dialog"
+					message = "just accept it, ok?"
+					// ...
+				}
+
+				fun showUsers(users: List<User){
+					listView.apply {
+						adapter = UsersListAdapter(users)
+						layoutManager = LinearLayoutManager(context)
+					}
+				}
+				====================================================================================
+
+		(The dangers of careless receiver overloading)
+			- "this" receiver can be used implicitly, which is both convenient and potentially dangerous.
+
+	5) with
+		* we use "with" to explicitly turn an argument into a receiver.
+
+		* it returns the result of its "block" argument, so it can be used as a transformation function
+			-> However, this fact is rarely used, and would suggest using "with" as if it is returning "Unit".
+
+	6) run
+		- just invokes a lmabda expression.
+		* only advantage over an immediately invoked lambda expression is that it is inline.
+
+	7) Using scope functions.
+
+		- returns receiver: also, apply
+		- returns results of lambda: let, run/with
+
+		- reference to receiver "it" : also, let
+		- reference to receiver "this": apply, run/with
