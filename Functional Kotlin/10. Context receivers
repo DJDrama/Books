@@ -1,0 +1,121 @@
+Context receivers
+	- added in Kotlin 1.6.20
+
+	(Extension function problems)
+		- were designed to define new methods to call on objects
+			-> so they do not work well when used to receive a context.
+				
+				(problems)
+					1) extension functions are limited to a single receiver
+
+					2) using an extension receiver to pass a context gives a false impression of this function's meaning and how it should be called
+
+					3) it can only be called on a receiver object.
+
+	(Introducing context receivers)
+
+		ex)
+			========================================================================================
+			class Foo {
+			    fun foo() {
+			        print("Foo")
+			    }
+			}
+
+			// The feature "context receivers" is experimental and should be enabled explicitly
+			context(Foo)
+			fun callFoo() {
+			    foo()
+
+			    this@Foo.foo() // OK : always need to specify a label after "this" with a type that 	
+			    			   // specifies which receiver you want to use.
+
+			    this.foo() // ERROR, this is not defined.
+			}
+
+			fun main() {
+			    with(Foo)){
+			        callFoo()
+			    }
+			}
+			========================================================================================
+
+		* Context Receivers can specify multiple receiver types.
+
+			ex)
+				========================================================================================
+				class Foo {
+				    fun foo() {
+				        print("Foo")
+				    }
+				}
+
+				class Boo {
+				    fun boo() {
+				        print("Boo")
+				    }
+				}
+
+				// The feature "context receivers" is experimental and should be enabled explicitly
+				context(Foo, Boo)
+				fun callFooBoo() {
+				    foo()
+				    boo()
+				}
+
+				context(Foo, Boo)
+				fun callFooBoo2(){
+				    callFooBoo()
+				}
+
+				fun main() {
+				    with(Foo){
+				        with(Boo){
+				            callFooBoo()
+				            callFooBoo2()
+				        }
+				    }
+				}
+				========================================================================================
+
+	(Use cases)
+		* Context receivers are a better choice for most functions that should be used on a DSL and DSL definitions.
+
+		* When a function needs a receiver, but don't want to define it as an extension function
+			-> we can provide an object using a context receiver.
+				
+				ex)
+					===================================================================
+					context(LoggingContext)
+					fun sendNotification(notification: NotificationData) {
+						logger.info("Sending notification $notification")
+						notificationSender.send(notification)
+					}
+					===================================================================
+
+		- Android example
+			ex)
+				===================================================================
+				context(View)
+				val Float.dp 
+					get() = this * resources.displayMetrics.density
+
+				context(View)
+				val Int.dp
+					get() = this.toFloat().dp
+				===================================================================
+
+	(Classes with context receivers)
+		- receiver is expected when we call the constructor of a class with a context receiver, and it is then stored in an additional property.
+
+	(Concerns)
+		- context receivers can also be used poorly, which could lead to code that is more complicated or less safe then it needs to be.
+			-> can make code more confusing for other developers.
+
+			* suggest not using context receivers if they often need wrapping function calls using scope functions, like with.
+
+		1) when there is no good reason to use a context receiver, prefer using a regular argument.
+
+		2) when it is unclear from which receiver a method comes, consider using an argument instead of the receiver or use this receiver explicitly.
+
+
