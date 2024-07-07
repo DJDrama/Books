@@ -1,0 +1,234 @@
+Type Safe DSL Builders
+	- motivation behind defining Domain-Specific Languages(DSLs)
+		-> to achieve fluent grammar when describing things and actions.
+
+	* SwiftUI uses Swift DSL under its hood.
+	* Jetpack Compose uses Kotlin DSL.
+		-> some of its elements are added under the hood by the compiler plugin, and this process is based on annotations.
+
+	* Ktor framework API is based on Kotlin DSL.
+		-> endpoint definitions are simple and readable but also flexible and convenient to use.
+
+	- DSLs are considered highly readable, so more and more libraries use DSL-styled configurations instead of builders for their configurations.
+
+
+	(A function type with a receiver)
+		- "function type with a receiver"
+			-> function type that represents an extension function.
+
+			ex) Named and Anonymous Extension Functions
+				=================================================================
+				// Named extension function
+				fun String.myPlus1(other: String) = this + other
+
+				fun main() {
+				    println("A".myPlus1("B")) // AB
+
+				    // Anonymous extension function assigned to a variable
+				    // function type: String.(String) -> String
+				    val myPlus2 = fun String.(other: String) = this + other
+
+				    println(myPlus2.invoke("A", "B")) // AB
+				    println(myPlus2("A", "B"))  // AB
+				    println("A".myPlus2("B"))   // AB
+				}
+
+				=================================================================
+
+	(Simple DSL builders)
+
+		ex) making a dialog with DSL
+			=================================================================
+			fun showDialog(init: Dialog.() -> Unit) {
+			    val dialog = Dialog()
+			    init.invoke(dialog)
+			    dialog.show()
+			}
+
+			fun main() {
+			    showDialog {
+			        title = "Some dialog"
+			        message = "Just accept it, Ok?"
+			        okButtonText = "OK"
+			        okButtonHandler = { /* OK */ }
+			        cancelButtonText = "Cancel"
+			        cancelButtonHandler = { /* Cancel */ }
+			    }
+			}
+			=================================================================
+
+	(Using apply)
+		- we can use "apply" on any type.
+			-> helps us create and call a function type with a receiver on any object we want.
+
+			ex)
+				=================================================================
+				fun main() {
+					Dialog().apply {
+						title = "Some dialog"
+				        message = "Just accept it, Ok?"
+				        okButtonText = "OK"
+				        okButtonHandler = { /* OK */ }
+				        cancelButtonText = "Cancel"
+				        cancelButtonHandler = { /* Cancel */ }
+					}
+				}
+				=================================================================
+
+			ex) Change of "showDialog" method
+				=================================================================
+				fun showDialog(init: Dialog.() -> Unit) {
+					Dialog().apply(init).show()
+				}
+				=================================================================
+
+	(Simple DSL-like builders)
+		- Kotlin offers many simple builders for basic objects like collections or strings.
+
+			ex)	buildList
+				=================================================================
+				fun main() {
+					val list = buildList {
+						add(1)
+						add(2)
+						add(3)
+					}
+					println(list) // [1, 2, 3]
+				}
+				=================================================================
+
+			ex) buildString (where receiver is of type StringBuilder)
+				=================================================================
+				fun main() {
+					val string = buildString{
+						append("A")
+						append("B")
+						append("C")
+					}
+					println(string) // ABC
+				}
+				=================================================================
+
+		- there are also "buildMap" and "buildSet" functions.
+
+	
+	(Multi-level DSLs)
+		
+		ex) Dialog
+			=================================================================
+			class Dialog {
+			    var title: String = ""
+			    var message: String = ""
+			    private var okButton: Button? = null
+			    private var cancelButton: Button? = null
+
+			    fun okButton(init: Button.() -> Unit) {
+			        okButton = Button().apply(init)
+			    }
+
+			    fun cancelButton(init: Button.() -> Unit) {
+			        cancelButton = Button().apply(init)
+			    }
+
+			    fun show() {
+			        //...
+			    }
+
+			    class Button {
+			        var message: String = ""
+			        var handler: () -> Unit = {}
+			    }
+			}
+
+			fun showDialog(init: Dialog.() -> Unit) {
+			    Dialog().apply(init).show()
+			}
+
+			fun main() {
+			    showDialog {
+			        title = "Some dialog"
+			        message = "Just Accept it, ok?"
+			        okButton {
+			            message = "OK"
+			            handler = {
+			                // OK       
+			            }
+			        }
+			        cancelButton {
+			            message = "Cancel"
+			            handler = {
+			                // Cancel
+			            }
+			        }
+			    }
+			}
+			=================================================================
+
+	(DslMarker)
+		- Meta-annotation
+			-> an annotation to an annotation class; so, to use DslMarker, we need to define our own annotation.
+			-> solves safety problem.
+
+			ex)
+				=================================================================
+				@DslMarker
+				annotation class DialogDsl
+
+				@DialogDsl
+				class Dialog {
+				    var title: String = ""
+				    var message: String = ""
+				    private var okButton: Button? = null
+				    private var cancelButton: Button? = null
+
+				    @DialogDsl
+				    fun okButton(init: Button.() -> Unit) {
+				        okButton = Button().apply(init)
+				    }
+
+				    @DialogDsl
+				    fun cancelButton(init: Button.() -> Unit) {
+				        cancelButton = Button().apply(init)
+				    }
+
+				    fun show() {
+				        //...
+				    }
+
+				    @DialogDsl
+				    class Button {
+				        var message: String = ""
+				        var handler: () -> Unit = {}
+				    }
+				}
+
+				@DialogDsl
+				fun showDialog(init: Dialog.() -> Unit) {
+				    Dialog().apply(init).show()
+				}
+
+				fun main() {
+				    showDialog {
+				        title = "Some dialog"
+				        message = "Just Accept it, ok?"
+				        okButton {
+				            message = "OK"
+				            handler = {
+				                // OK
+				            }
+				        }
+				        cancelButton {
+				            message = "Cancel"
+				            handler = {
+				                // Cancel
+				            }
+				        }
+				    }
+				}
+				=================================================================
+
+	(When should we use DSLs?)
+		-> DSLs are about boilerplate elimination of such structures.
+		-> You should consider using DSL when you see repetable boilerplate code and there are no simpler Kotlin features that can help.
+
+
