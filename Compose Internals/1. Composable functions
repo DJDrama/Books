@@ -1,0 +1,244 @@
+[The meaning of Composable functions]
+
+	- any standard Kotlin function can become a Composable function just by annotating it as @Composable
+		ex)
+			====================================================================
+			@Composable
+			fun NamePlate(name: String) {
+				// Our composable code
+			}
+			====================================================================
+
+	- Composable functions "emit" when executed, and that happens during the composition process.
+
+	- Only purpose of executing our Composable functions
+		-> is to build or update the in-memory representation of the tree.
+
+	- Composable functions will re-execute whenever the data they read changes.
+
+	- To keep the tree updated, they can emit actions to insert new nodes, but also remove, replace, or move nodes around.
+
+	- Composable functions can also read or write state from/to the tree.
+
+
+[Properties of Composable functions]
+	- the "@Composable" annotation effectively changes the type of the function or expression that it is applied to, and as any other type, it imposes some constraints or properties over it.
+
+	- The Compose runtime expects Composable functions to comply to the mentioned properties, so it can assume certain behaviors and therefore exploit different runtime optimizations like parallel composition, arbitrary order of composition based on priorities, smart recomposition, or positional memoization among others.
+
+
+[Calling context]
+	- "Composer"
+		-> this parameter is implicit, the developer remains agnostic of it.
+
+		-> instance of it is injected at runtime, and forwarded to all the child Composable calls so it is accessible from all levels of the tree.
+
+			ex) Composable function --> compiler transformation
+				==========================================================================
+				@Composable
+				fun NamePlate(name: String, lastname: String){
+					Column(modifier = Modifier.padding(16.dp)) {
+						Text(text = name)
+						Text(text = lastname, style = MaterialTheme.typography.subtitle1)
+					}
+				}
+
+				// Compiler will transform above function to something like this
+				fun NamePlat(name: String, lastname: String, $composer: Composer<*>) {
+					...
+					Column(modifier = Modifier.padding(16.dp), $composer) {
+						Text(
+							text = name,
+							$composer
+						)
+						Text(
+							text = lastname,
+							style = MaterialTheme.typograpy.subtitle1,
+							$composer
+						)
+					}
+				}
+				==========================================================================
+				* "Composer" is forwarded to all the Composable calls within the body.
+				* They can only be called from other Composable functions.
+					-> This is the actual "calling context" required
+					-> ensures that the tree is conformed of only Composable functions, so the "Composer" can be forwarded down.
+
+	* "Composer" is the connection between the Composable code we write as developers, and the Compose runtime.
+		-> Composable functions will use it to emit their changes for the tree and therefore inform the runtime about its shape in order to build its in-memory representation or update it.
+
+[Idempotent]
+	- Composable functions are expected to be idempotent relative to the node tree they produce.
+
+	* Re-executing a Composable function multiple times using the same input parameters should result in the same tree. (Jetpack Compose runtime relies on this assumption for things like recomposition.)
+
+	* "Recomposition"
+		-> re-executing Composable functions when their inputs vary, so they can emit updated information and  update the tree. (The runtime must have the ability to recompose our Composable functions at arbitrary times, and for diverse reasons.)
+
+	- "Recomposition Process"
+		-> traverses down the tree checking which nodes need to be recomposed(re-executed).
+		-> Only the nodes with varying inputs will recompose, and the rest will be "Skipped".
+
+		* "Skipping" a node is only possible when the Composable function representing it is idempotent, since the runtime can assume that given the same input, it will produce the same results.
+			-> those results are already in-memory, hence Compose does not need to re-execute it.
+
+
+[Free of uncontrolled side effects]
+	* "Side-Effects" are "a source of ambiguity".
+		-> Not great for Compose, since the runtime expects Composable functions to be predictable(deterministic), so they can be re-executed multiple times safely.
+
+	* If a Composable function ran side effects, it could produce a different program state on every execution, making it not idempotent.
+
+		ex)
+			==========================================================================
+			@Composable
+			fun EventsFeed(networkService: EventsNetworkService) {
+				val events = networkService.loadAllEvents()
+
+				LazyColumn {
+					items(events) { event ->
+						Text(text = event.name)
+					}
+				}
+			}
+			==========================================================================
+			<Problems>
+				1. This function might get re-executed multiple times in a short period of time by the Compose runtime
+					-> making the network request trigger multiple times and spiral out of control.
+
+				2. Executions might happen from different threads without any coordination.
+
+	* Compose runtime can offload recompositions to different threads to take advantage of multiple cores, or run them in any arbitrary order based on its own needs or priorities.
+		-> Composables not showing on screen could get assigned a lower priority.
+
+
+	- Another common caveat of side effects : Composable function depend on the result of another Composable function, imposing a relation of order.
+		
+		ex)
+			==========================================================================
+			@Composable
+			fun MainScreen() {
+				Header()
+				ProfileDetail()
+				EventList()
+			}
+			==========================================================================
+			1. Header, ProfileDetail, EventList might execute in any order, or even in parallel.
+				-> should not write logics that assume any specific execution order, like reading an external variable from ProfileDetail that is expected to be written from Header.
+
+	* We must try mkaing all our Composable functions "stateless", wo they get all their inputs as parameters, and only use them to produce a result.
+		-> makes Composables simpler, dumber, and highly reusable.
+
+	* "Effect Handlers"
+		-> Jetpack Compose offers mechanisms to call effects from Composable functions safely and within a controlled environment.
+
+		-> make side effects aware of the Composable lifecycle, so they can be constrained/driven by it.
+
+		-> They allow effects to be automatically disposed/canceled when the Composable leaves the tree, re-triggerred if the effect inputs change, or even span the same effect across executions(recompositions) so it is only called once.
+
+
+[Restartable]
+	- Composable functions can be restarted multiple times.
+		-> runtime keeps a reference to them in order to do so.
+
+	* Composable functions are designed to be reactive and re-executed based on changes in the state they observe.
+
+	* Composables that don't read state don't need to be restarted.
+
+
+[Fast execution]
+	- Composable functions don't build and return UI.
+		-> They simply emit data to build or update an in-memory structure.
+		-> makes them blazing fast, and allows the runtime to execute them multiple times without fear.
+
+
+[Positional memoization]
+	- a form of function memoization.
+
+	- Ability of a function to cache its result based on its inputs, so it does not need to be computed again every time the function is called for the same inputs.
+
+	- Only works for pure(deterministic) functions
+		-> we have the certainty that they will always return the same result for the same inputs, hence we can cache and reuse the value.
+
+	* Composable functions have constant knowledge about their location in the sources.
+		-> The runtime will generate different ids(unique within the parent) when the same function is called with the same parameter values but from different places:
+
+			ex)
+				==========================================================================
+				@Composable
+				fun MyComposable() {
+					Text("Hello")	// id 1
+					Text("Hello")	// id 2
+					Text("Hello")	// id 3
+				}
+				==========================================================================
+				+ The in-memory tree will store three different instances of it, each one with a different identity.
+
+	- Sometimes assigning unique identities can be hard for the Compose runtime.
+
+		ex)
+			==========================================================================
+			@Composable
+			fun TalksScreen(talks: List<Talk>) {
+				Column {
+					for (talk in talks)
+						Talk(talk)
+				}
+			}
+			==========================================================================
+			-> Talk(talk) is called from the same position every time, but each talk represents a different item on the list, and therefore a different node on the tree.
+
+			* The Compose rntime relies on the "order of calls" to generate the unique id, and still be able to differentiate them.
+				-> adding a new element to the end of the list, the rest of the calls stay in the same position as before.
+
+			* BUT!! when adding to the top, or in the middle, the runtime would recompose all the Talks below that point since they shifted their position, even if their inputs have not changed!!
+				-> Highly Inefficient.
+
+		-> Compose provides the "key" Composable (assign an explicit key to the call manually)
+
+			ex)
+				==========================================================================
+				@Composable
+				fun TalksScreen(talks: List<Talk>) {
+					Column {
+						for(talk in talks) {
+							key(talk.id) { // Unique key
+								Talk(talk)
+							}
+						}
+					}				
+				}
+				==========================================================================
+				-> alows the runtime to preserve the identity of all the items on the list "regardless of their position".
+
+	- "Positional memoization" (Compose mechanism)
+		-> Composable function inferred as restartable by the Compose compiler should also be skippable, hence "automatically remembered".
+
+	- Compose runtime provides "remember" function to cache the result of a heavy calculation that takes place within a Composable function.
+
+		ex)
+			==========================================================================
+			@Composable
+			fun FilteredImage(path: String) {
+				val filters = remember { computeFilters(path) }
+				ImageWithFiltersApplied(filters)
+			}
+
+			@Composable
+			fun ImageWithFiltersApplied(filters: List<Filter>){
+				// TODO()
+			}
+			==========================================================================
+			-> "remember" to cache the result of an operation to precompute the filters of an image.
+
+			* "remember" function is just a Composable function that knows how to read from and write to the in-memory structure that holds the state of the tree.
+
+	* memoization is not "application-wide".
+		-> When something is memoized, it is done within the context of the Composable calling it.
+		-> In practice, Compose will go the in-memory structure and look for the value in the range of slots where the information for the enclosing Composable is stored.
+		-> This makes it be more like a "singleton within that scope".
+		-> If the same composable was called from a different parent, a new instance of the value would be returned.
+
+
+[Similarities with suspend functions]
+	- Kotlin suspend functions can only be called from other suspend functions, so they also require a "calling context".

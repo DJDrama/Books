@@ -1,0 +1,134 @@
+The Compose compiler
+	- Jetpack Compose is compirsed of
+		1) Compose compiler : designed to be generic
+		2) Compose runtime : designed to be generic
+
+		3) Compose UI : technically not poart of the Compose architecture.
+
+	
+	[A Kotlin compiler plugin]
+		- Compose compiler = Kotlin compiler plugin.
+			-> ability to embed its compile time work within the Kotlin compilation phases, gaining access to more relevant information about the shape of code, and speeding up the overall process.
+
+			<-> While kapt needs to run prior to compilation, a compiler plugin is directly "inlined in the compilation process".
+
+		+ gives chance to report diagnostics in the frontend phase of the compiler, providing a very fast feedback loop.
+
+		+ they can tweak the existing sources at will (not only add new code, like annotation processors do).
+			-> gives the Compose compiler the ability to "transform the Composable functions" as the runtime requires.
+
+
+	[Compose annotations]
+		- Compose compiler utilizes hooks / extensions points in the kotlin compiler's frontend to verify that the constraints it would like to enforce are met and that they type system is properly treating @Composable functions, declarations, or expressions, different from non-Composable ones.
+
+		- All the annotations are provided by the Compose runtime library.
+
+		[@Composable]
+			* difference between the Compose compiler and an annotation processor
+				-> Compose effectively changes the declaration or expression that is annotated.(Most annotation processors can't do this, they have to produce additional / sibling declarations.)
+
+				-> This is why, Compose compiler uses IR transforms.
+
+			- "@Composable" annotation actually "changes the type" of the thing, and the compiler plugin is used to enforce all kinds of rules in the frontend.
+				-> to ensure Composable types aren't treated the same as their non-composable-annotated equivalents.
+
+			- Chaning the type of the declaration or expression via "@Composable" gives it a "memory".
+				-> the ability to call "remember" and utilize the Composer/slot table.
+				-> also gives it a lifecycle that effects launched within its body will be able to comply with.
+				-> Composable functions will also get assigned an identity that they will preserve, and will have a position in the resulting tree.
+					-> they can emit nodes into Composition and address CompositionLocals.
+
+		[@ComposeCompilerApi]
+			- annotation used by Compose to flag some parts of it that are only meant to be used by the compiler.
+
+		[@InternalComposeApi]
+			- expected to vary internally even if the public api surface remains unchanged and frozen towards a stable release.
+
+			- wider scope than the language "internal" keyword
+				-> it allows usage across modules, which is a concept that Kotlin does not support.
+
+		[@DisallowComposableCalls]
+			- Used to prevent composable calls from happening inside of a function.
+				-> best used on lambdas which will NOT be called on every recomposition.
+
+			- can be found in the "remember" function.(part of the Compose runtime)
+				-> this composable function remembers the value produced by the "calculation" block.
+				-> this block is only evaluated during the initial composition, and any further recompositions will always return the already produced value.
+
+					ex)
+						==============================================================================
+						@Composable
+						inline fun <T> remember(calculation: @DisallowComposableCalls () -> T): T =
+							currentComposer.cache(false, calculation)
+						==============================================================================
+
+			* this annotation is best for inline lambdas that are called conditionally as an implementation detail, but should not be "alive" like composables are.
+
+		[@ReadOnlyComposable]
+			- body of this Composable won't write to the composition ever, only read from it.
+
+			- allows the runtime to avoid generating code that won't be needed if the Composable can live up to that assumption.
+
+			- some examples of read only Composables within the Compose libraries
+				-> Material "Colors", "Typography", the "isSystemInDarkTheme()" function, the "LocalContext", any calls to obtain application "resources" of any type - since they rely on the LocalContext-, or the LocalConfiguration.
+
+			* they are set once when running our program and are expected to stay the same and be available to be read from Composables on the tree.
+
+		[@NonRestartableComposable]
+			- makes it be a non-restartable Composable.
+			* (All Composables are restartable by default either, since inline Composables or Composables with non-Unit return types are not restartable).
+
+			- should rarely / never be needed for "correctness", but can be used as a very slight performance optimization.
+
+		[@StableMarker]
+			- @StableMarker meta-annotation, and the @Immutable and @Stable annotations.
+
+			* @StableMarker
+				-> meant for reusability
+
+				- requirements
+					+ result of calls to "equals" will always be the same for the same two instances.
+					+ Composition is always notified when a public property of the annotated type changes
+					+ All the public properties of the annotated type are also stable.
+
+				* any types annotated with "@Immutable" and "@Stable" will also need to imply above requirements.
+					-> Both annotations are flagged as a "@StableMarker", or in other words, as markers for stability.
+
+				* They are not validated at compile time!!
+					-> developer should decide when all the requirements are met.
+
+			- Two cases when annotating them directly is important:
+				1) when it's a required contract / expectation of an interface or abstract class.
+					-> annotation becomes not only a promise to the compiler but a "requirement" to the implementing declaration.
+
+				2) When the implementation is mutable, but is implemented in a way where the mutability is safe under the assumptions of stability.
+					-> ex) if the type is mutable because it has an internal cache of some sort, but the public API of the type is independent of the state of the cache.
+
+		[@Immutable]
+			- promise for the compiler about all the publicly accessible class properties and fields remaining unchanged after creation.
+
+			- "Stronger promise" than the language "val" keyword.
+				-> because "val" can point to a mutable data structure.
+
+			* The runtime can apply optimizations to the smart recomposition and skipping recomposition features.
+
+			- Example: "data class" with "val" properties only, where none of them have custom getters.
+				-> good for @Immutable.
+
+			- "@Immutable" is also a "@StableMarker"
+				-> inherits all the implications from it.
+
+		[@Stable]
+			- lighter promise than "@Immutable".
+
+			- when this annotation is applied to a type, it means the type is "mutable".
+
+			* "@Stable" tells the compiler that the function will always return the same result for the same inputs (pure).
+				-> only possible when the parameters of the function are also "@Stable", "@Immutable" or primitive types (those are considered Stable).
+
+			- Example) an object whose public properties do not change but cannot be considered immutable.
+				-> it has private mutable state, or it uses property delegation to a MutableState object, but is otherwise immutable in terms of how it is used from the outside.
+
+	
+
+
