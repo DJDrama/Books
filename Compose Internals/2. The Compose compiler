@@ -129,6 +129,316 @@ The Compose compiler
 			- Example) an object whose public properties do not change but cannot be considered immutable.
 				-> it has private mutable state, or it uses property delegation to a MutableState object, but is otherwise immutable in terms of how it is used from the outside.
 
-	
+	[Registering Compiler extensions]
+		- Compose compiler plugin
+			1) registers itself into the Kotlin compiler pipeline using a "ComponentRegistrar"
+				-> mechanism that the Kotlin compiler provides for this matter.
+
+	[Declaration checks]
+		- for example, ensure that Composable functions are not "suspend", since this is not supported.
+
+	[Diagnostic suppression]
+		- Compose registers a "ComposeDiagnosticSuppressor" to bypass some language restrictions that would othersie fail compilation, so that can unleash some specific use cases.
 
 
+				-> "ComponentRegistrar" registers a series of compiler extensions for different purposes.
+				-> will be in charge of erasing the use of the library and generating the reuiqred code for the runtime.
+
+	[Kotlin Compiler version]
+
+	[Static analysis]
+		- "linting"
+
+	[Static Checkers]
+
+	[Call chekcs]
+		- Compose compiler has "static" call checkes in place for validating composable function calls in many different contexts.
+
+		- "Call checker"
+			-> compiler extension used to perform static analysis on all calls across our codebase.
+			-> Implementation of visitor pattern.
+
+		- PSI(Program Structure Interface)
+			-> root of a structure representing a file's contents as a hierarchy of elements in a particular programming language.
+
+	[The Kotlin IR]
+		- Compiler plugins have access to the "intermediate representation" of the language (IR) before it yields the ultimate code for the target platform/s.
+
+		- Compiler can sneak in and replace parameters, add new ones, reshape the structure of code before "committing" it.
+
+			-> This is what Compose does for "injecting" the implicit extra parameter, the "Composer", to each Composable call.
+
+	[Lowering]
+		- translation compilers can do from higher level or more advanced programming concepts to a combination of lower level more atomic ones.
+
+		- form of normalization.
+
+		- Compose compiler needs to lower some of the concepts the library supports.
+			-> actual code generation phase for the Compose compiler plugin.
+
+			* Where it visits all the elements from the IR tree and tweaks the IR at will for those required based on the runtime needs.
+
+		(lowering phase)
+			1. Inferring class stability and adding the required metadata to understand it at runtime.
+
+			2. Transforming live literal expressions so they access a mutable state instance instead so it is possible for the runtime to reflect changes in the source code without recompiling.
+
+			3. Injecting the implicit "Composer" parameter on all Composable functions and forwarding it to all Composable calls.
+
+			4. Wrapping Composable function bodies for things like
+				- Generating different types of groups for control-flow
+
+				- Implementing default argument support
+
+				- Teach the function to skip recompositions
+
+				- Propagating relevant information regarding state changes down the tree so they can automatically recompose when they change.
+
+
+		[1. Inferring class stability]
+			- Smart recomposition
+				-> skipping recomposition of Composables when their inputs have not changed and "those inputs are considered stable".
+
+				1) Calls to "equals" for two instances always return the same result for the same two insatances. (comparison is coherent, so the runtime can rely on it.)
+
+				2) Composition is always notified when a public property of the type changes.
+					-> otherwise, we could end up with desynchronization between the input of our Composable and the latest state they reflect when materialized.
+
+				3) All public properties have primitive types or types that are also considered stable.
+
+			* All primitive types are considered stable by default, but also String, and all the function types. (They are immutable by definition.)
+
+			- Stable: they have no fields or stable fields only.
+				+ "class Foo"
+				+ "class Foo(val value: Int")
+
+			- Unstable
+				+ "class Foo(var value: Int)"
+
+			- Generics
+				ex)
+					================================================
+					class Foo<T>(val value: T)
+					================================================
+					-> "T" is not reified: will be unknown until the runtime.
+					-> Compose compiler calculates and puts a bitmask into the "StabilityInferred" annotation that indicates that calculating the stability of this class at runtime should depend on the stability of the corresponding type parameter/s.
+
+				ex)
+					================================================
+					class Foo<T>(val a: Int, b: T) {
+						val c: Int = b.hashCode()
+					}
+					================================================
+					-> "Stable" since hashCode is expected to always return the same result for the same instance.
+
+			- internal mutable state makes a class unstable.
+				ex)
+					=======================================================
+					class Counter {
+						private var count: Int = 0
+						fun getCount(): Int = count
+						fun increment() { count++ }
+					}
+					=======================================================
+					-> runtime can't really trust on it being consistent.
+
+			- interface is assumed to be unstable, because Compose doesn't know how it's going to be implemented!
+
+			- Unstable (not safe for the compiler to assume we'll be using immutable implementations only.)
+				ex) we can pass mutableList!
+					=======================================================
+					@Composable
+					fun <T> MyListOfItems(items: List<T>){
+						// ...
+					}
+					=======================================================
+
+			* We can make "@Stable" explicitly, which is considered unstable by Compose (interface generally used to be "Unstable", but we can mark it "@Stable")
+				ex)
+					=======================================================
+					@Stable
+					interface UiState<T: Result<T>> {
+						val value: T?
+						val exception: Throwable?
+
+						val hasError: Boolean
+							get() = exception != null
+					}
+					=======================================================
+
+	[Enabling live literals]
+
+	[Compose lambda memoization]
+		1) Non-composable lambdas
+			- Compiler generates IR for memoizing thse by wrapping each lambda into a "remember" call.
+
+		2) Composable lambdas
+			- Compiler generates IR to wrap them and add relevant information to teach the runtime how to store and read the expression to/from the Composition.
+				-> example: content Composable lambdas we pass to our Compose UI nodes when calling them.
+
+		(Non-composable lambas)
+			- optimizes lambda calls passed to Composable functions so they can be reused.
+
+			* Kotlin already optimizes lambdas when they don't capture any values by modeling them as "singletons", so there is a single reusable instance for the complete program.
+				<-> if lambdas capture values, those values might vary per call making it unique, and therefore a different instance per lambda will be needed.
+
+			- Compose has the ability to teach the runtime how to memoize lambda.
+				ex)
+					=======================================================
+					@Composable
+					fun NamePlate(name: String, onClick: ()->Unit) {
+						// ...
+						// onClick()
+						// ...
+					}
+					=======================================================
+					-> wrapping it into a call to "remember".
+					-> this call will remember the lambda expression based on the values it captures, "as long as these values are stable".
+
+					-> Allowing the runtime to reuse lambdas that already exist instead of creating new ones, as long as they values they capture match (input parameter included.)
+
+			* "memoized lambdas" cannot be inline!
+				-> otherwise there would be nothing to remember after they are inlined on their callers at compile time.
+
+
+			* This optimization only makes sense for lambdas that capture.
+				<-> otherwise, Kotlin's default optimization : representing those as singletons
+
+
+		(Composable Lambdas)
+			- also able to memoize Composable lambdas.
+				ex)
+					=======================================================
+					@Composable
+					fun Container(content: @Composable () -> Unit) {
+						// ...
+						// content()
+						// ...
+					}
+					=======================================================
+					-> the IR(Intermediate Representation) of the lambda expression is tweaked so it calls a "composable factory function" with some specific parameters first: composableLambda(...)
+
+					1) first parameter: current $composer(forwarded).
+						-> composableLambda($composer, ...)
+
+					2) second it will add the "key" parameter, obtained from a combination of the hashCode from the fully qualified name of the Composable lambda, and "the expression start offset".
+						-> composableLambda($composer, $key, ...)
+
+					3) boolean parameter "shouldBeTracked" is added.
+						-> determines whether this Composable lambda call needs to be tracked or not.
+
+					4) Finally, adds the lambda expression itself as the final parameter of the wrapper.
+						-> composableLambda($composer, $key, $shouldBeTracked, $arity, expression).
+
+			- Purpose of the Composable factory function
+				* Adding a replaceable group to the composition to store the lambda expression using the generated key.
+					-> teaches the runtime how to store and retrieve the Composable expression.
+
+			- when lambda does not capture values
+				-> Compose genrates a synthetic "ComposableSingletons" internal object per file where Composable lambds were found.
+
+
+	[Injecting the Composer]
+		- step where the Compose compiler relaces all Composable functions by new versions of them with an extra "Composer" synthetic parameter added.
+			-> parameter is also forwarded to every Composable call in code to ensure it is always available at any point of the tree.
+			-> that also includes calls to Composable lambdas.
+
+		* Inline lambdas that are not Composable are intentionally not transformed
+			-> since they'll disappear at compile time when they're inlined on their callers.
+
+		* expect functions are not transformed either.
+
+	[Comparison propagation]
+		- "$changed" parameter : extra parameter generated and added to every Composable.
+			-> this allows to skip recompositions.
+
+			ex)
+				=========================================================================
+				@Composable
+				fun Header(text: String, $composer: Composer<*>, $changed: Int)
+				=========================================================================
+				-> using bits (processors are good at bit processing by design)
+
+		-> Certain optimizations for the runtime.
+
+			1) skip "equals" comparisons to check whether an input parameter has changed from its latest stored value - from previous compositions.
+
+			2) parameter will have always either not changed since the last composition, or if changed.
+				-> no need to recompare. ("certain")
+
+			3) "uncertain"
+				-> compare it using equals and store it in the slot table.
+				-> 0 is passed, and the $changed parameter we are telling the runtime to do all the work.
+
+			ex)
+				=========================================================================
+				@Composable
+				fun Header(text: String, $composer: Composer<*>, $changed: Int) {
+					var $dirty = $changed
+
+					if($changed and 0b0110 === 0) {
+						$dirty = $dirty of if ($composer.changed(text)) 0b0010 else 0b0100
+					}
+
+					if($dirty and 0b1011 xor 0b1010 !== 0 || !$composer.skipping) {
+						f(text) // executes body
+					}
+					else {
+						$composer.skipToGroupEnd()
+					}
+				}
+				=========================================================================
+				- if value is considered "$dirty"(has changed) -> recomposition happens.
+
+	[Default parameters]
+		- "$default" parameter/s.
+
+		- Compose represents default arguments using a "$default" bitmask parameter that maps each parameter index to a bit on the mask.
+
+		- There is one "$default" param every n input parameters with default values.
+
+		- This bitmask provides info about whether the parameters have a value provided at the call site or not, to determine if the default expression must be used.
+
+			ex)
+				=========================================================================
+				// Before compiler (sources)
+				@Composable
+				fun A(x: Int = 0) {
+					f(x)
+				}
+
+				// After compiler
+				@Composable
+				fun A(x: Int, $changed: Int, $default: Int) {
+					// ...
+					val x = if($default and 0b1 != 0) 0 else x
+					f(x)
+					// ...
+				}
+				=========================================================================
+				-> once there is some bit dance, but the comparison simply checks the "$default" bitmask to default to 0 or keep the value passed for x.
+
+	[Control flow group generation]
+		- also inserts a "group" on the body of each Composable function.
+
+			+ Replaceable groups
+			(cleanup any writeen data when the group needs to be replaced)
+			
+			+ Movable groups
+			(move the data around by preserving the identity of the Composable all the time)
+
+			+ Restartable groups
+			(restart the function during recomposition)
+
+		(Replaceable groups)
+			- Each group can contain any number of children groups.
+
+		(Movable groups)
+			- can be reordered without losing identity.
+
+		(Restartable groups)
+			- "null" -> "recomposition will never be required".
+			- "non-null" -> compiler generates a lambda that teaches the runtime how to "restart" the Composable and therefore update the Composition.
+
+
+	[Klib and decoy generation]
