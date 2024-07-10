@@ -1,0 +1,121 @@
+The Compose runtime
+	
+	[The slot table and the list of changes]
+		- "slot table"
+			-> optimized in-memory structure that the runtime uses to store the "current state of the Composition".
+
+			-> filled with data during initial composition, and gets updated with every recomposition.
+
+	[The slot table in depth]
+		- "slot table"
+			-> optimized data structure for rapid linear access. (idea of a "gap buffer")
+
+			-> stores the data in two linear arrays.
+				1) information about the "groups" available in the Composition
+
+				2) other one stores the "slots" that belong to each group.
+
+		- "SlotReader" and "SlotWriter".
+			-> The slot table can have multiple active readers but "a single active writer".
+
+			-> The table can only be read "while it's not being written", for safety.
+
+			* "SlotWriter" remains invalid until the active writer is closed, since it will be modifying groups and slots directly and that could lead to race condition.
+
+		* A reader works as a "visitor".
+			-> reader can reposition, skip groups, read the value from the current slot, read values from specific indexes, and other things of the like.
+
+			-> read information about the groups and their slots from the arrays.
+
+		* A writer is used for writting groups and slots to the arrays.
+			-> can write data of any type -Any?- to the table.
+
+			-> SlotWriter relies on the "gaps" for groups and slots, it uses them to determine where to write (positions) within the arrays.
+
+			-> able to add, replace, move, and remove groups and slots.
+
+			-> keeps track of a list of "Anchors" pointing to specific indexes for rapid access through the table.
+
+			-> Position of each group - also called group index - in the table is also tracked via an Anchor.
+				* The Anchor is updated when groups are moved, replaced, inserted, or removed before the position the Anchor is pointing to.
+
+
+	[The list of changes]
+		- Every time a composition takes place, the Composable functions from our sources are executed and emit.
+
+		- "Emitting"
+			-> creating a "Deferred changes" to update the slot table.
+			-> "changes" are stored as a list.
+
+		* Any changes to the tree must depend on the current state of the Composition.
+
+		- When Composition is finished, it will be time for materialization, and those "reordered" changes will effectively execute.
+
+	[The Composer]
+		- The injected $composer
+			-> connects the Composable functions we write to the Compose runtime.
+
+	[Feeding the Composer]
+
+	[Modeling the Changes]
+		- all the emitting operations delegated to the "currentComposer" are internally modeled as "Changes" that are added to a list.
+
+		- A "Change" is a deferred function with access to the current "Applier" and "SlotWriter".
+
+		* "Emitting Changes"
+			= "recording changes"
+			= "scheduling changes"
+
+		* After composition, once all the Composable function calls complete and all the changes are recorded, "all of them will be applied in a batch by the applier".
+
+
+	[Optimizing when to write]
+
+	[Writing and reading groups]
+		- Once the composition is done
+			-> "composition.applyChanges()" is finally called to materialize the tree, and changes are written to the slot table.
+
+		- Removing
+			-> removing a group means removing it and all its corresponding slots from the table.
+
+			-> the Composer asks to reposition the SlotReader accordingly and make it skip the group(Since it's not there anymore), and record operations to remove all its nodes from the applier.
+
+		* Any modification actions need to be scheduled and applied later as a batch, to ensure they all make sense together.
+
+		* The Composer will also discard any pending invalidations for the removed group, since they won't happen ever.
+
+	[Remembering values]
+
+	[Recompose scopes]
+		- Every time a restart group is created, the Composer creates a "RecomposeScope" for it, and sets it as the "CurrentRecomposeScope" for the Composition.
+
+		* "RecomposeScope" models a region of the Composition that can be recomposed independently of the rest of the Composition.
+			-> For recomposing, the Composer will position the slot table to the starting location of this group, and then call the recompose block passed to the lambda.
+				-> invoke the Composable function again, which will emit one more time, and therefore ask the Composer to override its existing data in the table.
+
+		- Composer maintains a "Stack" of all the recompose scopes that have been invalidated.
+			-> they are pending to be recomposed, or need to be triggered in next recomposition.
+
+			* "currentRecomposeScope" is actually obtained by peeking into this Stack.
+
+
+	[SideEffects in the Composer]
+		* "SideEffect" always run after composition.
+			-> they are recorded as a function to call when changes to the corresponding tree are "already applied".
+
+			* this type of effect is "not stored in the slot table".
+
+	[Storing CompositionLocals]
+		- Composer also provides means to register "CompositionLocals" and obtain its values given as a key.
+			-> "CompositionLocal.current" calls rely on it.
+
+		- A Provider and its values are also stored as a group in the slot table, all together.
+
+		* "CompositionLocal"
+			-> tool for passing data down through the Composition implicitly.
+
+	[Storing source information]
+		- Composer stores source information in the form of "CompositionData" during Composition to be leveraged by Compose tools.
+
+	[Linking Compositions via CompositionContext]
+		
