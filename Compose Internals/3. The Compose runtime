@@ -118,4 +118,58 @@ The Compose runtime
 		- Composer stores source information in the form of "CompositionData" during Composition to be leveraged by Compose tools.
 
 	[Linking Compositions via CompositionContext]
+		- SubComposition
+			-> created inline with the only intention to construct a separate composition in the context of the current one to support independent invalidation.
+
+			-> connected to its parent Composition with a parent "CompositionContext" reference.
+
+			-> "CompositionContext" exists to link Composition and subcompositions together as a tree.
+
+			-> creating SubCompositions is usually done via "rememberCompositionContext".
+
+
+	[Accessing the current State snapshot]
+
+	[Navigating the nodes]
+		- Navigation of the node tree is performed by the applier, but not directly.
+
+		- records all the locations of the nodes as they are traversed by the reader and recording them in a "downNodes" array.
+
+	[Keeping reader and writer in sync]
+
+	[Applying the changes]
+
+	[Performance when building the node tree]
+		(Inserting top-down)
+		(Inserting bottom-up)	
+
+	[How changes are applied]
+
+	[Attaching and drawing the nodes]
+		- Owner
+			-> we call "setContent" from an "Activity, Fragment, or a ComposeView".
+				-> AndroidComposeView is created, attached to the View hierarchy, and set as the "Owner".
+				-> can perform invalidation on demand.
+
+	[Composition]
+		- Composable functions will never execute without a Composition process.
+			-> that's why another entry point is required: "setContent".
+				-> this is the integration layer with the target platform, and a "Composition" is created and initiated here.
+
+	[Creating a Composition]
+		- "WrappedComposition"
+			-> a decorator that knows how to link a "Composition" to an "AndroidComposeView" so it connects it directly to the Android View System.
+
+	[The initial Composition process]
+
+	[Applying changes after initial Composition]
+
+	[Additional information about the Composition]
+
+	[The Recomposer]
+
+	[Spawrning the Recomposer]
+
+	[Recomposition process]
 		
+
