@@ -1,0 +1,74 @@
+Chapter 3: Jetpack Compose Layout Basics
+	
+	[Introduction to Jetpack Compose]
+		- Jetpack Compose: modern "declarative" UI toolkit.
+
+	[Declarative versus imperative UIs]
+		- "Imperative"
+			-> specify step-by-step the instructions describing how the UI should be built and updated
+
+		- "Declarative"
+			-> focus on describing the desired outcome rather than specifying the step-by-step instructions.
+
+			-> framework takes care of updating the UI based on changes in the application state.
+
+
+	[Composable functions]
+		- meant to be reusable
+
+		- pure functions
+			-> they don't have any side effects.
+			-> produce same output when called several times with the same input.
+
+	[Modifiers]
+		1) Change composables' size, behavior, and appearance.
+
+		2) Add more information
+
+		3) Process user input
+
+		4) Add interactions such as clicks and ripple effects
+
+		* dp: density-independent
+			-> remain consistent and adjust properly to different screen densities.
+
+	[Jetpack Compose layouts]
+		1. Composition
+			- initial phase
+			- Compose compiler creates a tree of UI elements.
+			- Each element is a function that represents a UI element.
+			- Composition step -> determine which composables need updates and which ones can be reused.
+				-> compare a previous tree of composables with the new tree and only updating the ones that have changed. (only elements with updates are updated)
+
+		2. Layout
+			- after "Composition" phase.
+			- Compose compiler takes the tree generated in the "Composition" phase and determines its size, position, and layout.
+
+			* responsible for determining the final position and size of each UI element on the screen.
+			* also creating the final layout tree used in the drawing phase.
+
+		3. Drawing
+			- last phaes of transforming our UI to state.
+			- Compose compiler takes the final layout tree crated in the "layout" phase and uses it to draw the elements on the screen.
+
+			* responsible for rendering the final UI on the screen.
+
+	[Column]
+		- organize items vertically.
+
+	[Row]
+		- organize items horizontally.
+
+	[Box]
+		- position child elements in a flexible way using the X and Y coordinates.
+
+	[Lists]
+		- display list of items.
+		- Compose provides "LazyColumn" and "LazyRow" components.
+			-> optimized for large datasets and at times are not suitable for all use cases.
+
+		- "LazyVerticalGrid", "LazyHorizontalGrid"
+			-> lazy grids
+
+	[ConstraintLayout]
+		- create responsive layouts.
