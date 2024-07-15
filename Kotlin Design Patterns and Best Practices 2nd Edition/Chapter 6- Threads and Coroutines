@@ -1,0 +1,32 @@
+Chapter 6- Threads and Coroutines
+
+	[Looking deeper into threads]
+		- "daemon threads"
+			-> don't prevent JVM from exiting and are very good for non-critical background tasks.
+				ex)
+					thread(isDaemon = true) { ... }
+
+			* when the parent thread stops, all the daemon threads stop as well.
+
+		(Thread safety)
+			- The reason "Synchronized" and "Volatile" are annotations and not keywords in Kotlin
+				-> Kotlin can be compiled on other platforms in addition to JVM.
+
+		(Why are threads expensive?)
+			* Each thread needs a new memory stack.
+				-> each thread requires one megabyte of RAM for its stack.
+				-> might result either OutOfMemoryError or the entire system becoming very slow.
+
+	[Introducing coroutines]
+		- lightweight threads
+		- another library provided by JetBrains.
+
+		(Starting coroutines)
+
+		(Coroutines under the hood)
+			* Instead of blocking an entire thread, coroutines suspend themselves, allowing the thread to execute another piece of code in the meantime.
+ 	
+ 		* "GlobalScope"
+ 			-> delicate API
+ 			-> no structured concurrency
+ 			-> prone to resource leaks when used incorrectly.
