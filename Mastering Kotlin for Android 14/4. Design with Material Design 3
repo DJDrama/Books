@@ -1,0 +1,229 @@
+Chapter 4: Design with Material Design 3
+
+ 	[Material Design 3 and its features]
+ 		(features)
+ 			1. Dynamic color
+ 				- Only works for Android 12 and above devices.
+
+ 			2. More components
+
+ 			3. Simplified typography
+ 				- display, headline, title, body, and label
+ 				- with each supporting small, medium, and large sizes.
+ 				-> easier for us to define styles all acrooss our apps.
+
+ 			4. Improved color scheme
+ 				- easier to support both dark and light color schemes.
+ 				- Material Theme Builder
+ 					-> generate and export dark and light theme colors for our apps.
+
+ 			5. Simplified shapes
+ 				- Extra small, Small, Medium, Large, and Extra Large.
+
+ 		(Material componenets)
+ 			<Top app bars>
+ 				- types (same width, only differ in height and positioning of the title text)
+ 					1. center-aligned
+ 						-> "CenterAlignedTopAppBar(title = { ... })"
+
+ 					2. small
+ 						-> "TopAppBar"
+
+ 					3. medium
+ 						-> "MediumTopAppBar"
+
+ 					4. large
+ 						-> "LargeTopAppBar"
+
+ 			<FloatingActionButton>
+ 				- also "ExtendedFloatingActionButton"
+ 					-> wider than the normal "FloatActionButton" components.
+ 						ex)
+ 							========================================================
+ 							ExtendedFloatingActionButton(
+ 								onClick = { /* TODO */ },
+ 								content = {
+ 									Icon(
+ 										imageVector = Icons.Default.Add,
+ 										contentDescription = "New Chat"
+ 									)
+ 									Text(
+ 										modifier = Modifier.padding(10.dp),
+ 										text = "New Chat"
+ 									)
+ 								}
+ 							)
+ 							========================================================
+ 							-> "content" : RowScope
+
+ 				- sizes
+ 					1. large
+ 					2. normal
+ 					3. small
+
+ 			<Bottom app bars>
+
+ 			<Scaffold>
+ 				- used to create a layout that implements the Material Design guidelines.
+ 				- container that contains the top bar, bottom bar, floating action button, and the content.
+
+ 				ex)
+ 					========================================================
+ 					Scaffold(
+ 						topBar = {
+ 							TopAppBar ...
+ 						},
+ 						bottomBar = {
+ 							BottomAppBar ...
+ 						},
+ 						floatingActionButton = {
+ 							FloatingActionButton ...
+ 						},
+ 						content = { paddingValues ->
+ 							Column(
+ 								modifier = Modifier
+ 									.fillMaxSize()
+ 									.padding(paddingValues)
+ 									.background(Color.Gray.copy(alpha=0.1f)),
+ 								verticalArrangement = Arrangement.Center,
+ 								horizontalAlignment = Alignment.CenterHorizontally
+ 							) {
+ 								Text(...)
+ 							}
+ 						}
+ 					)
+ 					========================================================
+
+ 		(Using Material Design in our apps)
+ 			* Material Theme Builder
+ 				-> https://m3.material.io/theme-builder
+
+ 		(Designing UIs for large screens and foldables)
+ 			- Material3 offers canonical layouts
+ 				1) List-detail view
+ 					-> place a list of items on the left and, on the right, show the details of a single item.
+
+ 				2) Feed
+ 					-> arrange content elements such as cards in a customizable grid, which provides a good view of a large amount of content.
+
+ 				3) Supporting pane
+ 					-> organize app content into primary and secondary display areas.
+
+ 			- "WindowSizeClass"
+ 				-> provide a way to get the screen size.
+
+ 			<Using WindowSizeClass>
+ 				- dependency
+ 					 implementation 'androidx.compose.material3:material3-window-size-class'
+
+ 				- categories
+ 					1) Compact (below 600dp)
+ 						-> portrait mode
+
+ 					2) Medium (600dp ~ 840dp)
+ 						-> tables and foldables in portrait mode
+
+ 					3) Expanded (more than 840dp)
+ 						-> tables and foldables in landscape mode
+ 						-> phones in landscape mode
+ 						-> desktops
+
+ 					ex)
+ 						=================================================================================
+ 						when(calculateWindowSizeClass(activity = this).widthSizeClass) {
+
+ 							WindowWidthSizeClass.Compact -> {
+ 								SomeScreen(
+ 									navigationOptions = NavigationOptions.BottomNavigation,
+ 									showDetails = false
+ 								)
+ 							}
+
+ 							WindowWidthSizeClass.Medium -> {
+ 								SomeScreen(
+ 									navigationOptions = NavigationOptions.NavigationRail,
+ 									showDetails = false
+ 								)
+ 							}
+
+ 							WindowWidthSizeClass.Expanded -> {
+								SomeScreen(
+ 									navigationOptions = NavigationOptions.Drawer,
+ 									showDetails = false
+ 								)
+ 							}
+
+ 							else -> {
+ 								SomeScreen(
+ 									navigationOptions = NavigationOptions.BottomNavigation,
+ 									showDetails = false
+ 								)
+ 							}
+ 						}
+ 						=================================================================================
+
+ 		(Making our app accessible)
+ 			- Jetpack Compose uses "semantics" to make our apps accessible.
+ 				-> "semantics" are used to describe the UI elements in our apps.
+
+ 				1) All clickable or touchable elements or those that require user interaction are large enough to be easily tapped or clicked.
+ 					-> size at least 48dp by 48dp
+
+ 				2) add content descriptions to our composables. (Icon and Image ...)
+ 					-> always provide a content description for these components.
+
+ 				3) label clickable elements.
+ 					ex) pass a clickable label to the clickable modifiers.
+ 						-> enables us to add descriptions to our clickable elements.
+ 							=========================================================================
+ 							Text(
+ 								modifier = Modifier
+ 									.clickable(
+ 										onClick = { /* TODO */ },
+ 										onClickLabel = "Click Me"
+ 									)
+ 									.padding(10.dp),
+ 								text = "Click Me"
+ 							)
+ 							=========================================================================
+
+ 				4) describe headers.
+ 					ex)
+ 						=========================================================================
+ 						Text(
+ 							modifier = Modifier
+ 								.semantics { heading() }
+ 								.padding(10.dp),
+ 							text = "Heading One"
+ 						)
+ 						=========================================================================
+
+ 				5) provide information about the state of our composables.
+ 					ex)
+ 						=========================================================================
+ 						Button(
+ 							modifier = Modifier
+ 								.semantics { stateDescription = "Disabled" }
+ 								.padding(10.dp),
+ 							onClick = { /* TODO */ },
+ 							enabled = false
+ 						) {
+ 							Text(text = "Disabled Button")
+ 						}
+ 						=========================================================================
+ 						-> helps us inform our users about the state of our composables.
+
+ 				6) "mergeDescendants"
+ 					-> merge the semantics of the children composables.
+ 						ex)
+ 							=========================================================================
+ 							Column(
+ 								modifier = Modifier
+ 									.padding(10.dp)
+ 									.sematics(mergeDescendants = true) { }
+ 							) {
+ 								Text(text = "Heading One")
+ 								Text(text = "Heading Two")
+ 								Text(text = "Heading Three")
+ 							}
+ 							=========================================================================
