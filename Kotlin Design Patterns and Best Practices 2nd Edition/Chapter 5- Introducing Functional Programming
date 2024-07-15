@@ -1,0 +1,179 @@
+[Introducing Functional Programming]
+	
+	(Reasoning behind the functional approach)
+		- Exceptionally good at running parallel tasks.
+
+		1) pure functions
+			-> easier to reason about and test.
+
+		2) more declarative than imperative
+			-> dealing with the "what" instead of "how"
+
+	(Immutability)
+		- the moment the function receives input to the moment the function returns output
+			-> the object doesn't change!
+
+		* functions that don't return any values should be avoided in functional programming.	
+			-> as it usually means that they have a side effect.
+
+
+		[The problem with shared mutable state]
+			ex)
+				======================================================================
+				import kotlin.concurrent.thread
+
+				data class Score(
+				    var score: Int
+				)
+
+				val scores = arrayOf(Score(0))
+				fun main() {
+				    val threads = List(2) {
+				        thread {
+				            for (i in 1..1000) {
+				                scores[0].score++
+				            }
+				        }
+				    }
+				    threads.forEach {
+				        it.join()
+				    }
+				    println(scores[0].score) // sometimes not 2000
+				}
+				======================================================================
+				-> race condition for mutable "score" variable.
+				-> not "atomic".
+				* immutable collection can have mutable objects inside. (not thread-safe)
+
+	(Function as values)
+		[Learning about higher-order functions]
+			- "literal function" : function assigned to a variable
+			- "trailing lambda", or "call suffix"
+
+		[Higher-order functions in a standard library]
+			- "forEach" : one of the most basic examples of a higher-order function.
+
+	(The it notation)
+		* "reusing code" -> one of the basic Kotlin principles.
+
+		[Closures]
+			- "closure"
+				-> The lambda has access to all of the local variables of the function that wraps it, and those local variables persist, as long as the reference to the lambda is kept.
+
+					ex)
+						==========================================================
+						fun counter(): () -> Int {
+						    var i = 0
+						    return { i++ }
+						}
+
+						fun main() {
+						    val next = counter()
+						    println(next())	// 0
+						    println(next())	// 1
+						    println(next())	// 2
+						}
+						==========================================================
+
+		[Pure functions]
+			- function without any side effects. <-> Impure functions(hard to test)
+
+			- "Side effect"
+				-> anything that accesses or changes the external state.
+
+			- "External State"
+				-> non-local variable
+				-> any kind of IO(reading or writing to a file or using any kind of network capabilities.)
+
+			ex) Side Effect -> Impure -> hard to test
+				==========================================================
+				// we cannot test this function.
+				fun sayHello() = println("Hello")
+
+				// proper way
+				fun hello() = "Hello"
+
+				fun main() {
+				    println("Hello" == hello())
+				}
+				==========================================================
+
+			- "refrential transparency"
+				-> a property of a function that allows it to be replaced by its equivalent output.
+				-> if you call the function a second time with the same arguments, you're guranteed to get the same returning value.
+
+		[Currying]
+			- "currying"
+				-> way to translate a function that takes a number of arguments into a chain of functions, where each function takes a single argument.
+					ex)
+						==========================================================
+						fun subtract(x: Int, y: Int): Int {
+						    return x - y
+						}
+
+						fun main() {
+						    println(subtract(50, 8))
+
+						    /** curring */
+						    // subtract(50)(8)
+						}
+						==========================================================
+						-> Currying allows us to take a function with multiple arguments and convert this function into a set of functions, where each one takes only a single argument.
+
+					ex)
+						==========================================================
+						fun subtract(x: Int): (Int) -> Int {
+						    return fun(y: Int): Int {
+						        return x - y
+						    }
+						}
+
+						fun subtractSimplified(x: Int) = fun(y: Int): Int {
+						    return x - y
+						}
+
+						fun subtractShortestForm(x: Int) = { y: Int -> x - y }
+
+						fun main() {
+						    println(subtract(50)(8))    // 42
+						    println(subtractSimplified(50)(8))  // 42
+						    println(subtractShortestForm(50)(8))  // 42
+						}
+						==========================================================
+
+			- real-world scenario -> "logging"
+				ex)
+					=============================================================================
+					enum class LogLevel {
+					    ERROR, WARNING, INFO
+					}
+
+					fun log(level: LogLevel, message: String) = println("$level: $message")
+
+					val errorLog = fun(message: String) {
+					    log(LogLevel.ERROR, message)
+					}
+
+					// curried version
+					fun createLogger(level: LogLevel): (String) -> Unit {
+					    return { message: String ->
+					        log(level, message)
+					    }
+					}
+
+					fun main() {
+					    val infoLogger = createLogger(LogLevel.INFO)
+					    infoLogger("Log Something")
+					}
+					=============================================================================
+
+		[Memoization]
+			- for example, use map to store the results
+
+			* we trade one resource, CPU time, for another resource, which is memory.
+
+	(Using expressions instead of statements)
+		* "statement" : block of code that doesn't return anything.
+		* "expression": returns a new value.
+
+		- Functional programming tries to avoid mutating the state as much as possible.
