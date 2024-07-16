@@ -1,0 +1,152 @@
+Chapter 7: Controlling the Data Flow
+    [Relative principles]
+        - Responsive
+        - Resilient
+        - Elastic
+        - Message-driven
+
+        (Responsive principle)
+            - telling something that something is done or so.
+
+        (Resilient Principle)
+            - to achieve resiliency
+                1) Delegation
+                2) Replication
+                3) Containment and isolation
+
+        (Elastic principle)
+            - Elasticity builds on scalability.
+
+        (Message-driven principle)
+            - referred to as a "asyncrhonous message passing"
+
+    [Higher-order functions on collections]
+        (Mapping elements)
+            - map() function
+
+        (Filtering elements)
+            - filter() function
+
+        (Finding elements)
+            - find() function <-> findLast()
+                -> returns null if no element found.
+
+        (Executing code for each element)
+            - terminator functions
+                -> functions that return a single value, such as Unit or, for example, a number.
+                    ex) forEach
+                        <-> onEach : returns a collection again.
+
+        (Summing up elements)
+            - reduce() function
+
+        (Getting rid of nesting)
+            - flatMap() or flatten()
+                -> turn collection into a single list containing all of the nested elements.
+
+    [Exploring concurrent data structures]
+        (Sequences)
+            - sequences are lazy <-> collections are eager.
+
+                ex)
+                    ============================================================
+                    import kotlin.system.measureTimeMillis
+
+                    fun main() {
+                        val numbers = (1..1_000_000).toList()
+                        println(
+                            measureTimeMillis {
+                                numbers.map {
+                                    it * it
+                                }.take(1)
+                            } // 69ms
+                        )
+
+                        println(
+                            measureTimeMillis {
+                                numbers.asSequence().map {
+                                    it * it
+                                }.take(1)
+                            } // 7ms
+                        )
+                    }
+                    ============================================================
+                    -> sequence execute much faster
+                    -> lazy(only a single number from the entire list is squared!)
+
+        (Channels)
+            - to communicate between coroutines, Kotlin uses "channels".
+
+            - CSP (Communicating Sequential Processes)
+
+            <Producers>
+                - if we need a coroutine that supplies a stream of values, we could use "produce()" function.
+
+            <Actors>
+                - actor() is a coroutine bound to a channel.
+                    -> channel going into the coroutine.
+                        ex)
+                            ============================================================
+                            val actor = actor {
+                                channel.consumeEach{
+                                    println(it)
+                                }
+                            }
+
+                            actor.send(...)
+
+                            actor.close()
+                            ============================================================
+
+                - Kotlin, an actor has only an "inbound" mailbox in the form of a channel.
+
+            <Buffered Channels>
+                - Every channel as a capacity (0 by default)
+
+                - Channels are a relatively low-level concurency construct.
+
+        (Flows)
+            - cold, asynchronous stream
+            - implementation of the "Observable design pattern"
+                -> "publish" = "emit"
+                -> "subscribe" = "collect"
+
+            * Flows are cold streams
+            * Flows use backpressure
+                -> next number is not sent until the previous number is received.
+                -> similar to the behavior of unbuffered channels and different from buffered channels, where the producer can send numbers faster than the consumer can consume them.
+
+            <Buffering flows>
+                - consumer can specify that the flow should be buffered by using the "buffer()" function.
+                    ex)
+                        ============================================================
+                        numbersFlow.buffer().collect { number->
+                            delay(1000)
+                            println("$coroutineId received $number")
+                        }
+                        ============================================================
+                        -> produces values without any backpressure from the consumer until the buffer is filled.
+                        -> then the consumer can collect the values at its own pace.
+
+            <Conflating flows>
+                - "conflated" does not store all of the messages.
+                    -> use case example) Stock showing the recent price
+                    
+                - "keeps" the most recent values.
+                    ex)
+                        ============================================================
+                        stock.conflate().collect { number ->
+                            delay(1000)
+                            seconds++
+                            println("$seconds seconds -> received $number")
+                        }
+                        ============================================================
+                        (prints)
+                            4 seconds -> received 30
+                            5 seconds -> received 40
+                            6 seconds -> received 49
+                            ...
+
+
+
+
