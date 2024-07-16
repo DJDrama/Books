@@ -1,0 +1,97 @@
+5. Architect Your App
+	
+	[Introduction to app architecture]
+		- Benefits
+			1) Separation of concerns (SOC)
+				-> architecture allows us to separate our code into different layers.
+				-> Each layer has its responsibility.
+				-> prevents things from being mixed up and makes it easier to maintain our code.
+
+			2) Easy testing
+				-> test each layer of our code in isolation since things are not tightly coupled.
+
+			3) Easy to maintain
+				-> can easily make changes to our code without affecting other parts of our code.
+				-> easy to maintain over the long term.
+				-> can also swap in and out different parts of the code
+				-> can test the different implementations and ensure that nothing breaks.
+
+			4) Easy to scale
+				-> easily add new features to our code without affecting other parts of our code.
+
+			5) Easy to work in teams
+				-> each team member or team can work on a different layer of the code.
+				-> work concurrently on different parts of the codebase.
+
+			6) Promotes reusability
+				-> place some commonly used code across the projects in common packages or modules.
+				-> re-used across the project without having to repeat the code.
+
+
+		- Arhitectures or Presentation mode design patterns
+			1) MVVM
+				+ Model: holding the data
+				+ View: displaying the data
+				+ ViewModel: holding the state of the data
+
+			2) MVI
+				+ Model: holding the data
+				+ View: displaying the data
+				+ Intent: represents user actions or events that are dispatched to the model to update a state.
+					-> unidirectional "data flow", where data flow in the same direction.
+
+			3) MVC
+				+ Model: holding the data
+				+ View: displaying the data
+				+ Controller: responsible for and acts as an intermediary between the model and the view.
+					-> has tight coupling between the layers, making it hard to test and scale.
+
+			4) MVP
+				+ Model: holding the data
+				+ View: displaying the data
+				+ Presenter: contains presentation logic and acts as an intermediary between the model and the view.
+					-> easy to test and good SOC, but lot of boilerplate code since every view must have its own presenter.
+					-> large learning curve and can become complex very easily.
+
+	[Deep Diving into MVVM]
+		- "repository pattern"
+			-> allows us to abstract the data layer from the rest of the app.
+			-> get data from different sources without affecting the rest of the app.
+			-> easy to test : we can easily mock the repository and test the different layers of our app in isolation.
+
+		(How LazyColumn works)
+			- "On-demand composing"
+				-> LazyColumn composes only the visible items on the screen.
+				-> as the user scrolls, it dynamically composes and recomposes items
+				-> ensures that only the necessary elements are rendered at any given time.
+
+			- "Recycling items"
+				-> reuses composables that "move" in and out of the viewport
+				-> minimizes memory usage and prevents unnecessary recomposition.
+
+			- "Optimized for performance"
+				-> optimizes the rendering process by lazily loading
+				-> making well-suited for displaying large datasets without consuming excessive resources.
+
+		(Benefits of LazyColumn)
+			1) Efficient memory usage
+				-> Composes only visible items
+
+			2) Improved rendering performance
+				-> lazy-loading mechanism
+				-> avoids the overhead of rendering and manaaging all items simultaneously.
+
+			3) Simplified UI code
+				-> more straightforward and readable compared to traditional Android View approaches(RecyclerView)
+
+			4) Automatic recomposition
+				-> as the data source changes, LazyColumn automatically recomposes only the affected items
+				-> reducing the need for manual interventions to update the UI.
+
+			5) Adaptable for various screen sizes
+				-> adapts well to different screen sizes and resolutions
+				-> offers a consistent and responsive user experience across various devices.
+
+		(Creating a composable)
+			
+
