@@ -1,0 +1,46 @@
+6. Network Calls with Kotlin Coroutines
+	
+	[Setting up Retrofit]
+		- Kotlinx serialization JSON
+			-> Kotlin-centric development
+			-> Declarative syntax
+			-> Compile-time safety
+			-> Custom serialization strategies
+			-> Seamless integration with Kotlin ecosystem
+
+	[AnimatedVisibility]
+		ex)
+			=========================================================
+			@Composable
+			fun PetList(modifier: Modifier) {
+			    val petsViewModel: PetsViewModel = koinViewModel()
+			    val petsUIState by petsViewModel.petsUIState.
+			collectAsStateWithLifecycle()
+			    Column(
+			        modifier = modifier
+			            .padding(16.dp),
+			        verticalArrangement = Arrangement.Center,
+			        horizontalAlignment = Alignment.CenterHorizontally
+				){
+
+					AnimatedVisibility(visible = petsUIState.isLoading){
+			            CircularProgressIndicator()
+			        }
+
+			        AnimatedVisibility(
+			            visible = petsUIState.pets.isNotEmpty()
+					){
+						LazyColumn {
+			                items(petsUIState.pets) { pet ->
+			                    PetListItem(cat = pet)
+							} 
+						}
+			        }
+
+			        AnimatedVisibility(
+						visible = petsUIState.error != null ){
+					            Text(text = petsUIState.error ?: "")
+					        }
+					} 
+			}
+			=========================================================
