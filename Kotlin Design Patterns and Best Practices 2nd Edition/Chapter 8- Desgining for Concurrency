@@ -1,0 +1,93 @@
+Chapter 8: Desgining for Concurrency
+
+	[Deferred Value]
+		- goal
+			-> return a reference to a result of an asynchronous computation.
+
+			ex) async() returns "Deferred" value
+
+		- implementation of the "Proxy" design pattern and the "State" design pattern.
+
+			ex) Always complete "Deferred" by calling either of "complete" or "completeExceptionally"
+				==============================================================
+				suspend fun valueAsync(): Deferred<String> = coroutineScope {
+					val deferred = CompletableDeferred<String>()
+					launch {
+						delay(100)
+						if(Random.nextBoolean()) {
+							deferred.complete("OK")
+						} else {
+							deferred.completeExceptionally(
+								RuntimeException()
+							)
+						}
+					}
+					deferred
+				}
+
+				// ...
+				runBlocking {
+					val value = valueAsync()
+					value.await()
+				}
+				// ...
+				==============================================================
+
+	[Barrier]
+		- async & awaitAll()
+
+		- "Barrier" design pattern
+			-> creates a rendezvous point for multiple asynchronous tasks.
+
+	[Scheduler]
+		- "Sechduler" design pattern
+			-> decouple "what" is being run from "how" it's being run and optimize the use of resources when doing so.
+
+			ex) Dispatchers (are an implementation of the Scheduler design pattern)
+				-> decoupl the coroutine (what) from underlying thread pools (how)
+
+	[Pipeline]
+		- "Pipeline" design pattern
+			-> allows us to scale heterogenous work, consisting of multiple steps of varying complexity across multiple CPUs, by breaking the work into smaller, concurrent pieces.
+
+	[Fan Out]
+		- "Fan Out" design pattern
+			-> distribute work between multiple concurrent processors, also known as "workers".
+
+	[Fan In]
+		- "Fan In" design pattern
+			-> combine results from multiple workers.
+			-> helpful when our workers produce results and we need to gather them.
+			-> Instead of multiple coroutines reading from the same channel, multiple coroutines can write their results to the same channel.
+
+	[Racing]
+		- "Racing" design pattern
+			-> runs multiple jobs concurrently, picking the result that returns first as the "winner" and discarding others as "losers".
+
+			-> "select()" function on channels.
+
+	[Unbiased select]
+		- if two events happen at the same time, it will select the first clause.
+
+		- "select" clause will always pick the first channel avaialble in the order they are declared.
+
+		- "selectUnbiased"
+			-> unlike the regular "select" clause, "selectUnbiased" doesn't care about the order.
+			-> if more than one result is available, it will pick one randomly.
+
+	[Mutex]
+		- aka "mutual exclusion"
+			-> protect a shared state that can be accessed by multiple coroutines at once.
+
+			ex)
+				========================================
+				mutex.withLock { ... }
+				========================================
+
+	[Sidekick Channel]
+		- "Sidekick channel" design pattern
+			-> allows us to offload some work from our main worker to a "back worker"
+			
+			-> useful technique to provide fallback values.
+
+			-> use one in cases when you need to consume a consistent stream of data and cannot easily scale your consumers.
