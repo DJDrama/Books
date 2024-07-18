@@ -1,0 +1,123 @@
+Chapter 9: Idioms and Anti-Patterns
+	
+	[Using the scope functions]
+		(Let function)
+			- invoke a function on a nullable object.
+
+		(Apply function)
+			- when need to initialize a mutable object.
+
+		(Also function)
+			- useful when you want to have a side effect on a chain of calls.
+
+		(Run function)
+			- similar to "apply" but returns the last result of some computation.
+
+		(With function)
+			- "with" is not an extension function!
+				-> "scope".with { ... } // Not Possible
+
+			- with() receives the object you want to scope as an argument.
+
+	[Type checks and casts]
+		- Kotlin has "smart casts"
+			-> when you check something using "is", then you don't need to use "as"(explicit casts)
+
+		- "safe cast operator" = as?
+			-> returns null if the object cannot be cast, instead of throwing an exception.
+
+	[An alternative to the try-with-resources statement]
+		- "use" function
+			ex)
+				=========================================================
+				val br = BufferedReader(
+					FileReader("./src/main/kotlin/7_TryWithResource.kt")
+				)
+
+				br.use {
+					println(it.readLines())
+				}
+				=========================================================
+
+		* object which want to use the "use" function should implement "Closeable" interface.
+			-> the "Closeable" object will be closed as soon as we exit the "use{ ... }" block.
+
+	[Inline functions]
+		- compiler will replace the call with the concrete function body.
+		- use the "inline" function if it's a higher-order function that receives a lambda as one of its arguments.
+
+		* Don't use "inline" if you have more than a few lines of code. (trade-off between the size of your app and its performance.)
+
+	[Implementing Algebraic Data Types]
+		- ATD(Algebraic Data Types)
+			-> very similar to "Composite design pattern"
+
+	[Reified generics]
+		- function that uses "reified" type must be declared as "inline".
+			-> due to type erasure on the JVM.
+
+		(benefits)
+			1) clear method signature, without the need to pass a class as an argument.
+			2) ability to use the "is" construct inside the function.
+			3) type-inference friendly
+				-> if the "type" parameter can be inferred by the compiler, it can be completely omitted.
+
+		ex) Function Overloading problem
+			================================================================
+			fun main() {
+				// COMPILE ERROR: Kotlin: Overload resolution ambiguity:
+			    printList(listOf(1, 2, 3)) 
+			    printList(listOf(1L, 2L, 3L))
+			}
+
+			fun printList(list: List<Int>) {
+			    println("This is a list of Ints")
+			    println(list)
+			}
+
+			fun printList(list: List<Long>) {
+			    println("This is a list of Longs")
+			    println(list)
+			}
+			================================================================
+			-> types are erased during the compile time, so ambiguity happens.
+
+		ex) Reified for printList
+			================================================================
+			fun main() {
+			    printList(listOf(1, 2, 3))
+			    printList(listOf(1L, 2L, 3L))
+			}
+
+			inline fun <reified T : Any> printList(list: List<T>) {
+			    when {
+			        1 is T -> println("This is a list of Int")
+			        1L is T -> println("This is a list of Long")
+			    }
+			    println(list)
+			}
+			================================================================
+			(prints)
+				This is a list of Int
+				[1, 2, 3]
+				This is a list of Long
+				[1, 2, 3]
+
+	[Using constants efficiently]
+		- variable "val" inside a companion object becomes a "private static final" variable and creates a "getter".
+			-> inefficient, since under the hood, we call the function to get the value.
+
+		- "const val" inside a comanion object becomes a "public static final" variable and does not create a getter. 
+			-> we can just use the variable with a function call.
+
+		- when "const val" is inside an "object", then the object name is just used for namespacing.
+
+	[Constructor overload]
+		- better to have "default parameter values and named arguments" instead of constructor telescoping.
+
+	[Validating input]
+		- "require"
+			-> check arguments (throws IllegalArgumentException)
+
+		- "check"
+			-> check the state of your object. (throws IllegalStateException)
