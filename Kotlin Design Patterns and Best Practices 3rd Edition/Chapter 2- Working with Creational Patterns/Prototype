@@ -1,0 +1,12 @@
+[Prototype]
+	- focuses on customization and the creation of objects that are similar but have slight variations.
+
+	- concept: enable easy cloning of an object.
+		(two reasons)
+			1) beneficial in cases where creating an object is resource-intensive or expensive.
+				ex) if the object needs to be fetched from a database or involves complex initialization processes.
+
+			2) useful when you need to create objects that are similar but have slight variations.
+				-> by cloning a prototype object, you can avoid the repetition of similar parts and customize the coned objects as needed.
+
+	- In Kotlin, data classes have "built-in" copy() method.

@@ -1,0 +1,50 @@
+[Factory Method]
+	- why do we need a method for object creation when consturctors already serve that purpose?
+		-> what if consturctors have limitations?
+
+	- real-world scenarios
+		-> often employed by libraries that need to parse configuration files, and conver them into runtime objects.
+		-> provides a flexible and extensible approach to creating objects based on the configuration provided.
+
+	(Static Factory Method)
+		- often confused with the "Factory Method"
+
+		<Advantages>
+			1) Explicit naming
+				-> more descriptive naming of object constructors, bneficial when a class has multiple constructors.
+				-> improves code readability and makes the purpose of each constructor clearer.
+
+			2) Exception handling
+				-> typically constructors should not throw exceptions, Static Factory Methods can.
+				-> more explicit and flexible error handling.
+
+			3) Flexibility in object creation.
+				-> can offer different strategy for object creation.
+				-> can offer optimizations or caching mechanisms for objects with complex or slow construction processes.
+
+		- "Long.valueOf()" method in Java
+			-> does not always create a new instance.
+			-> checks a cache to see if the value has been parsed before.
+			-> returns a cached instance, reducing garbage collection and improving performance by reusing instances.
+
+		- Constructor always create a specific class instance, a Static Factory Method can produce an instance of the class itself or one of its subclasses.
+			-> dynamic object creation based on conditions or configurations.
+
+
+		ex) restrict object instantiation to only occur through the Static Factory Method.
+			=============================================================================
+			class Server private constructor(port: Long) {
+				// ...
+
+				companion object {
+					fun withPort(port: Long) = Server(port)
+				}
+			}
+
+			// usage
+			val server = Server.withPort(8080)
+
+			// Compile Error
+			val server = Server(8080) // Cannot access '<init>': it is private in 'Server'
+			=============================================================================
+			-> Prevents accidental instantiation of the class using the constructor syntax.

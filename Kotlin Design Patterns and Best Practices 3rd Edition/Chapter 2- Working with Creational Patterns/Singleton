@@ -1,0 +1,17 @@
+[Singleton]
+	* two main requirements
+		1) We should only have one instance (copy) of a particular class in our system.
+
+		2) This one instance should be accessible from anywhere in our scope.
+			-> A scope may be our entire program or a module within it.
+
+	* Singleton's initialization logic remains dormant Until the Singleton is accessed
+		-> thus conserving resources.
+		-> lazy initialization.
+	
+	* proceed with caution
+		-> "singleton" can isssue excessive coupling and complications in unit testing.
+		-> Overreliance on singletons can lead to code that is difficult to understand, maintain, and test effectively.
+
+	- Singleton minimize the need for repeated object creation.
+		-> In Kotlin, we can use top-level functions, but we can use Singletons to encapsulate under a unified namespace.

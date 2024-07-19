@@ -1,0 +1,6 @@
+[Abstract Factory]
+	- using interface as a type
+
+	- Example: Java.util.Collections class
+		-> emptyMap, emptyList, and emptySet, which each generate a different class.
+	

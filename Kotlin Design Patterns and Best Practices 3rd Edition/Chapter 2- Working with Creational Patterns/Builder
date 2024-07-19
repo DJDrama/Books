@@ -1,0 +1,11 @@
+[Builder]
+	- useful when dealing with objects that require a multitude of parameters
+
+	(limitations)
+		1) code duplication
+		2) separate setter function is required for each property.
+		3) mutable variables raise concerns regarding thread safety and the potential for accidental modification of these properties outside of the intended Builder pattern.
+
+	(Default arguments with use of named arguments)
+		- In Kotlin, we can specify default values for constructor and function parameters.
+			-> simplifies the process of creating complex objects.
