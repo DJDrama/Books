@@ -1,0 +1,72 @@
+[Bridge]
+	- separate abstraction from implementation.
+		-> allows us to easily modify and extend the system without causing ripple effects throughout the codebase.
+
+	- great for avoiding the pitfalls of overusing inheritance and creating more flexible, maintainable code.
+
+	* helps in separating abstractions from their implementations, allowing for better extensibility.
+
+	* avoids issues like the fragie base class problem.
+
+	- Dependency Injection can be seen as simply an implementatino of the Bridge design pattern.
+
+		ex)
+			============================================================================
+			fun main() {
+			    val person = Person(shirt = GuzziTshirt(), pants = LevisPants())
+			    val person2 = Person(shirt = BurberryTshirt(), pants = DieselPants())
+			}
+
+			interface Behavior {
+			    fun eat()
+			    fun work()
+			    fun sleep()
+			}
+
+			class Person(shirt: Shirt, pants: Pants) : Behavior {
+			    override fun eat() {
+			    }
+
+			    override fun work() {
+			    }
+
+			    override fun sleep() {
+			    }
+			}
+
+			interface Shirt {
+			    fun clothing()
+			}
+
+			interface Pants {
+			    fun myPants()
+			}
+
+			class BurberryTshirt : Shirt {
+			    override fun clothing() {
+			        println("Burberry Tshirt")
+			    }
+			}
+
+			class GuzziTshirt : Shirt {
+			    override fun clothing() {
+			        println("Guzzi Tshirt")
+			    }
+			}
+
+			class LevisPants : Pants {
+			    override fun myPants() {
+			        println("Levis Pants")
+			    }
+			}
+
+			class DieselPants : Pants {
+			    override fun myPants() {
+			        println("Diesel Pants")
+			    }
+			}
+			============================================================================
+			- rather than putting functions into Behavior interface or Person class,
+				-> we separate implementations by making separate abstractions.
+
+	* Helps us decouple different parts of a system by using interfaces and implementations.
