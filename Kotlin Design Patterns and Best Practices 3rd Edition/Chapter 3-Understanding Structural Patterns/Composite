@@ -1,0 +1,8 @@
+[Composite]
+	* this pattern empowers us to support a tree-like structure of diverse complexitiy.
+		-> allowing us to execute operations on all nodes within it.
+
+	(real world)
+		- extensive employment in "user interface"(UI) frameworks.
+			ex) "Group" widget in Android : implementation of the Composite design pattern.
+				-> group multiple elements and carry out actions on their behalf by adhering to the View interface.
