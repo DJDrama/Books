@@ -1,0 +1,35 @@
+[Proxy]
+	- acts as an intermediary or placeholder for another object.
+
+	* controls access to the real object, allowing you to add extra behavior without changing the object's code directly.
+
+	- enhances an object's capabilities.
+
+	* useful for encapsulating the complexity of resource management, optimization, or access control, allowing you to modularize and enchance the behavior of your code without directly modifying the underlying objects.
+
+	- unlike a decorator that consistently follows instructions, a proxy might take a different route and behave differently when given a task.
+
+	(3 sub patterns)
+		1. Virtual proxy
+			-> delays the creation of the actual object until it is needed.
+			-> useful for optimizing resource-intensive operations.
+			-> lazily caches the result
+
+		2. Remote proxy
+			-> issues a call to the remote resource
+
+		3. Protection or access control proxy.
+			-> denies access to unauthorized parties
+
+	(Use cases)
+		1. Lazy loading (Improved Performance)
+			-> defer loading heavy resources until they are actually needed.
+
+		2. Access Control (Enhanced Security)
+			-> check user permissions before allowing access to certain data or features.
+
+		3. Caching (Improved Performance)
+			-> proxy can cache data retrieved from a remote server, reducing the number of network requests. It can serve cahced data until the data is updated or invalidated.
+
+		4. Logging and Analytics (Simpler Code Maintenance - Separation concerns)
+			-> used to log method calls or gather analytics data before delegating the actual work to the real object.
