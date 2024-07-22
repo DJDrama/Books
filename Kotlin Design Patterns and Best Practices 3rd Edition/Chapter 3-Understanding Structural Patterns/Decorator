@@ -1,0 +1,32 @@
+[Decorator]
+	- empower users of our code to specify the abilities they want to add to their objects.
+
+	(purpose)
+		-> to enable the addition of new behaviors to objects dynamically.
+
+	- instead of extending concrete implementation (open function), implement the interface using "by" the keyword, a crucial aspect of the Decorator design pattern.
+
+		ex) "by" keyword
+			=====================================================================================
+			interface StarTrekRepository {
+			    fun getCaptain(starshipName: String): String
+			    fun addCaptain(starshipName: String, captainName: String)
+			}
+
+			class LoggingGetCaptain(private val repository: StarTrekRepository) 
+			    : StarTrekRepository by repository {
+			    override fun getCaptain(starshipName: String): String {
+			        println("Getting captain for $starshipName")
+			        return repository.getCaptain(starshipName = starshipName)
+			    }
+			}
+			=====================================================================================
+			-> "by" simplifies the delegation of an interface implementation to another object, eliminating the need for the LoggingGetCaptain class to explicitly implement the functions declared in the interface.
+
+	(required capabilities)
+		1) Receiving the object being decorated.
+		2) Maintaining a reference to the object.
+		3) Deciding, during the decorator's call, whether to alter the behavior of the wrapped object or delegate the call.
+		4) The option to extract an interface or use one provided by the library author.
+
+	
