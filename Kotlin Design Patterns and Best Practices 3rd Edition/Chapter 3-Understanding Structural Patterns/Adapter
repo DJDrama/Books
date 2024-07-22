@@ -1,0 +1,10 @@
+[Adapter]
+	- aims to convert one interface into another.
+
+	* Kotlin's extension functions provide a concise and elegant way to create adapters without the need for additional classes.
+
+	(Adapters in the real world)
+		- Many Kotlin objects have adapter methods that usually start with "to" as a prefix.
+			ex) "toTypedArray()": converts a list to an array.
+
+	- Adapter pattern helps bridge different concepts and implementations.
