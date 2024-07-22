@@ -1,0 +1,42 @@
+[Flyweight]
+	- In Kotlin, we can create an object class, and save resources inside.
+
+	- In order to save memory, and remove unnecessary object(instance) creations like images or files and etc.
+
+		ex)
+			============================================================================
+			object Sprites {
+				val sprites = List(8) { i ->
+					File(
+						when(i){
+							0 -> "first.png"
+							1 -> "second.png"
+							in 2..4 -> "third.png"
+							else -> "fourth.png"
+						}
+					)
+				}
+			}	
+
+			fun main(){
+				val sprites = Sprites.sprites
+
+				// ...
+
+				// DON'T DO (potential to use sprites in other parts of our code)
+				// and creating sprites everytime can lead to bad performance.
+				val sprites = List(8) { i ->
+					File(
+						when(i){
+							0 -> "first.png"
+							1 -> "second.png"
+							in 2..4 -> "third.png"
+							else -> "fourth.png"
+						}
+					)
+				}
+			}
+			============================================================================
+			-> create an "object" and share
+
+	* Efficient utilization of resources and allows us to manage large quantities of objects without overloading the memory.
