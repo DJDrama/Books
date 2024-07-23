@@ -1,0 +1,41 @@
+[Strategy]
+	- to allow an object to alter its behavior at runtime.
+
+	- useful when app needs to change how it behaves while it's running.
+
+		ex)
+			=======================================================================================
+			enum class Direction {
+			    LEFT, RIGHT
+			}
+
+			data class Projectile(
+			    private var x: Int,
+			    private var y: Int,
+			    private var direction: Direction
+			)
+
+			class OurHero {
+			    private var direction = Direction.LEFT
+			    private var x: Int = 42
+			    private var y: Int = 173
+
+			    var currentWeapon = Weapons::peashooter
+
+			    val shoot = fun() {
+			        currentWeapon(x, y, direction)
+			    }
+			}
+
+			object Weapons {
+			    fun peashooter(x: Int, y: Int, direction: Direction) = Projectile(x, y, direction)
+			    fun banana(x: Int, y: Int, direction: Direction) = Projectile(x, y, direction)
+			}
+
+			fun main() {
+			    val hero = OurHero()
+			    hero.shoot()
+			    hero.currentWeapon = Weapons::banana // alter behavior at runtime
+			    hero.shoot()
+			}
+			=======================================================================================
