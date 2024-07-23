@@ -1,0 +1,48 @@
+[Template Method]
+	- defines the skeleton of an algorithm in a method, deferring some steps to subclasses.
+
+	- useful when you have a series of steps that need to be performed in a particular order, but the specifics of some steps may vary depending on the context or subclass.
+
+	(example)
+		- making a class like a Downloader
+			ex)
+				==================================================================
+				class HttpFileDownloader: FileDownloader() {
+					// ...
+
+					override fun connectToServer(url: String) {
+						// ...
+					}
+
+					override fun fetchData(): ByteArray {
+						// ...
+					}
+
+					override fun processData(data: ByteArray) {
+						// ...
+					}
+
+					override fun disconnectFromServer(){
+						// ...
+					}
+				}
+
+				// usage
+				val fileUrl: String = "https://example.com/file.txt"
+
+				val downloader = HttpFileDownloader()
+				downloader.downloadFile(fileUrl)
+				==================================================================
+				-> "FileDownloader" (Abstract Template Class): defines the template method "downloadFile()" that outlines the sequences of steps required to download a file, using abstract methods (connectToServer(), fetchData(), processData(), disconnectFromServer()) that subclasses must implement.
+
+				-> "HttpFileDownloader" (Concrete subclass): implements the abstract methods defined in "FileDownloader", providing specific implementations for connecting to an HTTP server, fetching data, processing data, and disconnecting from the server.
+
+	(Benefits)
+		1. Code Reusability
+			-> define a common algorithm structure in a base class, with specific steps implemented in subclasses. This promotes code reuse across different subclasses.
+
+		2. Flexibility
+			-> Aubclasses can provide variations of the steps in the algorithm, allowing customization without altering the overall sturcture defined in the template method.
+
+		3. Encapsulation
+			-> encapsulates the algorithm, hiding the implementation details of individual steps from clients, thus promoting a clearer separation of concerns.
