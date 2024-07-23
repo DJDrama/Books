@@ -1,0 +1,50 @@
+[State]
+	- More opinionated version of the Strategy pattern.
+
+		(difference)
+			-> "Strategy Pattern": typically changed from the outside by the client
+
+			-> "State Pattern": the state can change internally based solely on the input it receives.
+
+		ex)
+			======================================================================
+			interface WhatCanHappen {
+			    fun seeHero()
+			    fun getHit(pointsOfDamage: Int)
+			    fun calmAgain()
+			}
+
+			class Snail : WhatCanHappen {
+			    private var mood: Mood = Still
+			    private var healthPoints = 10
+
+			    override fun seeHero() {
+			        mood = when (mood) {
+			            Still -> Aggressive
+			            else -> mood
+			        }
+			    }
+
+			    override fun getHit(pointsOfDamage: Int) {
+			        healthPoints -= pointsOfDamage
+			        mood = when {
+			            healthPoints <= 0 -> Dead
+			            mood is Aggressive -> Retreating
+			            else -> mood
+			        }
+			    }
+
+			    override fun calmAgain() {
+			    }
+
+			}
+
+			sealed interface Mood {
+			    // Somme abstract methods here, like draw(), for example
+			}
+
+			data object Still : Mood
+			data object Aggressive : Mood
+			data object Retreating : Mood
+			data object Dead : Mood
+			======================================================================
