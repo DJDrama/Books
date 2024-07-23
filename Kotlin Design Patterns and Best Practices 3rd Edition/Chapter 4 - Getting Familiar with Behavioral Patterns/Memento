@@ -1,0 +1,11 @@
+[Memento]
+	- holds potential in specific scenarios where reverting to a prior state is necessary.
+
+	(example)
+		1. [Encapsulate State] encapsulates internal state of objects, allowing them to be restored without exposing their structure or implementation details.
+
+		2. [Supports Undo Operations] provides way to implement undo functionality in apps where users need to revert to previous states.
+
+		3. [Maintains Encapsulation] maintains encapsulation -> class controls how its state is saved and restored, keeping its implementation details private.
+
+	* useful in scenarios where maintaining the history of state changes and allowing users to revert those changes is crucial.
