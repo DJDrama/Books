@@ -1,0 +1,13 @@
+[Command]
+	- wraps up actions inside an object so you can run them at a later time.
+		ex) delay one action, delay many, or even set a specific time for them to happen.
+
+		ex) add executables into a list and use for-loop to execute each.
+
+	- Advantage
+		-> ability to undo commands.
+			+ Returning to the previous state
+			+ Computing deltas
+			+ Defining opposite operations
+
+	* In Android, Use case execute as a form of the Command pattern is appropriate and aligns well with modern Android development practices.
