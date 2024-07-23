@@ -1,0 +1,56 @@
+[Chain of Responsibility]
+	- In web servers, the "filter chain" is a well-established concept.
+		-> parameters have been validated.
+		-> if necessary, the user has been authenticated.
+		-> User roles and permissions have been identified, ensuring the user is authorized to proceed with a specific action.
+
+	- centered on breaking down a complex logical process into smaller, more manageable segments.
+		-> Each segment, akin to a link in a chain, decides wehther to proceed to the next step or to produce a result.
+
+	- enhances adherence to the Single Responsibility Principle.
+
+	- Many web server frameworkds, such as Spring Boot, adopt this method to handle key functionalities like authentication, authorization, logging, and routing requests.
+		-> typically referred to as "filters" or "middleware"
+		-> BUT! they are applications of the "Chain of Responsibility" design pattern.
+
+		ex)
+			===========================================================================
+			data class Response(
+			    val answer: String
+			)
+
+			interface Handler {
+			    fun handle(request: Request): Response
+			}
+
+			data class Request(val email: String, val question: String) {
+			    fun isKnownEmail(): Boolean = true
+
+			    fun isFromJuniorDeveloper(): Boolean = true
+
+			}
+
+			class BasicValidationHandler(private val next: Handler) : Handler {
+			    override fun handle(request: Request): Response {
+			        require(request.email.isNotEmpty()){
+			            "Email must not be empty."
+			        }
+			        require(request.question.isNotEmpty()){
+			            "Question must not be empty."
+			        }
+			        return next.handle(request = request)
+			    }
+			}
+
+			fun main(){
+			    val request = Request("developer@company.com", "Who broke my build?")
+			    val chain = BasicValidationHandler(
+			        KnownEmailHandler(
+			            JuniorDeveloperFilterHandler(
+			                AnswerHandler()
+			            )
+			        )
+			    )
+			    val res = chain.handle(request = request)
+			}
+			===========================================================================
