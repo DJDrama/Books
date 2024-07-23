@@ -1,0 +1,21 @@
+[Observer]
+	- One publisher(Subject), may have many subscribers(Observers)
+
+	* Subscribers should be able to register or unregister themselves at RUNTIME.
+
+	- Publisher does not need to know anything about the subscribers, except the signature of the function it invokes.
+
+	(Examples)
+		- LiveData can be an Observer pattern in Android
+
+		- BroadcastReceiver can be considered as an Observer Pattern.
+			-> loose coupling between the sender(broadcasting component) and receivers(observers).
+			-> Receivers do not have to know the sender's identity; they only need to register for the specific events they care about.
+
+	(Benefits)
+		1. Decoupling
+			-> decoupling of the sender and the receiver.
+
+		2. Event-Driven Architecture
+			-> enables a responsive and event-driven architecture where components can react in real-time to system-wide or application-wide events.
+		
