@@ -1,0 +1,32 @@
+[Visitor]
+	- introduce behavior to every node in the tree.
+
+		ex)
+			============================================================
+			class LinksCrawler {
+				// ...
+				private fun visit(elements: List<HtmlElement>) {
+					for (e in elements) {
+						when(e) {
+							is Container -> e.accept(this)
+							is Link -> _links.add(e.href)
+							is Image -> _links.add(e.src)
+							else -> Unit
+						}
+					}
+				}
+			}
+			============================================================
+
+	- Example in Android
+		-> Jetpack Compose UI framework
+
+	(Benefits)
+		1. Separation of Concerns
+			-> Visitors encapsulate operations that can be applied to complex data structures (like UI component trees) without altering their structure.
+
+		2. Extensibility
+			-> easily add new operations without modifying the elements themselves, making the codebase more maintainable.
+
+		3. Flexbility
+			-> allows for performing different actions on elements based on their types, enhancing code reusability and adaptability.
