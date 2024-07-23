@@ -1,0 +1,15 @@
+[Mediator]
+	- focused on facilitating communication between components (objects) without them having direct references to each other.
+	- akin to a communcation overseer.
+
+	- "strict" and "loose"
+		-> "strict": instruct the mediator specifically and anticipate a direct response.
+			+ can also be called sunchronous
+
+		-> "loose": requires us to inform the mediator about events without waiting for an immediate reply.
+			+ event-driven
+
+	(Caveats)
+		- risk of "God Object" (Anti-pattern)
+
+		- example in Android (MVP pattern)
