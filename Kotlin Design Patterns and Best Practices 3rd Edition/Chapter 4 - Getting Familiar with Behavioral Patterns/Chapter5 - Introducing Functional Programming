@@ -1,0 +1,85 @@
+[Chapter5 - Introducing Functional Programming]
+	
+	(Reasoning behind the functional approach)
+		- benefits
+			1. parallelization
+
+			2. pure functions
+				-> easier to test and understand
+
+			3. more declarative style
+				-> focusing on what rather than how
+
+		- Kotlin
+			-> emphasis on immutable objects and variables (val), mirrors the functional programming focus on immutable state, leading to code that's both safer and more predictable.
+
+			-> functions are treated as first-class citizens, allowing them to be stored in variables, passed as arguments, or returned from other functions.
+
+			-> support for higher-order functions, capable of accepting or returning other functions, including composition and currying.
+
+	(Immutability)
+		- In functional programming, it's generally advised to avoid functions that don't return values.
+			-> this often implies the presence of side effects.
+
+			-> impact of such functions is not easily testable and can lead to issues like verify calls on mocks, or sometimes makes the functions not testable at all.
+
+
+	(Functions as values)
+		- "pure function"
+			-> function with no side effects.
+			(side effect: any action that modifies or accesses the external state.)
+
+		- "impure function"
+			-> hard to test and to reason about in general.
+
+		- "Currying"
+			-> a technique that transforms a function accepting multiple arguments into a sequence of functions, each taking just one argument.
+
+				ex)
+					===============================================================
+					fun main() {
+					    println(subtractFun(10)(3))
+					    println(subtract(10)(3))
+					}
+
+					fun subtractFun(x: Int) = fun(y: Int): Int {
+					    return x - y
+					}
+
+					fun subtract(x: Int) = { y: Int ->
+					    x - y
+					}
+					===============================================================
+
+			* Why currying? 
+				-> we can use currying and create an instance and then put arguments into it.
+
+				ex)
+					===============================================================
+					enum class LogLevel {
+					    DEBUG, ERROR, WARNING, INFO
+					}
+
+					fun log(level: LogLevel, message: String) = println("$level: $message")
+
+					fun createLogger(level: LogLevel) = { message: String ->
+					    log(level, message)
+					}
+
+
+					fun main() {
+					    // create instance first
+					    val infoLogger = createLogger(LogLevel.INFO)
+					    
+					    // use it when need to log message
+					    infoLogger("my info logged")
+					}
+					===============================================================
+
+		- "Memoization"
+
+	(Using expressions instead of statements)
+		- functional programming tries to avoid mutating the state as much as possible.
+			-> the more we rely on expressions, the more our functions will be pure, with all the benefits of functional purity. -> IMPROVES TESTABILITY!
+
+			ex) Use "When" expressions instead of Imperative "if" statements.
