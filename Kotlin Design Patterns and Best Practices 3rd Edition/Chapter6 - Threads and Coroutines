@@ -1,0 +1,156 @@
+[Chapter6 - Threads and Coroutines]
+	
+	(Looking deeper into threads)
+		- Process
+			-> self-contained execution unit with its own memory space, representing an executing computer program.
+
+			-> processes are independent, requiring specific techniques for inter-process communication, and can house multiple threads.
+
+		- Thread
+			-> smallest execution unit within a process capable of running independently.
+
+			-> executes a sequence of instructions as part of the larger process.
+
+			-> threads within the same process share resources and memory, facilitating easier communication and data sharing.
+
+			* data sharing needs careful management in order to prevent data corruption.
+
+		- JVM 
+			-> in the Java virtual machine, threads serve as the primary units of concurrency.
+
+			-> allowing code to execute concurrently to maximize CPU core utilization.
+
+			-> Ligher than processes, threads can be generated in large numbers by a single process.
+
+			-> "Daemon Thread" : as soon as the parent thread terminates, all daemon threads are also stopped.
+
+		<Thread Safety>
+			- "CountDownLatch"
+				-> thread syncrhonization mechanism that lets one or more threads wait until a series of operations in other threads are completed.
+
+				-> initialized with a specific count and utilizes two primary methods
+					1) "countDown()"
+						-> decrement the count each time an operation is completed
+
+					2) "await()"
+						-> threads to wait until the count reaches zero.
+
+				-> when the count hits zero, indicating the completion of all required operations, the waiting threads are released to proceed.
+
+				ex)
+					======================================================================
+					fun main() {
+					    var counter = 0
+					    val latch = CountDownLatch(100_000)
+					    repeat(100) {
+					        thread {
+					            repeat(1000) {
+					                counter++
+					                latch.countDown()
+					            }
+					        }
+					    }
+					    latch.await()
+
+					    println("Counter $counter")
+					}
+					======================================================================
+					(prints)
+						Counter 98732
+
+					* "counter" variable is not atomic, so result differs. (Race condition)
+
+			- no "synchronized" keyword in Kotlin
+				-> reason: language should not be tailored to a particular concurrency model.
+				-> we can use "syncrhonized function" (syncrhonized)
+
+				ex)
+					======================================================================
+					import java.util.concurrent.CountDownLatch
+					import kotlin.concurrent.thread
+
+					fun main() {
+					    var counter = 0
+					    val latch = CountDownLatch(100_000)
+					    repeat(100) {
+					        thread {
+					            repeat(1000) {
+					                synchronized(latch) {
+					                    counter++
+					                    latch.countDown()
+					                }
+					            }
+					        }
+					    }
+					    latch.await()
+
+					    println("Counter $counter")
+					}
+					======================================================================
+					(prints)
+						Counter 100000
+
+		<Thread syncrhonization mechanisms in Kotlin>
+			- excessive use of syncrhonized can reduce performance and risk deadlocks.
+
+			* modern Java practices favor more adaptable concurrency tools like those in the Java.util.concurrent package and the "Lock" interface.
+
+			- "volatile" keyword
+				-> signals that a variable is subject to concurrent access and modification by multiple threads.
+
+				-> it ensures that every read and write operation on that variable happens directly in the main memory.
+
+				-> direct interaction with the main memory guarantees immediate visibility of the variable's changes to all threads.
+
+				-> enhancing thread safety by ensuring that threads always access the most current state of the variable.
+
+			- "@Syncrhonized" annotation in Kotlin, "@Volatile" annotation in Kotlin.
+
+				* they are annotations since Kotlin is designed to be a multi-platform language. (syncrhonized or volatile is only for JVM, but not for target platforms such as Javascript or native code.)
+
+		<Why are threads expensive?>
+			- each thread requires its own memory stack.
+				-> creating a large number of threads can lead to extensive communication with your operating system (OS) and substantial memory usage.
+
+				-> may result OutOfMemoryError or a severe slowdown of the entire system.
+
+	(Introducing coroutines)
+		- Multiplexing
+			-> ability to handle multiple tasks concurrently within a single thread.
+
+			-> traditional threading: each task might require a separate thread
+
+			-> multiplexing allows tasks to share threads more efficiently. (Achieved through suspension and resumption of coroutine executions.)
+
+		- coroutines follow "Structured Concurrency"
+			-> simplifies task management and prevents resource leaks.
+
+		<Jobs>
+			- simple lifecycle
+				+ New
+				+ Active
+				+ Completed
+				+ Cancelled
+				+ Completing
+				+ Cancelling
+
+		<Coroutines under the hood>
+			* Unlike traditional threads that block the entire thread when waiting for an operation to complete, coroutines suspend themselves.
+				-> allowing the underlying thread to execute other tasks in the meantime.
+
+	(Dispatchers)
+		- Dispatchers manage thread pools.
+			-> coroutines launched on the same dispatcher share threads from the associated pool.
+
+			-> this efficient thread reuse minimizes the overhead of creating and destroying threads for each coroutine.
+
+	(Structured concurrency)
+		* parent coroutines always wait for all its children to complete.
+			-> prevents resource leaks.
+
+		* When one coroutine in a scope fails, the entire scope is canceled.
+
+		* "GlobalScope" not tied to any specific coroutine scope
+			-> coroutines launched within it live for the entire lifetime of the application, or until they complete.
+
+			-> may cause memory leaks and consume system resources unnecessarily.
