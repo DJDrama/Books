@@ -1,0 +1,65 @@
+[Controlling the Data Flow]
+
+	(Reactive principles)
+		- Responsive
+		- Resilient
+		- Elastic
+		- Message-driven
+
+		<Responsive>
+			-> offer periodic updates during your wait
+
+		<Resilient>
+			-> how well a system can handle failure, recover from it, and continue to function.
+
+			- various strategies for building a resilient system
+				+ Delegation
+					-> if initial customer service representative can't solve your issue, the system reroutes you to someone who can.
+					-> ensures that if one part of the system fails to meet the need, another part can step in.
+
+				+ Replication
+					-> scale its workforce based on demand.
+					-> if there are many callers in the queue, additional representatives can be added to manage the load. (ties into the concept of "elasticity")
+
+				+ Containment and isolation
+					-> "containment": opting for a callback, no longer tied to the system's current limitations, such as a shortage of available representatives.
+					-> "isolation": if the system has problems, your experience is still protected; you're isolated from these problems because the company can contact you later.
+
+			- designed to cope with challenges and recover effectively without significantly disrupting the user's experience.
+
+		<Elastic>
+			- refers to the system's capacity to dynamically adjust its resources in response to fluctuations in demand or workload.
+
+			- ensures that the system scales its resources up or down as required, maintaining optimal performance and user experience, while also minimizing costs.
+
+			- allows for paying only for the resources needed at any given moment, rather than constantly paying for peak-time resources.
+
+			- closely related to "scalability"
+
+			* about being able to allocate and deallocate resources dynamically, ensuring efficient utilization while maintaining a high level of service.
+
+		<Message-driven>
+			- promotes asynchronous communication and thereby enables many of the other reactive principles like resiliency and elasticity.
+
+			- allows non-blocking interactions.
+				-> once a message is sent, both the sender and the receiver are free to enage in other activities.
+				-> enhances system responsiveness
+				-> greater concurrency, as multiple tasks can be handled simultaneously without waiting for other tasks to complete.
+
+			- enables delegation.
+				-> when one part is overwhelmed, tasks can be delegated to other parts that have available resources, making the system more resilient and elastic.
+
+	(Higher-order functions on collections)
+		- "map()"
+		- "filter()"
+		- "find()"
+
+		- terminator functions: functions that return a single value like a Unit or a number.
+			+ "forEach()" -> returns Unit
+			+ "reduce()" -> returns a single value
+			+ "fold()" -> similar to "reduce()" but takes the initial value as input.
+
+		<Channels>
+			- "CSP" (Communicating Sequential Processes)
+
+
