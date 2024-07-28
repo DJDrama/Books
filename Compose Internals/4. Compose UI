@@ -1,0 +1,198 @@
+Compose UI
+	[Integrating UI with the Compose runtime]
+		* Compose UI
+			-> Kotlin multiplatform framework.
+
+	[Mapping scheduled changes to actual changes to the tree]
+		- composition, recomposition
+			-> side table called "Composition" is used.
+			-> this table contains relevant data to map from Composable function execution to actual changes to the node tree.
+
+	[Composition from the point of view of Compose UI]
+		- "setContent" function creates a new root Composition, and then it reuses it as possible.
+
+	[Subcomposition from the point of view of Compose UI]
+		- each Composition has a reference to its parent CompositionContext
+
+		(two reasons to create a subcomposition)
+			1) Deferring the initial composition process until some information is known.
+				* Subcomposition allows to recompose independently of the parent Composition.
+
+				* Subcomposition can enable support for a completely different node type in a subtree.
+
+			2) Changing the type of the node produced by a subtree.
+				ex) vector graphics (rememberVectorPainter)
+
+				- Subcompositions created for vectors are disposed whenever their corresponding "VectorPainter" leaves the parent Composition, shich will happen whenever its enclosing Composable also does.
+
+	[Reflecting changes in the UI]
+
+	[Different types of Appliers]
+		- Compose UI provies two implementations of the "AbstractApplier" to integrate the Android platform with the Jetpack Compose runtime:
+
+			1) UiApplier
+				- for rendering most of the Android UI.
+				- fixes the node type to "LayoutNode", so it will materialize all the Layouts in our tree.
+
+			2) VectorApplier
+				- for rendering vector graphics.
+				- fixes the node type to "VNode" in order to represent and materialize vector graphics.
+
+
+	[Materializing a new LayoutNode]
+		- "LayoutNode": pure Kotlin class with no Android dependencies, only models a UI node, and meant to be used by multiple platforms(Android, Desktop).
+
+	[Closing the circle]
+		- "setContent { ... }" --> adds --> "AndroidComposeView"(Owner) <-- LayoutNode(A) <-- LayoutNode(B)
+
+		* Nodes are always measured first, then layout, and finally drawn.
+
+	[Materializaing a change to remove nodes]
+
+	[Materializing a change to move nodes]
+		- when the "UiApplier" calls current.move(from, to, count) to move one or multiple children, it also iterates over them and calls removeAt for each node to be moved.
+
+		- Then, it adds the node again but in its new position.
+		- Finally requests a remeasuring for the current node (the parent)
+
+	[Materializing a change to clear all the nodes]
+		- same than removing multiple nodes.
+		- iterates over all the children and detaches every child, requests a remeasure from the parent.
+
+	[Measuring in Compose UI]
+		- when a child is attached, detached, or moved -> the view if flagged as "dirty" (invalidate)
+			-> node gets added to a "list of nodes to remeasure and relayout".
+
+		(for each node scheduled for a remeasure and relayout, 3 steps are taken in this order)
+			1) Checkes if the node needs a remeasure and performs it in that case.
+
+			2) After measuring, it checks if the node needs a relayout and performs it in that case.
+
+			3) Finally, checks if there are any postponed measure requests for any nodes, and schedules a remeasure for those. back to step 1
+
+		- Each "LayoutNode" has an outer and an inner LayoutNodeWrapper.
+
+		* a node can have modifiers applied, and modifiers can also affect measuring, so they need to be accounted for when measuring the node.
+			ex) Modifier.padding directly affects the measure of the node's children.
+				-> modifiers can even affect the size of other modifiers chained after them.
+				* But Modifier is a stateless thing, hence a wrapper is needed to keep its state.
+
+				--> LayoutNode have outer and inner wrappers, but also has a wrapper for each one of the modifiers applied to it.
+
+				--> All the wrappers (outer, modifiers, and inner) are chained so they are always resolved and applied in order.
+
+	[Measuring policies]
+
+	[Intrinsic measurements]
+		- "MeasurePolicy" includes some methods to calculate the intrinsic size of a layout. That is, the estimated size of a layout when we don't have constraints available.
+
+		- "minInstrinsicWIdth"
+			-> function provides the minimum width a layout can take
+			-> given a specific height, such that the content of the layout can be painted correctly.
+
+		- "minInstrinsicHeight"
+			-> function provides the minimum height this layout can take
+			-> given a specific width, such that the content of the layout will be painted correctly.
+
+		- "maxIntrinsicWidth"
+			-> function provides the minimum width such that increasing it further will not decrease the minimum intrinsic height.
+
+		- "maxIntrinsicHeight"
+			-> function provides the minimum height such that increasing it further will not decrease the minimum intrinsic width.
+
+		ex) 
+			Modifier.width(intrinsicSize: IntrinsicSize)
+				-> declare a preferred width for the node that matches its own min or max intrinsic width.
+
+			Modifier.width(width: Dp)
+				-> declare an exact preferred with for the node.
+	
+		ex)
+			========================================================================
+			@Composable
+			fun DropdownMenuContent(...) {
+				...
+				Column(
+					modifier = modifier
+						.padding(vertical = DropdownMenuVerticalPadding)
+						.width(IntrinsicSize.Max)
+						.verticalScroll(rememberScrollState(),
+					content = content
+				)
+				... 
+			}
+			========================================================================
+			-> enforces the dropdown menu to "match the width of its widest child."
+
+	[Layout Contraints]
+		- The measured layouts (children) must fit within those constraints.
+			-> minWidth <= chosenWidth <= maxWidth
+			-> minHeight <= chosenHeight <= maxHeight
+
+	[LookaheadLayout]
+		- is aable "pre-calculate the new measure and placement of its direct or indirect children" when they change.
+
+		1) SubcomposeLayout
+			-> delays composition until measure time, so we can use the available space to determine what nodes/subtrees to build it.
+			-> is more about conditional composition than prelayout. (but quite expensive)
+
+		2) Intrinsics
+			-> more efficient than subcomposition.
+			-> but "Tentaive calculation" in order to perform real measuring using the obtained values.
+
+		3) LookaheadLayout
+			-> used for precise pre-calculation of size and position of any child in order to power automatic animations.
+			-> does a more aggressive caching than intrinsics to "avoid looking ahead unless the tree has changed."
+			-> caches the lookahead measurement and placement in order to skip unnecessary re-calculations.
+			-> layout will finally arrive at the state calculated by the lookahead, so it does not permit users to manipulate the lookahead constraints.
+
+	[Modeling modifier chains]
+		* when "then" is called to chain two modifiers, it results in a "CombinedModifier", which is how the chaning is modeled.
+			-> "CombinedModifier" has a reference to the current modifier (outer), and a pointer to the next modifier in the chain (inner), which can also be a CombinedModifier.
+
+	[Setting modifiers to the LayoutNode]
+		- Any LayoutNode has a Modifier (or a chain of them) assigned.
+		- When we declare a Layout, one of the parameter passed to it by Compose UI is the "update" lambda.
+
+		* Modifiers are "stateless" ,and therefore they need to get wrapped in order to hold their state.
+
+		* But, composed modifiers are actually a special type of modifiers that are "stateful".
+
+	[How LayoutNode ingests new modifiers]
+		- Whenever a modifier (or a chain of modifiers) is set to a LayoutNode, all the modifiers already set for the current node are saved into a cache.
+			-> this cache is used to find modifiers that can be reused for the new modifier chain being set.
+
+		- all modifiers in the cache are initialized as not reusable.
+			-> then the node "folds" over the new chain of modifiers, starting form its head.
+			-> done by "foldIn" function.
+			-> for each modifier, it will check if the cache contains an equivalent one, and if so, it will mark it as reusable.
+			-> then, if the cached modifier has a parent, it will crawl up the hierarchy for flagging it and all its ancestors are reusable also.
+
+	[Drawing the node tree]
+		- "RenderNodeLayer"
+			-> default for rednering Jetpack Compose UI nodes.
+			-> RenderNodes are a tool for more efficient hardware driven drawing.
+			-> allow to draw once, then redraw multiple times very efficiently.
+
+		- "ViewLayer"
+			-> View based implementation.
+			-> used only as a fallback when RenderNodes can't be used directly.
+
+	[Semantics in Jetpack Compose]
+		- "Modifier.semantics"
+			-> add semantics to other nodes different than the root
+			-> Every semantics modifier we set to a Layout contains an id, and some semantics configuration.
+
+		- "semantics" modifier
+			-> implemented as a "composed" modifier, since it needs access to the Composition context in order to use remember for the generated id in the block.
+
+	[Notifying about semantic changes]
+
+	[Merged and unmerged semantic trees]
+		- Jetpack Compose provides two semantic trees: Merged and unmerged.
+
+		- for setting a semantic property, two things needed.
+			1) Semantic key -> require a property name, and a merge policy to be created.
+			2) Value
+
+		* default merge policy : no merging at all.
