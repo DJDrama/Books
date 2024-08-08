@@ -1,0 +1,503 @@
+[Desgining for Concurrency]
+
+	(Deferred Value)
+		- "Deferred Value" Design pattern
+			-> aims to provide a reference to the outcome of an asynchronous operation.
+
+		- embodiment of the Proxy deesign pattern, as well as the State design pattern.
+
+		ex) Kotlin's CompletableDeferred
+			=========================================================================
+			import kotlinx.coroutines.*
+			import kotlin.random.Random
+
+			suspend fun main(): Unit = coroutineScope {
+			    val deferred = valueAsync()
+			    println(deferred.await()) // OK or exception
+			}
+
+			suspend fun valueAsync(): Deferred<String> = coroutineScope {
+			    val deferred = CompletableDeferred<String>()
+			    launch {
+			        delay(100)
+			        if (Random.nextBoolean()) {
+			            deferred.complete("OK")
+			        } else {
+			            deferred.completeExceptionally(RuntimeException())
+			        }
+			    }
+			    deferred
+			}
+			=========================================================================
+			* crucial to either complete or exceptionally complete Deferred objects.
+				-> to avoid indefinite waiting
+					
+
+		- "callback hell"
+			-> can lead to unredable code, and dealing with errors is often cumbersome.
+
+		- Deferred value is generally more readable and maintainable.
+			-> callbacks execute a function once the asynchronous operation is done.
+			-> Deferred allows you to treat asynchronous operations almost like regular synchronous code.
+			-> makes error handling and result propagation more straightforward.
+
+	(Barrier)
+		- Barrier design pattern
+			-> enables us to pause and wait for multiple concurrent tasks to finish before moving on.
+			-> useful when assembling objects from diverse data sources.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.async
+				import kotlinx.coroutines.coroutineScope
+				import kotlin.random.Random
+
+				data class FavoriteCharacter(
+				    val name: String,
+				    val catchphrase: String,
+				    val picture: ByteArray = Random.Default.nextBytes(42)
+				)
+
+				fun CoroutineScope.getCatchphraseAsync(characterName: String) = async {
+				    // ...
+				    // return value
+				    "returnValue"
+				}
+
+				fun CoroutineScope.getPictureAsync(characterName: String) = async {
+				    // ...
+				    // return value
+				    byteArrayOf()
+				}
+
+				suspend fun fetchFavoriteCharacter(name: String) = coroutineScope {
+				    val catchphrase = getCatchphraseAsync(characterName = name)
+				    val picture = getPictureAsync(characterName = name)
+				    FavoriteCharacter(name, catchphrase.await(), picture.await())
+				}
+				=======================================================================
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.*
+				import kotlin.random.Random
+
+				data class FavoriteCharacter(
+				    val name: String,
+				    val catchphrase: String,
+				    val picture: ByteArray = Random.Default.nextBytes(42)
+				)
+
+				object GrumpyCat {
+				    fun getFavoriteCharacter(): Deferred<FavoriteCharacter> =
+				        CompletableDeferred<FavoriteCharacter>().apply {
+				            completeExceptionally(
+				                exception =
+				                RuntimeException("Grumpy cat likes no one.")
+				            )
+				        }
+				}
+
+				object Me {
+				    fun getFavoriteCharacter(): Deferred<FavoriteCharacter> =
+				        CompletableDeferred<FavoriteCharacter>().apply {
+				            complete(
+				                value = FavoriteCharacter(
+				                    name = "MyCat",
+				                    catchphrase = "none",
+				                    picture = byteArrayOf()
+				                )
+				            )
+				        }
+				}
+
+				fun main(): Unit = runBlocking {
+				    val characters = listOf(
+				        Me.getFavoriteCharacter(),
+				        GrumpyCat.getFavoriteCharacter()
+				    )
+				    try {
+				        characters.awaitAll()
+				    } catch (e: RuntimeException) {
+				        // Caught Exception: Grumpy cat likes no one.
+				        println("Caught Exception: ${e.message}")
+				    }
+				}
+				=======================================================================
+
+			* Barrier design pattern
+				-> serves as a meeting point for sseveral asynchronous tasks.
+
+	(Scheduler)
+		- goal of the Scheduler design pattern.
+			-> decouple what is being run from how it's being run and optimize the use of resources when doing so.
+
+		* "Dispatchers" are an implementation of the Scheduler design pattern that decouples the coroutine from underlying thread pools.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+
+				fun main(): Unit = runBlocking {
+				    // main
+				    println(Thread.currentThread().name)
+
+				    launch(context = Dispatchers.Default){
+				        // DefaultDispatcher-worker-1
+				        println(Thread.currentThread().name)
+				    }
+				}
+				=======================================================================
+				* Default Dispatcher -> creates as many threads in the underlying thread pool as you have CPU cores.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.*
+
+				fun main(): Unit = runBlocking {
+				    async(Dispatchers.IO) {
+				        for (i in 1..1000) {
+				            println(Thread.currentThread().name)
+				            yield()
+				        }
+				    }
+				}
+				=======================================================================
+				* Dispathers.IO is used for potentially long-running or blocking operations and will create up to 64 threads for that purpose.
+
+		- we can create a dispatcher that would use a dedicated thread pool of four threads based on "ForkJoinPool", which is efficient for divide-and-conquer tasks.
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.asCoroutineDispatcher
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+				import java.util.concurrent.ForkJoinPool
+
+				fun main() = runBlocking {
+				    val forkJoinPool = ForkJoinPool(4).asCoroutineDispatcher()
+				    repeat(1000) {
+				        launch(forkJoinPool) {
+				            println(Thread.currentThread().name)
+				        }
+				    }
+
+				    // Essential
+				    forkJoinPool.close()
+				}
+				=======================================================================
+				(prints)
+					...
+					ForkJoinPool-1-worker-2
+					ForkJoinPool-1-worker-1
+					ForkJoinPool-1-worker-3
+					ForkJoinPool-1-worker-4
+					ForkJoinPool-1-worker-2
+					ForkJoinPool-1-worker-1
+					ForkJoinPool-1-worker-3
+					ForkJoinPool-1-worker-4
+					ForkJoinPool-1-worker-2
+
+				* Make sure that you either release the dispatcher with "close()" or reuse it, as creating a new dispatcher and holding onto it is expensive in terms of resources.
+
+	(Pipeline)
+		- Pipeline design pattern
+			-> like having a team of experts working together to handle complex tasks.
+			-> each expert specializes in one part of the job, and they work simultaneously to get things done faster.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.channels.ReceiveChannel
+				import kotlinx.coroutines.channels.consumeEach
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.isActive
+				import kotlinx.coroutines.runBlocking
+
+				fun CoroutineScope.producePages() = produce {
+				    fun getPages(): List<String> {
+				        return listOf(
+				            "<html><body><h1>Cool stuff</h1></body></html>",
+				            "<html><body><h1>Even more stuff</h1></body></html>"
+				        )
+				    }
+
+				    val pages = getPages()
+				    while (this.isActive) {
+				        for (p in pages) {
+				            send(p)
+				        }
+				    }
+				}
+
+				fun CoroutineScope.produceDom(pages: ReceiveChannel<String>) = produce {
+				    fun parseDom(page: String): Document {
+				        return Document(page)
+				    }
+				    for (p in pages) {
+				        send(parseDom(p))
+				    }
+				}
+
+				fun CoroutineScope.produceTitles(parsedPages: ReceiveChannel<Document>) = produce {
+				    fun getTitles(dom: Document): List<String> {
+				        return dom.getElementsByTagName("h1").map {
+				            it.toString()
+				        }
+				    }
+				    for (page in parsedPages) {
+				        for (t in getTitles(page)) {
+				            send(t)
+				        }
+				    }
+				}
+
+				fun main() = runBlocking {
+				    val pagesProducer = producePages()
+				    val domProducer = produceDom(pagesProducer)
+				    val titleProducer = produceTitles(domProducer)
+				    titleProducer.consumeEach {
+				        println(it)
+				    }
+				}
+				=======================================================================
+
+		* Pipeline design pattern allows us to divide complex tasks into manageable steps.
+			-> Each step is a separate coroutine, making it easy to understand and test.
+
+	(Fan-Out)
+		- Fan-Out design pattern
+			-> divide the workload among multiple concurrent processors, or workers, efficiently.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.CoroutineScope
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.channels.ReceiveChannel
+				import kotlinx.coroutines.channels.produce
+				import kotlinx.coroutines.launch
+				import kotlinx.coroutines.runBlocking
+
+				fun CoroutineScope.generateWork() = produce {
+				    for (i in 1..10_000)
+				        send("page$i")
+				    close()
+				}
+
+				fun CoroutineScope.doWork(
+				    id: Int,
+				    channel: ReceiveChannel<String>
+				) = launch(Dispatchers.Default) {
+				    for (p in channel) {
+				        println("Worker $id processed $p")
+				    }
+				}
+
+				fun main() = runBlocking {
+				    val workChannel = generateWork()
+				    val workers = List(10) { id ->
+				        doWork(id, workChannel)
+				    }
+				}
+				=======================================================================
+				(prints)
+					...
+					Worker 5 processed page9985
+					Worker 7 processed page9986
+					Worker 3 processed page9997
+					Worker 4 processed page9998
+					Worker 2 processed page9991
+					Worker 6 processed page9994
+					Worker 0 processed page9995
+					Worker 9 processed page9992
+					Worker 8 processed page9993
+					Worker 5 processed page10000
+					Worker 1 processed page9999
+
+				-> The are not in order!
+
+		* Load balancing is a critical aspect of the Fan-Out design pattern.
+
+		* Kotlin Channels offer mechanisms for backpressure handling.
+			-> when data is produced faster than it can be consumed, channels can suspend producers until consumers are ready.
+			-> prevent overloading the system.
+
+		* Fan-Out design pattern enables efficient distribution of work across a number of coroutines, threads, and CPUs.
+
+	(Fan-In)
+		- Fain-In design pattern
+			-> consolidate results generated by multiple workers.
+			-> becomes invaluable when workers produce results that need to be gathered and managed.
+
+		* Unlike the Fan-Out design pattern
+			-> involes multiple coroutines reading from the same Channel,
+			-> Fan-In reverses the roles. 
+				-> multiple coroutines can contribute their results by writing them to be the same shared channel.
+
+			ex)
+				=======================================================================
+				import kotlinx.coroutines.*
+				import kotlinx.coroutines.channels.Channel
+				import kotlinx.coroutines.channels.ReceiveChannel
+				import kotlinx.coroutines.channels.consumeEach
+				import kotlinx.coroutines.channels.produce
+
+				fun CoroutineScope.generateWork() = produce {
+				    for (i in 1..10_000)
+				        send("page$i")
+				    close()
+				}
+
+				fun CoroutineScope.doWorkAsync(
+				    channel: ReceiveChannel<String>,
+				    resultChannel: Channel<String>
+				) = async(Dispatchers.Default) {
+				    for (p in channel) {
+				        resultChannel.send(p.repeat(2))
+				    }
+				}
+
+				fun main() = runBlocking {
+				    val workChannel = generateWork()
+				    val resultChannel = Channel<String>()
+				    val workers = List(10) {
+				        doWorkAsync(workChannel, resultChannel)
+				    }
+				    resultChannel.consumeEach {
+				        println(it)
+				    }
+				}
+				=======================================================================
+				-> each worker sends the results of its computations to a common "resultChannel".
+				* "resultChannel" is shared among all the workers.
+
+	(Racing)
+		- Racing design pattern
+			-> involves running multiple tasks that produce the same type of data concurrently and selecting the result from the task that completes first, discarding the results from the other tasks.
+
+		- useful where you want to maximize responsiveness by accepting the result from the fastest task, even if multiple tasks are competing.
+
+			ex)
+				=======================================================================
+				fun main() = runBlocking {
+				    val winner = select<Pair<String, String>> {
+				        preciseWeather().onReceive { preciseWeatherResult ->
+				            preciseWeatherResult
+				        }
+				        weatherToday().onReceive { weatherTodayResult ->
+				            weatherTodayResult
+				        }
+				    }
+				    println(winner)
+				}
+				=======================================================================
+
+		<Unbiased Select>
+			- when use "select" clause, selects the first channel that becomes available.
+				-> if two happens simultaenously, it will select the first one.
+
+			* "selectUnbiased" function
+				-> to make the selection unbiased.
+
+				ex)
+					===================================================================
+					fun main() = runBlocking {
+					    val firstOption = fastProducer("Quick&Angry 7")
+					    val secondOption = fastProducer("Revengers: Penultimatum")
+					    delay(10)
+					    val movieToWatch = selectUnbiased<String> {
+					        firstOption.onReceive { it }
+					        secondOption.onReceive { it }
+					    }
+					    println(movieToWatch)
+					}
+					===================================================================
+
+				* will randomly pick one if datum are ready at the same time!
+
+	(Mutex)
+		- Mutual Exclusion
+			-> serves a way to safeguard a shared state that might be accessed by multiple coroutines simultaneously.
+
+			ex)
+				===================================================================
+				import kotlinx.coroutines.Dispatchers
+				import kotlinx.coroutines.async
+				import kotlinx.coroutines.awaitAll
+				import kotlinx.coroutines.runBlocking
+				import kotlinx.coroutines.sync.Mutex
+				import kotlinx.coroutines.sync.withLock
+
+				fun main() = runBlocking {
+				    var counter = 0
+				    val mutex = Mutex()
+				    val jobs = List(10) {
+				        async(Dispatchers.Default) {
+				            repeat(1000) {
+				                mutex.withLock {
+				                    counter++
+				                }
+				            }
+				        }
+				    }
+				    jobs.awaitAll()
+				    println(counter)
+				}
+				===================================================================
+
+		<Deadlocks>
+			- specific condition in a concurrent system where two or more processes are unable to proceed because they are each waiting for the others to release a resource or a lock. (state of perpetual waiting)
+
+	(Sidekick)
+		- Sidekick design pattern
+			-> delegate some tasks from our primary worker to a secondary worker.
+
+			ex)
+				===================================================================
+				val batman = actor<String> {
+				    for (c in channel) {
+				        println("Batman is dealing with $c")
+				        delay(100)
+				    }
+				}
+				val robin = actor<String> {
+				    for (c in channel) {
+				        println("Robin is dealing with $c")
+				        delay(250)
+				    }
+				}
+				val epicFight = launch {
+				    for (villain in listOf(
+				        "Joker", "Bane", "Penguin", "Riddler", "Killer Croc"
+				    )) {
+				        val result = select<Pair<String, String>> {
+				            batman.onSend(villain) {
+				                "Batman" to villain
+				            }
+				            robin.onSend(villain) {
+				                "Robin" to villain
+				            }
+				        }
+				        delay(90)
+				        println(result)
+				    }
+				}
+				===================================================================
+				(prints)
+					> Batman is dealing with Joker
+					> (Batman, Joker)
+					> Robin is dealing with Bane
+					> (Robin, Bane)
+					> Batman is dealing with Penguin
+					> (Batman, Penguin)
+					> Batman is dealing with Riddler
+					> (Batman, Riddler)
+					> Robin is dealing with Killer Croc
+					> (Robin, Killer Croc)
+
+		* Effective strategy for providing fallback options.
+		* Beneficial in scenarios where tasks can be partitioned between a primary and a secondary worker, optimizing resource allocation and improving system performance.
+
+
