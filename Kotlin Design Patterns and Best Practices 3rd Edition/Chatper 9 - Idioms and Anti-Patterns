@@ -1,0 +1,205 @@
+[Idioms and Anti-Patterns]
+
+	(Scope functions)
+		- powerful tool to reduce repetitive code.
+		- functioning as higher-order functions
+			-> accept lambda expressions as arguments.
+
+		<let function>
+			- useful for operating on nullable objects.
+				-> execute code only if the object is non-null.
+
+		<apply function>
+			- useful for overriding default properties of mutable objects.
+
+			- beneficial when working with Java classes that often have numerous setters and an empty default constructor.
+
+			- or when writing single-expression functions.
+
+		<also function>
+			- for single-expression functions requiring additional side effects, like logging, the also() function is ideal.
+
+				ex)
+					========================================
+					fun multiply(a: Int, b: Int): Int = 
+						(a * b).also {
+							println(it) // side effect
+						}
+					========================================
+
+			- assigns the result to it and returns the expression's 
+				-> useful for chaining calls with side effects.
+
+				ex)
+					========================================
+					val evenSquares = (1..100).toList()
+						.filter { it % 2 == 0 }
+						.also { println(it) }
+						.map { it * it }
+					========================================
+					-> printing intermediate result of a chain of higher-order function calls on a collection, without altering the results.
+
+		<run function>
+			- similar to let()
+				-> sets the context to "this".
+
+			- most suited for initializing objects or computing results.
+
+				ex)
+					=============================================
+					val lowerCaseName = JamesBond().run {
+						name = "Roger Moore"
+						movie = "The main with the golden gun"
+						name.lowercase(Locale.getDefault())
+					}
+					=============================================
+					-> unlike "apply()", which returns the object itself, "run()" returns the result of the last line.
+
+		<With function>
+			- NOT an extension function.
+			- It takes the object as an argument.
+			- can return the result of any type from its block.
+
+	(Type checks and casts)
+		- "is", "as" for type checking.
+		- Kotlin's smart casts simplify above process.
+
+		* Kotlin's smart casting eliminates the need for explicit casting.
+
+		* Avoid explicit casts and rely on smart casts.
+			-> If casting is inevitable, use as? which returns null instead of throwing an exception if the cast is not possible.
+
+	(An alternative to the try-with-resources statement)
+		- Java: try-with-resources
+			ex)
+				===================================================
+				try (BufferedReader br = new BufferedReader(...)){
+					System.out.println(br.readLine());
+				}
+				===================================================
+
+		- Kotlin: use
+			ex)
+				================================================
+				val br = BufferedReader(...)
+				br.use {
+					println(it.readLines())
+				}
+				================================================
+
+	(Inline functions)
+		* Every function call introduces a level of indirection and slight performance overhead.
+			-> program needs to hook to some random location in memory where the function code starts.
+			-> it needs to save the current cursor position into a stack so it knows where to return.
+			-> Consumes more than one CPU cycle.
+
+		- Inline functions can enhance performance by reducing the overhead of function calls.
+			-> (When calling a regular function) Kotlin compiler generates a function invocation
+			-> entails pushing arguments onto the stack, jumping to the function code, executing it, and then returning.
+
+		- Inline functions replace the function call with the actual function body at compile time, eliminating above overhead.
+
+		* When passing lambda expressions as arguments to higher-order functions in Kotlin, the compiler generates anonymous function objects.
+			-> leading to unnecessary memory allocations and runtime overhead.
+
+			-> Inline functions mitigate this by replacing lambda expressions with the actual function body at the call site.
+
+		* Overusing inline with lengthy code blocks can lead to a bloated application size, although it does offer performance optimization.
+			-> application size VS performance efficiency.
+
+	(Algebraic data types) - ADTs
+
+		- three variance annotations.
+			1) Covariance
+				- subtyping relationships.
+				- denoted with the "out" keyword.
+				- suitable for types that produce values, such as return types of functions or properties.
+
+			2) Contravariance
+				- reverse subtyping relationships.
+				- denoted with the "in" keyword.
+				- suitable for types that consume values, such as function parameters.
+
+			3) Invariant
+				- do not allow any subtyping relationships between parameterized types.
+				- In Kotlin, type parameters without any variance annotation are considered  "invariant" by default.
+
+		* Sealed interfaces ensure that all implementations are known at compile time.
+
+	(Recursive functions)
+		- every function call consumes stack space, and if the function is deeply nested, it may lead to a "StackOverflowError".
+
+		* Kotlin offers an optimization called "tailrec"
+			-> instructs the compiler to use constant stack space instead of growing the stack with each recursive call.
+
+			-> to benefit from tail recursion optimization, it must call itself as the last operation in its body.
+
+			-> ensures that the result of the recursive call is immediately returned without additional computation or processing.
+
+	(Reified generics)
+		* Type erasure : generic type information is lost at runtime.
+
+		- "Reified"
+			-> allows us to retain type information
+			-> enabling simpler type checks without needing to pass the class type as a parameter.
+
+		* Can only be used within "inline" functions.
+			-> because reified type parameters are resolved at compile time, and inline functions allow the compiler to generate specialized code for each invocation site, enabling it to access type information at runtime.
+
+	(Using constants efficiently)
+		- "val" inside the companion object generates a getter for the constant, while "const" does not.
+			ex)
+				================================================================================
+				class Spock {
+					companion object {
+						val SENSE_OF_HUMOR = "None" // generates a getter
+						const val SENSE_OF_HUMOR_CONST = "None" // public static final
+					}
+				}
+				================================================================================
+
+		- If namespacing is required, wrap constants in an object is a good approach:
+			ex)
+				================================================
+				object SensesOfHumor {
+					const val SPOCK = "NONE"
+				}
+
+				println(SensesOfHumor.Spock)
+				================================================
+
+	(Constructor overload)
+		- In Kotlin, default parameters and named arguments are better than constructor telescoping(overloading).
+
+	(Dealing with nulls)
+
+	(Making asyncrhonicity explicit)
+		* To make the ascynrhonous nature of functions more explicit,
+			-> Kotlin's convention is to add an "Async" suffix to their names.
+				ex)
+					================================================================
+					// "Async" suffix
+					fun CoroutineScope.getSomethingAsync() = async {
+						// ...
+					}
+					================================================================
+
+	(Validating input)
+		- "require()"
+			-> used for argument validation.
+			-> throws "IllegalArgumentException" if its condition is not met.
+
+		- "check()"
+			-> validate the state of an object.
+			-> throws "IllegalStateException" if the condition is not met.
+
+	(Sealed hierarchies versus enums)
+		- enums : suitable for a fixed set of constants.
+
+		- sealed interfaces
+			-> allow more expressive representation of a finite set of states.
+			-> Each state can have its own data and behavior.
+
+		* enums are useful for simpler, fixed sets of constants.
+		* sealed classes offer a more robust and flexible approach for scenarios requiring states with associated data or specific behavior.
+		
