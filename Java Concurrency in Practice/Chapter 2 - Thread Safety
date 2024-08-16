@@ -1,0 +1,119 @@
+[Chapter 2 - Thread Safety]
+	- Thread-safe code : about managing access to state, and in particular to shared, mutable state.
+
+	- "Shared" : a variable could be accessed by multiple threads; by mutable meaning that its value could change during its lifetime.
+
+	- "syncrhonization" also includes the use of "volatile" variables, explicit "locks", and "atomic" variables.
+
+	- Three ways to fix (multiple threads accessing the same mutable state variable without appropriate syncrhonization)
+		1) Don't share the state variable across threads.
+		2) Make the state variable immutable.
+		3) Use syncrhonization whenever accessing the state variable.
+
+	* When designing thread-safe classes, good object-oriented techniques
+		1) Encapsulation
+		2) Immutability
+		3) Clear specification of invariatns.
+
+(2.1. What is Thread Safety?)
+	* "Stateless" objects are always thread-safe
+
+(2.2. Atomicity)
+	<2.2.1. Race Conditions>
+		- "Race Condition" occurs when the correctness of a computation depends on the relative timing or interleaving of multiple threads by the runtime;
+			-> when getting the right answer relies on lucky timing.
+			-> "common type" of race condition: "check-then-act"
+
+		* "Check-then-act"
+			-> you observe something to be true (file X doesn't exist)
+			-> and then take action based on that observation (create X)
+			-> BUT! in fact the observation could have become invalid between the time you observed it and the time you acted on it.
+			-> causing a problem (Unexpected exception, Overwritten data, File corruption)
+
+		* "Lazy-initialization" (common idiom that uses "check-then-act")
+
+	<2.2.3. Compound Actions>
+		* To ensure thread safety
+			1) "check-then-act" operations (like lazy initialization) and "read-modify-write" operations (like increment) must always be "ATOMIC".
+				ex) "AtomicLong"
+
+(2.3. Locking)
+	* Definition of thread safety
+		-> requires that "invariants be preserved regardless of timing or interleaving of operations in multiple threads."
+
+	ex) Wrong Atomicity
+		======================================================================
+		@NotThreadSafe
+		public class UnsafeCachingFactorizer implements Servlet {
+			private final AtomicReference<BigInteger> lastNumber
+				= new AtomicReference<BigInteger>();
+			private final AtomicReference<BigInteger[]> lastFacotrs
+				= new AtomicReference<BigInteger[]>();
+
+			public void service(ServletRequest req, ServletResponse res) {
+				BigInteger i = extractFromRequest(req);
+				if (i.equals(lastNumber.get()))
+					encodeIntoResponse(resp, lastFactors.get());
+				else {
+					BigInteger[] factors = factor(i);
+					lastNumber.set(i);
+					lastFactors.set(factors);
+					encodeIntoResponse(resp, factors);
+				}
+			}
+		}
+		======================================================================
+		* Even though each call to "set" is atomic, there is still a window of vulneratbility when one has been modified and the other has not, and during that time other threads could see that the invariant does not hold.
+
+		* Two values cannot be fetched simultaneously: between the time where thread A fetches the two values, thread B could have changed them, and again A may observe that the invariant does not hold.
+
+		* To preserve state consistency, update related state variables in a single atomic operation.
+
+	<2.3.1. Intrinsic locks>
+		- syncrhonized block (two parts)
+			1) reference to an object that will serve as the lock
+			2) block of code to be guarded by that lock.
+
+			ex)
+				======================================================================
+				syncrhonized (lock) {
+					// Access or modify shared state guarded by lock
+				}
+				======================================================================
+
+		- Every Java object can implicitly act as a lock for purposes of syncrhonization.
+			-> these built-in locks are called "intrinsic locks" or "monitor locks".
+
+		* The only way to acquire an intrinsic lock
+			-> is to enter a syncrhonized block or method guarded by that lock.
+
+		* Intrinsic locks in Java act as mutexes (or mutual exclusion locks)
+			-> at most one thread may own the lock.
+			-> When thread A attempts to acquire a lock held by thread B, A must wait, or block, until B releases it. if B never releases the lock, A waits forever.
+
+	<2.3.2 Reentrancy>
+		* Intrinsic locks are "reentrant"
+			-> if a thread tries to acquire a lock that it already holds, the request succeeds.
+
+		- "Reentrancy"
+			-> locks are acquired on a per-thread rather than per-invocation basis.
+
+			1) When a thread acquires a previously unheld lock, the JVM records the owner and sets the acquisition count to one.
+			2) If the same thread acquires the lock again, the count is incremented, and when the owning thread exits the syncrhonized block, the count is decremented.
+			3) When the count reaches zero, the lock is released.
+
+(2.4. Guarding State with Locks)
+	- Locks enable serialized access to the code paths they guard.
+		-> "serialized access" : threads take turns accessing the object exclusively, rather than doing so concurrently.
+
+	* Every shared, mutable variable should be guarded by exactly one lock.
+		-> Make it clear to maintainers which lock that is.
+
+(2.5. Liveness and Performance)
+	* Acquiring and releasing a lock has some overhead.
+
+	- Holding a lock for a long time, either because you are doing something compute-intensive or because you execute a potentially blocking operation, introduces the risk of liveness or performance problems.
+
+	* Avoid holding locks during lengthy computations or operations at risk of not completing quickly such as network or console I/O.
+
+
