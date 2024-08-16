@@ -1,0 +1,32 @@
+[Chapter 1 - Introduction]
+	
+(1.1. A Brief History of Concurrency)
+	- "coarse-grained communication mechanisms"
+		-> sockets, signal handlers, shared memory, semaphores, and files.
+
+(1.2. Benefits of Threads)
+	<1.2.4. More Responsive User Interfaces>
+		- Modern GUI frameworks, such as the AWT and Swing toolkits, replace the main event loop with an event dispatch thread (EDT).
+			-> When a user interface event such as a button press occurs, application-defined event handlers are called in the event thread.
+
+(1.3. Risks of Threads)
+	<1.3.3. Performance Hazards>
+		- Context switches (Additional performance costs)
+			-> when the scheduler suspends the active thread temporarily so another thread can run - are most frequent in applications with many threads, and have significant costs
+				1) saving and restoring execution context.
+				2) loss of locality.
+				3) CPU time spent scheduling threads instead of running time.
+
+			-> When threads share data, they must use synchronization mechanisms that can inhibit compiler optimizations.
+				1) flush
+				2) invalidate memory caches
+				3) create syncrhonization traffic on the shared memory bus.
+
+(1.4. Threads are Everywhere)
+	- When the JVM starts, it creates threads for
+		1) JVM housekeeping tasks (garbage collection, finalization)
+		2) main thread for running the "main" method.
+
+		* The AWT and Swing user interface frameworks create threads for managing user interface events.
+		* Timber creates threads for executing deferred tasks.
+		* Component frameworks, such as servlets and RMI(Remote Method Invocation) create pools of threads and invoke component methods in these threads.
