@@ -1,0 +1,190 @@
+[Chapter 3 - Sharing Objects]
+	- Syncrhonization has another significant, and subtle, aspect:
+		-> "Memory Visibility"
+		-> We want to prevent one thread from modifying the state of an object when another is using it.
+		-> but also to ensure that when a thread modifies the state of an object, other threads can actually see the changes that were made.
+
+(3.1. Visibility)
+	* Always use the proper synchronization whenever data is shared across threads.
+
+	<3.1.1. Stale Data>
+		- state values can cause serious safety or liveness failures.
+		* Reading data without synchronization is analogous to using the "READ_UNCOMMITED" isolation level in database, where you are willing to trade accuracy for performance.
+			-> In the case of unsynchronized reads, you are trading away a greater degree of accuracy, since the visible value for a shared variable can be arbitraily stale.
+
+	<3.1.2. Non-atomic 64-bit Operations>
+		- "Out-of-thin-air" safety
+			-> when a thread reads a variable without Synchronization, it may see a stale value, but at least it sees a value that was actually placed there by some thread rather than some random value.
+
+		- 64-bit numeric values(double and long) that are not declared "volatile"
+			-> Out-of-thin-air safety applies to all variables, with one exception.
+
+			-> The Java Memory Model requires fetch and store operations to be atomic.
+			
+			* But for "nonvolatile" long and double variables, the JVM is permitted to treat a 64-bit read or write as two separate 32-bit operations.
+				-> If the reads and writes occur in diferent threads, it is therefore possible to read a nonvolatile long and get back the high 32 bits of one value and the low 32 bits of another.
+
+					ex)
+						==================================================================
+						* "long" data type, which is a 64-bit integer, it is often useful to think of it as being composed of two "32-bit" parts.
+							-> when "long" is being updated in one thread and read in another without proper synchronization
+
+							-> a read operation might get a value where the high 32 bits and the low 32 bits come from different version of the data.
+						==================================================================
+
+			* It is not safe to use shared mutable long and double variables in multithreaded programs unless they are declared volatile or guarded by a lock.
+
+	<3.1.3. Locking and Visibility>
+		* "Locking" is not just about mutual exclusion.
+			-> It is also about "memory visibility"
+			-> To ensure that all threads see the most up-to-date values of shared mutable variables, the reading and writing threads must syncrhonize on a common lock.
+
+	<3.1.4. Volatile Variables>
+		- "volatile"
+			-> the compiler and runtime are put on notice that this variable is ahred and that operations on it should not be reordered with other memory operations.
+
+			* "Volatile" variables are not cached in registers or in caches where they are hidden from other processors, so a read of a volatile variable always returns the most recent write by any thread.
+
+			* relying on "Volatile" variables for visibility of arbitrary state is more fragile and harder to understand than code that uses locking.
+
+			* Use "volatile" only when they simplify implementing and verifying your syncrhonization policy.	
+				-> avoid when verifying correctness would require subtle reasoning about visibility.
+				-> Good uses of "volatile" variables include
+					1) ensuring the visibility of their own state, that of the object they refer to.
+					2) indicating that an important lifecycle event (such as initialization or shutdown) has occurred.
+
+			* "Volatile" are not strong enough to mkae the increment operation (count++) atomic, unless you can guarantee that the variable is written only from a single thread.
+				-> "Locking" can guarantee both visibility and atomicity; volatile variables can only guarantee visibility.
+
+(3.2. Publication and Escape)
+	- "Publishing an object"
+		-> making it available to code outside of its current scope
+			1) stroing a reference to it where other code can find it
+			2) returning it from a non-private method
+			3) passing it to a method in another class.
+
+	- "Blatant" form of publication 
+		-> is to store a reference in a public static field, where any class and thread coul see it.
+
+		ex)
+			===============================================================
+			class UnsafeStates {
+			    private val states = arrayOf(
+			        "AK", "AL", "AD"
+			    )
+
+			    fun getStates() = states
+			}
+
+			fun main() {
+			    val unsafe = UnsafeStates()
+			    val unsafeStates = unsafe.getStates()
+			    println(unsafeStates.joinToString()) // AK, AL, AD
+
+			    unsafeStates[0] = "asdf"
+			    println(unsafeStates.joinToString()) // asdf, AL, AD
+			}
+			===============================================================
+
+	<3.2.1. Safe Construction Practices>
+		* Publishing an object from within its constructor can publish an incompletely constructed object.
+			-> If the "this" reference escapes during construction, the object is considered not properly constructed.
+
+			-> DO NOT allow the "this" reference to escape during construction.
+			-> other parts of code might interact with the object while it is still being setup, leading to inconsistent or invalid states.
+
+			ex)
+				===============================================================
+				class Example {
+					init {
+						// Risky: reference is being used while the object
+						// is still being constructed.
+						someExternalFunction(this)
+					}
+
+					fun someExternalFunction(example: Example) {
+						// Function that does something with the example.
+					}
+				}
+				===============================================================
+
+(3.3. Thread Confinement)
+	* JDBC specification does not require that Connection objects be thread-safe.
+		-> The connection pool implementations provided by application servers are thread-safe; connection pools are necessarily accessed from multiple threads, so a non-thread-safe implementation would not make sense!
+
+	<3.3.1. Ad-hoc Thread Confinement>
+		- "Ad-hoc Thread confinement"
+			-> deescribes when the responsibility for maintaining thread confinement falls entirely on the implementation.
+
+		- Can be fragile
+			-> none of the language features, such as visibility modifiers or local variables, helps confine the object to the target thread.
+		
+		* GUI frameworks are single-threaded.
+			-> To avoid deadlock.
+
+	<3.3.2. Stack confinement>
+		- object can only be reached through local variables.
+			-> local variables can make it easier to confine objects to a thread.
+
+		* Local variables
+			-> exist on the executing thread's stack, which is not accessible to other threads.
+
+	<3.3.3. ThreadLocal>
+		- If you are porting a single-threaded application to a multithreaded environment, you can preserve thread safety by "converting shared global variables into ThreadLocals"
+
+(3.4. Immutability)
+	- Immutable objects are always thread-safe.
+
+	- An object is immutable if
+		1) It's state cannot be modified after construction
+		2) All its fileds are final
+		3) It is properly constructed (the "this" reference does not escape during construction)
+
+	<3.4.1. Final Fields>
+		* It is a good practice to
+			1) Make all fields private unless they need greater visibility.
+			2) Make all fields final unless they need to be mutable.
+
+(3.5. Safe Publication)
+	<3.5.2. Immutable Objects and Initialization Safety>
+		* Immutable objects can be used safely by any thread without additional syncrhonization, even when synchronization is not used to publish them.
+			-> final fields can be safely accessed without additional synchronization.
+			-> BUT! if final fields refer to mutable objects, synchronization is still required to access the state of the objects they refer to.
+
+	<3.5.3. Safe Publication Idioms>
+		- A properly constructed object can be safely published by
+			1) Initializing an object reference from a static initializer.
+			2) Storing a reference to it into a "volatile" field or "AtomicReference".
+			3) Storing a reference to it into a "final" field of a properly constructed object.
+			4) Storing a reference to it into a field that is properly guarded by a lock.
+
+		* Internal synchronization in thread-safe collections means that placing an object in a thread-safe collection.
+			-> Vector
+			-> syncrhonizedList (CopyOnWriteArrayList, ConcurrentHashMap, LinkedBlockingQueue, and etc)
+
+		* Static initializers are executed by the JVM at class initialization time;
+			-> this mechanism is guaranteed to safely publish any objects initialized in this way.
+
+	<3.5.4. Effectively Immutable Objects>
+		- "effectively immutable"
+			-> Objects that are not technically immutable, but whose states will not be modified after publication.
+
+	<3.5.5. Mutable Objects>
+		* Synchronization must be used not only to publish a mutable object, but also every time the object is accessed to ensure visibility of subsequent modifications.
+			-> to share mutable objects safely, they must be safely published and be either thread-safe or guarded by a lock.
+
+	<3.5.6. Sharing Objects Safely>
+		- The most useful policies for using and sharing objects in a concurrent program are:
+			1) Thread-confined.
+				-> A thread-confined object is owned exclusively by and confined to one thread, and can be modified by its owning thread.
+
+			2) Shared read-only.
+				-> A shared read-only object can be accessed concurrently by multiple threads without additional syncrhonization, but cannot be modified by any thread.
+				-> includes immutable and effectively immutable objects.
+
+			3) Shared thread-safe.
+				-> performs syncrhonization internally, so multiple threads can freely access it through its public interface without further synchronization.
+
+			4) Guarded.
+				-> accessed only with a specific lock held.
+				-> includes those that are encapsulated within other thread-safe objects and published objects that are known to be guarded by a specific lock.
