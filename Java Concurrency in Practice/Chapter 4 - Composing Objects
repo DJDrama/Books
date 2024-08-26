@@ -1,0 +1,107 @@
+[Chapter 4 - Composing Objects]
+
+(4.1. Desgining a Thread-safe class)
+	- Enapsulation makes it possible to determine that a class is thread-safe without having to examine the entire program.
+
+	- Thread-safe class should include three basic elements:
+		1) Identify the variables that form the object's state;
+		2) Identify the invariants that constrain the state variables;
+		3) Establish a policy for managing concurrent access to the object's state.
+
+	<4.1.1. Gathering Syncrhonization Requirements>
+		- Making a class thread-safe
+			-> ensuring that its invariants hold under concurrent access;
+			-> requires reasoning about its state.
+
+			* By using "final" fields wherever practical.
+
+	<4.1.2. State-dependent Operations>
+		- Class invariants and method post-conditions constrain the valid states and state transitions for an object.
+
+		* Some objects also have methods with "state-based" preconditions.
+			ex)
+				- you cannot remove an item from an empty queue;
+					-> it must be in the "nonempty" state before you can remove an element.
+
+		* Operations with state-based preconditions are called "state-dependent".
+
+		- It is often easier to use exsiting library classes, such as
+			+ blocking queues
+			+ semaphores
+
+			-> to provide the desired state-dependent behavior.
+
+	<4.1.3. State Ownership>
+		- If you allocate and populate a "HashMap"
+			-> you are creating multiple objects
+				1) the "HashMap" object
+				2) a number of "Map.Entry" objects used by the implementation of HashMap
+				3) perhaps other internal objects as well.
+
+			-> the logical state of a HashMap includes the state of all its Map.Entry and internal objects, even though they are implemented as separate objects.
+
+		- Collection classes often exhibit a form of "split ownership"
+			-> collection owns the state of the collection infrastructure,
+			-> BUT, client code owns the objects stored in the collection.
+
+(4.2. Instance Confinement)
+	* Encapsulating data within an object confines access to the data to the object's methods, making it easier to ensure that the data is always accessed with the appropriate lock held.
+
+	- Collections.syncrhonizedList and friends use the "Decorator pattern" to wrap the collection with a "synchronized" wrapper object
+		-> the wrapper implements each method of the appropriate interface as a synchronized method that forwards the request to the underlying collection object.
+
+	<4.2.1. The Java Monitor Pattern>
+		- bytecode instructions for entering and exiting a synchronized block are even called "monitorenter" and "monitorexit", and Java's built-in (intrinsic) locks are sometimes called "monitor locks" or "monitors".
+
+		* Primary advantage of the Java monitor pattern is its simplicity.
+
+		- advantages to using a "private" lock instead of an object's intrinsic lock (or any other publicly accessible lock)
+			-> encapsulates the lock so that client code cannot acquire it.
+
+(4.3. Delegating Thread Safety)
+	- Java monitor pattern is useful
+		-> when building classes from scratch or composing classes out of objects that are not thread-safe.
+
+	<4.3.2. Independent State Variables>
+		- "CopyOnWriteArrayList" -> thread safe List implementation particularly suited for managing listener lists.
+
+	<4.3.3. When Delegation Fails>
+
+	<4.3.4. Publishing Underlying State Variables>
+
+(4.4. Adding Functionality to Existing Thread-safe Classes)
+	<4.4.1. Client-side Locking>
+		* Client-sisde locking violates encapsulation of syncrhonization policy.
+
+	<4.4.2. Composition>
+		ex) Thread-safe put-if-absent using Composition
+			==========================================================================
+			public class ImprovedList<T> implements List<T> {
+				private final List<T> list;
+
+				public ImprovedList(List<T> list) {
+					this.list = list;
+				}
+
+				public syncrhonized boolean putIfAbsent(T x) {
+					boolean contains = list.contains(x);
+					if(contains)
+						list.add(x);
+					return !contains;
+				}
+
+				public syncrhonized void clear() {
+					list.clear();
+				}
+				// ...
+			}
+			==========================================================================
+
+(4.5. Documenting Syncrhonization Policies)
+	- "Documentation" is one of the most powerful tools for managing thread safety.
+
+	* Document a class's thread safety guarantees for its clients; document its syncrhonization policy for its maintainers.
+
+	<4.5.1. Interpreting Vague Documentation>
+		
+		
