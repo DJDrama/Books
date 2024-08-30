@@ -1,0 +1,450 @@
+[Chapter 5 - Building Blocks]
+(5.1. Synchronized Collections)
+	- Vector, Hashtable
+	- Collections.syncrhonizedXxx
+
+	<5.1.1. Problems with Synchronized Collections>
+		- need additional client-side locking to guard compound actions.
+			-> "iteration" : fetch elements
+			-> "navigation" : find the next element
+			-> "conditional operations" : put-if-absent
+			(with a syncrhonized collection, still thread-safe without client-side locking)
+
+			* BUT! may not behave as you might expect when other threads can concurrently modify the collection.
+
+			ex) Compound Actions on a "Vector" that may produce confusing results.
+				=================================================================
+				public static Object getLast(Vector list){
+					return list.get(list.size()-1);
+				}
+
+				public static void deleteLast(Vector list){
+					int lastIndex = list.size()-1;
+					list.remove(lastIndex);
+				}
+				=================================================================
+
+			ex) Using Client-side Locking
+				=================================================================
+				public static Object getLast(Vector list){
+					syncrhonized(list){
+						return list.get(list.size()-1);
+					}
+				}
+
+				public static void deleteLast(Vector list){
+					synchronized(list){
+						int lastIndex = list.size()-1;
+						list.remove(lastIndex);
+					}
+				}
+				=================================================================
+				-> But unluckily, when iterating(calling getLast()), and someone calls "deleteLast", then "ArrayIndexOutOfBoundsException" will happen.
+
+			ex) We also have to prevent other threads from accessing.
+				=================================================================
+				syncrhonized (vector) {
+					for (int i=0; i<vector.size(); i++)
+						doSomething(vector.get(i));
+				}
+				=================================================================
+
+	<5.1.2. Iterators and Concurrentmodificationexception)
+		- using iterators does not obviate the need to lock the collection during iteration if other threads can concurrently modify it.
+
+		* iterators returned by the syncrhonized collections are not designed to deal with concurrent modification, and they are fail-fast
+			-> meaning that if they detect that the collection has changed since iteration began, they throw the unchecked "ConcurrentModificationException."
+
+		- "fail-fast" iterators
+			-> not designed to be foolproof.
+			-> designed to catch concurrency errors on a "good-faith-effort" basis.
+
+			* If "modification count" changes during iteration, "hasNext" or "next" throws "ConcurrentModificationException".
+				-> check is done with "syncrhonization"
+
+			-> deliberate design tradeoff to reduce the performance impact of the concurrent modification detection code.
+
+		* locking a collection during iteration may be undesirable.
+			-> Other threads that need to access the collection will block until the iteration is complete;
+			-> if the collection is large or the task performed for each element is lengthy, they could wait a long time.
+
+			- if many threads are blocked waiting for a lock throughput and CPU utilization can suffer.
+
+		- Alternative to locking the collection during iteration
+			-> clone the collection and iterate the copy instead.
+			-> clone is thread-confined(no other thread can modify it during iteration)
+				+ eliminates "ConcurrentModificationException"
+
+			* Cloning has an obvious performance cost
+				-> size of the collection
+				-> how much work is done for each element
+				-> relative frequency of iteration
+				-> responsiveness and throughput requirements.
+
+	<5.1.3. Hidden Iterators>
+		- To prevent iterators from throwing ConcurrentModificationException
+			-> locking everywhere a shared collection might be iterated. (TRICKY)
+
+			ex) DON'T DO THIS
+				======================================================================
+				public class HiddenIterator {
+					private final Set<Integer> set = new HashSet<Integer>();
+
+					public syncrhonized void add(Integer i) { set.add(i); }
+					public syncrhonized void remove(Integer i) { set.remove(i); }
+
+					public void addTenThings() {
+						Random r = new Random();
+						for(int i=0; i<10; i++)
+							add(r.nextInt());
+						System.out.println("Debug: added ten elements to " + set);
+					}
+				}
+				======================================================================
+				-> "addTenThings()" can throw "ConcurrentModificationException"
+					+ collection is being iterated by "toString" in the process of preparing the debugging message.
+					+ lock should be acquired before using set in the "println" call.
+
+		* Iteration is also indirectly invoked by the collection's "hashCode" and "equals" methods.
+			+ also "containsAll", "removeAll", "retainAll" methods.
+
+(5.2. Concurrent Collections)
+	<5.2.1. ConcurrentHashMap>
+		- instead of synchronizing every method on a common lock, restricting access to a single thread at a time.
+			-> uses finer-grained locking mechanism called "lock striping" to allow a greater degree of shared access.
+
+		* Since the result of "size" could be out of date by the time it is computed, it is really only an estimate, so size is allowed to return an approximation instead of an exact count!
+
+		- SynchronizedMap -> acquiring the Map lock prevents any other thread from accessing it.
+			-> necessary in unusual cases such as adding several mappings atomically, or iterating the Map several times and needing to see the same elements in the same order.
+
+	<5.2.2. Additional Atomic Map Operations>
+		- ConcurrentHashMap cannot be locked for exclusive access
+			-> we cannot use client-side locking to create new atomic operations such as "put-if-absent".
+
+	<5.2.3. CopyOnWriteArrayList>
+		- concurrent replacement for a synchronized "List" that offers better concurrency in some common situations and eliminates the need to lock or copy the collection during iteration.
+
+		- implement mutability by creating and republishing a new copy of the collection every time it is modified.
+
+		* some cost to copying the "backing" array every time the collection is modified, especially if the collection is large.
+			-> "copy-on-write" collections are reasonable to use only when iteration is far more common than modification.
+
+(5.3. Blocking Queues and the Producer-consumer Pattern)
+	- put & take == offer & poll
+
+	* supports the producer-consumer design pattern.
+		-> separates the identification of work to be done from execution of that work by placing work items on a "to do" list for later processing, rather than processing them immediately as they are identified.
+
+		-> simplifies development because it removes code dependencies between producer and consumer classes, and simplifies workload management by decoupling activites that may produce or consume data at different or variable rates.
+
+		-> Producers do not have to know anything about the identity or number of consumers, or even whether they are the only producer.
+			+ All they have to do is place data items on the queue.
+
+		-> Consumers need not know who the producers are or where the work came from.
+
+	- Blocking queues simplify the coding of consumers.
+		-> "take" blocks until data is available.
+
+	- If the producers generate work faster than the consumers can process it
+		-> app will run out of memory because work items will queue up without bound.
+
+	* put: waits for space to become available.
+	* take: waits
+
+	* offer: "give up" if the queue has reached capacity.
+	* poll: can be null
+
+	- FIFO queues
+		-> LinkedBlockingQueue
+		-> ArrayBlockingQueue
+
+	- SynchrnousQueue (Not really a queue at all)
+		-> has no storage capacity
+		-> put and take will block unless another thread is waiting to participate in the handoff.
+
+	<5.3.3. Deques and Work Stealing>
+		- Deque extends Queue
+			-> Double-ended queue(ArrayDeque and LinkedBlockingDeque)
+			-> "Stealing"
+				+ every consumer has its own deque.
+				+ Well suited to problems in which consumers are also producers.
+
+		- BlockingDeque extends BlockingQueue
+
+(5.4. Blocking and Interruptible Methods)
+	- "interrupt" method
+		-> interrupting a thread and for querying whether a thread has been interrupted.
+		-> Each thread has a boolean property that represents its interrupted status; interrupting a thread sets this status.
+
+	- Interruption is a cooperative mechanism.
+		-> One thread cannot force another to stop what it is doing and do something else;
+		-> When thread A interrupts thread B, A is merely requesting that B stop what it is doing when it gets to a convenient stopping point.
+
+(5.5. Syncrhonizers)
+	- "take" & "put" block until the queue enters the desired state (not empty or not full).
+
+	- "syncrhonizer"
+		-> any object that coordinates the control flow of threads based on its state.
+		-> Blocking queues can act as syncrhonizers;
+		-> other types: semaphores, barriers, and latches.
+
+	<5.5.1 Latches>
+		- a syncrhonizer that can delay the progress of threads until it reaches its terminal state.
+
+		- acts as a gate: until the latch reaches the terminal state the gate is closed and no thread can pass, and in the terminal state the gate opens, allowing all threads to pass.
+
+		- Once the latch reaches the terminal state, it cannot change state again, so it remains open forever.
+
+		- Latch can be used to "ensure" that certain activities do not proceed until other one-time activities complete, such as:
+			1) ensuring that a computation does not proceed until resources it needs have been initialized.
+
+			2) Ensuring that a service does not start until other services on which it depends have started.
+
+			3) Waiting until all the parties involved in an activity are ready to proceed.
+
+		- "CountDownLatch"
+			-> allows one or more threads to wait for a set of events to occur.
+			-> latch state consists of a counter initialized to a positive number
+				+ representing the number of events to wait for.
+			-> "countDown" method decrements the counter
+				+ indiciating that an event has occurred, and the "await" methods wait for the counter to reach zero, which happens when all the events have occurred.
+
+			-> if the counter is nonzero on entry, "await" blocks until the counter reaches zero, the waiting thread is interrupted, or the wait times out.
+
+			ex) Using "CountDownLatch" for Starting and Stopping Threads in Timing Tests.
+				========================================================================
+				public class TestHarness {
+					public long timeTasks(int nThreads, final Runnable task) 
+							throws InterruptedException {
+						final CountDownLatch startGate = new CountDownLatch(1);
+						final CountDownLatch endGate = new CountDownLatch(nThreads);
+
+						for(int i=0; i<nThreads; i++){
+							Thread t = new Thread() {
+								public void run() {
+									try{
+										startGate.await();
+										try {
+											tasks.run();
+										} finally {
+											endGate.countDown();
+										}
+									} catch (InterruptedException ignored) { }
+								}
+							}
+							t.start();
+						}
+
+						long start = System.nanoTime();
+						startGate.countDown();
+						endGate.await();
+						long end = System.nanoTime();
+						return end-start;
+					}
+				}
+				========================================================================
+
+	<5.5.2. FutureTask>
+		- also acts like a ltach.
+		- implements "Future" (which describes an abstract result-bearing computation)
+
+		- implemented with a "Callable", the result-bearing equivalent of Runnable, and can be in one of three states.
+			1) waiting to run
+			2) running
+			3) completed
+
+		- once a FutureTask enter the completed state, it stays in that state forever.
+
+		- FutureTask is used by the "Executor" framework to represent asyncrhonous tasks
+			+ can be used to represent any potentially lengthy computation that can be started before the results are needed.
+
+			ex)
+				========================================================================
+				public class Preloader {
+					private final FutureTask<ProductInfo> future = 
+						new FutureTask<ProductInfo>(new Callable<ProductInfo>() {
+							public ProductInfo call() throws DataLoadException {
+								return loadProductInfo();
+							}
+						});
+
+					private final Thread thread = new Thread(future);
+
+					public void start() { thread.start(); }
+
+					public ProductInfo get()
+							throws DataLoadException, InterruptedException {
+						try {
+							return future.get();
+						} catch(ExceutionException e) {
+							Throwable cause = e.getCause();
+							if(cause instanceof DataLoadException)
+								throw (DataLoadException) cause;
+							else
+								throw launderThrowable(cause);
+						}
+					}
+				}
+
+				public static RuntimeException launderThrowable(Throwable t) {
+					if (t instnaceof RuntimeException)
+						return (RuntimeException) t;
+					else if (t instanceof Error)
+						throw (Error) t;
+					else
+						throw new IllegalStateException("Not unchecked", t);
+				}
+				========================================================================
+				-> "get": returns the loaded data if it is ready, or waits for the load to complete if not.
+
+	<5.3.3. Semaphores>
+		- Couting semaphores are used to control the number of activities that can access a certain resource or perform a given action at the same time.
+
+		- can be used to implement resource pools or to impose a bound on a collection.
+
+		- Semaphore manages a set of virtual permits;
+			-> the initial number of permits is passed to the Semaphore constructor.
+
+		- "release" method returns a permit to the semaphore.
+
+		- "binary semaphore"
+			-> a semaphore with an initial count of one.
+			-> can be used as a "mutex" with non-reentrant locking semantics; whoever holds the sole permit holdes the mutex.
+
+		* Useful for implementing resource pools such as database connection pools.
+
+		- If you initialize a Sempahore to the pool size, "acquire" a permit before trying to fetch a resource from the pool, and "release" the permit after putting a resource back in the pool, "acquire" blocks until the pool becomes nonempty.
+
+		- can use a Sempahore to turn any collection into a blocking bounded collection.
+
+			ex)
+				========================================================================
+				public class BoundedHashSet<T> {
+					private final Set<T> set;
+					private final Semaphore sem;
+
+					public BoundedHashSet(int bound) {
+						this.set = Collections.synchronizedSet(new HashSet<T>());
+						sem = new Semaphore(bound);
+					}
+
+					public boolean add(T o) throws InterruptedException {
+						sem.acquire();
+						boolean wasAdded = false;
+						try {
+							wasAdded = set.add(o);
+							return wasAdded;
+						}
+						finally {
+							if(!wasAdded)
+								sem.release();
+						}
+					}
+
+					public boolean remove(Object o) {
+						boolean wasRemoved = set.remove(o);
+						if(wasRemoved)
+							sem.release();
+						return wasRemoved;
+					}
+				}
+				========================================================================
+
+	<5.4.4. Barriers>
+		* Latches are single-use objects; once a latch enters the terminal state, it cannot be reset.
+
+		- Barriers are similar to latches in that they block a group of threads until some event has occurred.
+
+		* Key difference
+			-> barrier, all the threads must come together at a barrier point at the same time in order to proceed.
+
+			-> Latches are for waiting for events; barriers are for waiting for other threads.
+
+		- "CyclicBarrier"
+			-> allows a fixed number of parties to rendezvous repeatedly at a barrier point and is useful in parallel iterative algorithms that break down a problem into a fixed number of independent subproblems.
+
+			-> Threads call "await" when they reach the barrier point
+			-> "await" blocks until all the threads have reached the barrier point.
+
+			-> If all threads meet at the barrier point, the barrier has been successfully passed, in which case all threads are released and the barrier is reset so it can be used again.
+
+			* If a call to "await" times out, or a thread blocked in "await" is interrupted
+				-> the barrier is considered broken and all outstanding calls to "await" terminate with "BrokenBarrierException".
+
+			-> If the barrier is successfully passed, "await" returns a unique arrival index for each thread, which can be used to "elect" a leader that takes some special action in the next iteration.
+
+(5.6. Building an Efficient, Scalable Result Cache)
+	
+	ex)
+		========================================================================
+		public class Memorizer<A, V> implements Computable<A, V> {
+			private final ConcurrentMap<A, Future<V>> cache
+				= new ConcurrentHashMap<A, Future<V>>();
+
+			private final Computable<A, V> c;
+
+			public Memorizer(Computable<A, V> c) { this.c = c; }
+
+			public V compute(final A arg) throws InterruptedException {
+				while(true) {
+					Future<V> f = cache.get(arg);
+					if (f == null) {
+						Callable<V> eval = new Callable<V>() {
+							public V call() throws InterruptedException {
+								return c.compute(arg);
+							}
+						};
+						FutureTask<V> ft = new FutureTask<V>(eval);
+						f = cache.putIfAbsent(arg, ft);
+						if (f == null) { f = ft; ft.run(); }
+					}
+
+					try {
+						return f.get();
+					} catch (CancellationException e) {
+						cache.remove(arg, f);
+					} catch (ExecutionException e) {
+						throw launderThrowable(e.getCause());
+					}
+				}
+			}
+		}
+		========================================================================
+		-> Memorizer removes the Future from the cache
+			+ if it detects that the computation was cancelled;
+			+ also be desirable to remove the Future upon detecting a RuntimeException if the computatino might succeed on a future attempt.
+
+		-> Memorizer does not address cache expiration.
+
+(Summary)
+	1) less mutable -> easier to ensure thread safety.
+
+	2) make fields final unless they need to be mutable.
+
+	3) immutable objects are automatically thread-safe.
+		-> simpler and safer
+		-> can be shared freely without locking or defensive copying.
+
+	4) Encapsulation makes it practical to manage the complexity.
+		-> easier to preserve their invariants
+		-> encapsulating syncrhonization within objects makes it easier to comply with their syncrhonization policy.
+
+	5) Guard each mutable variable with a lock.
+
+	6) Guard all variables in an invariant with the same lock.
+
+	7) Hold locks for the duration of compound actions.
+
+	8) A program that accesses a mutable variable from multiple threads without syncrhonization is a broken program.
+
+	9) Don't rely on clever reasoning about why you don't need to syncrhonize.
+
+	10) Include thread safety in the design processor explicitly document that your class is not thread-safe.
+
+	11) Document your syncrhonization policy.
+
+
+
+
+
