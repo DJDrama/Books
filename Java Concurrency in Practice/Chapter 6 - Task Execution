@@ -1,0 +1,211 @@
+[Chapter 6 - Task Execution]
+
+	- Dividing the work of an application into tasks simplifies program organization.
+	- facilitates error recovery by providing natural transaction boundaries
+	- promotes concurrency by providing a natural structure for parallelizing work.
+
+(6.1. Executing Tasks in Threads)
+	- Tasks are independent activities
+		-> work that doesn't depend on the state, result, or side effects of other tasks.
+		-> independence facilitates concurrency, as they can be executed in parallel if there are adequate processing resources.
+
+	- Server apps should exhibit both good throughput and good responsiveness under normal load.
+
+	<6.1.1. Executing Tasks Sequentially>
+		- in server apps
+			-> sequential processing rarely provides either good throughput or good responsiveness.
+
+	<6.1.2. Explicitly Creating Threads for Tasks>
+		- thread-per-task approach is an improvement over sequential execution.
+			-> As long as the request arrival rate does not exceed the server's capacity to handle requests.
+			-> offers better responsiveness and throughput.
+
+	<6.1.3. Disadvantages of Unbounded Thread Creation>
+		- thread-per-task approach has some practical drawbacks, when a large number of threads may be created.
+
+			1) Thread lifecycle overhead.
+				-> Thread creation and teardown are not free.
+				-> Creation takes time, latency into request processing, and requires some processing activity by the JVM and OS.
+
+				* Creating a new thread for each request can consume significant computing resources.
+
+			2) Resource Consumption.
+				-> Active threads consume system resources, especially memory.
+
+				* When there are more runnable threads than available processors, threads sit idle.
+					-> Many idle threads can tie up a lot of memory, putting pressure on the garbage collector.
+					-> many threads competing for the CPUs can impose other performance costs as well.
+
+				* Creating more threads when CPUs busy won't help and may even hurt!
+
+			3) Stability
+				- thread creation has limit count.
+					-> when you hit this limit, OutOfMemoryError would happen!
+
+		* More threads
+			-> can improve throughput.
+			-> BUT! creating more threads will slow down your application, and cause your entire app to crash horribly.
+
+(6.2. The Executor Framework)
+	* Sequential Approach -> poor responsiveness and throughput
+	* Thread-per-task Approach -> poor resource management.
+
+	- Executor is based on the "producer-consumer" pattern
+		-> where activities that submit tasks are the producers (producing units of work to be done) and the threads that execute tasks are the consumers (consuming those units of work).
+
+		-> Using an Executor is usually the easiest path to implementing a producer-consumer design in your application.
+
+		ex)
+			============================================================
+			public interface Executor {
+				void execute(Runnable command);
+			}
+			============================================================
+
+	<6.2.2. Execution Policies>
+		- Execution policy specifies the "what, where, when, and how" of task execution, including:
+			1) In what thread will tasks be executed?
+			2) In what order should tasks be executed (FIFO, LIFO, priority order)?
+			3) How many tasks may execute concurrently?
+			4) How many tasks may be queued pending execution?
+			5) If a task has to be rejected because the system is overloaded, which task should be selected as the victim, and how should the app be notified?
+			6) What actions should be taken before or after executing a task?
+
+		- Execution policies are a resource management tool, and the optimal policy depends on the available computing resources and your quality-of-service requirements.
+
+			-> By limiting the number of concurrent tasks, you can ensure that the application does not fail due to resource exhaustion or suffer performance problems due to contention for scarce resources.
+
+	<6.2.3. Thread Pools>
+		- Executing tasks in pool threads has a number of advantages over the thread-per-task approach.
+			-> Reuse an existing thread instead of creating a new one amortizes thread creation and teardown costs over multiple requests.
+
+			-> worker thread often already exists at the time the request arrives, the latency associated with thread creation does not delay task execution.
+				+ improving responsiveness.
+
+		* By properly turing the size of the thread pool
+			-> can have enough threads to keep the processors busy while not having so many that your app runs out of memory or thrashes due to competition among threads for resources.
+
+		- "newFixedThreadPool"
+			-> fixed-size thread pool creates threads as tasks are submitted, up to the maximum pool size
+			-> and then attempts to keep the pool size constant (adding new threads if a thread dies due to an unexpected Exception)
+
+		- "newCachedThreadPool"
+			-> has more flexibility to reap idle threads when the current size of the pool exceeds the demand for processing
+			-> and to add new threads when demand increases, but places no bounds on the size of the pool.
+
+		- "newSingleThreadExecutor"
+			-> A single-threaded executor creates a single worker thread to process tasks, replacing it if it dies unexpectedly.
+			-> Tasks are guaranteed to be processed sequentially according to the order imposed bye the task queue (FIFO, LIFO, priority order).
+
+		- "newScheduledThreadPool"
+			-> fixed-size thread pool that supports delayed and periodic task execution, similar to Timer.
+
+		* "Pool-based" policy has a big effect on app stability
+			1) web server will no longer fail under heavy load.
+			2) will not create thousands of threads that compete for limited CPU and memory resources.
+
+	<6.2.4. Executor Lifecycle>
+		- Because an Executor processes tasks asynchronously, at any given time the state of previously submitted tasks is not immediately obvious.
+			-> Some may have completed, some may be currently running, and others may be queued awaiting execution.
+
+		- Lifecycle Methods in ExecutorService
+			ex)
+				============================================================
+				public interface ExecutorService extends Executor {
+					void shutdown();
+					List<Runnable> shutdownNow();
+					boolean isShutdown();
+					boolean isTerminated();
+					boolean awaitTermination(long timeout, TimeUnit unit)
+						throws InterruptedException;
+					// ... additional convenience methods for task submission
+				}
+				============================================================
+
+		- ExecutorService has three states
+			1) running
+			2) shutting down
+			3) terminated
+
+		- "shutdown()" initiates a graceful shutdown
+			-> no new tasks are accepted but previously submitted tasks are allowed to complete - including those that have not yet begun execution.
+
+		- "shutdownNow()" method initiates an abrupt shutdown
+			-> attempts to cancel outstanding tasks and does not start any tasks that are queued but not begun.
+
+		- Tasks submitted to an ExecutorService after it has been shut down
+			-> handled by the rejected execution handler
+			-> might silently discard the task or might cause execute to throw the unchecked RejectedExecutionException.
+
+		- Once all tasks have completed, the ExecutorService transitions to the "terminated" state.
+			-> "awaitTermination" : you can wait for an ExecutorService to reach the terminated state
+			-> "isTerminated" : poll for whether it has yet terminated.
+
+		* It is common to shutdown immediately by "awaitTermination"
+			-> creating the effect of synchronously shutting down the ExecutorService.
+
+	<6.2.6. Delayed and Periodic Tasks>
+		- "Timer"
+			-> execution of deferred ("run this task in 100ms")
+			-> execution of periodic ("run this task every 10ms")
+
+		- "Timer" has drawbakcs and "ScheduledThreadPoolExecutor" can be a replacement.
+			-> can construct a "ScheduledThreadPoolExecutor" through its constructor or through the "newScheduledThreadPool" factory.
+
+		[Problems]
+		1) "Timer" creates only a single thread for executing timer tasks.
+			-> If a timer task takes too long to run, the timing accuracy of other TimerTasks can suffer.
+
+		2) behaves poorly if a TimerTask throws an unchecked exception.
+			-> Timer thread does not catch exception
+			-> unchecked exception thrown from a TimerTask terminates the timer thread.
+			-> Timer assumes the entire Timer was cancelled.
+			* TimerTasks that are already scheduled but not yet executed are never run!, and new tasks cannot be scheduled. ("thread leakage")
+
+(6.3. Finding Exploitable Parallelism)
+	<6.3.2. Result-bearing Tasks: Callable and Future>
+		* Executor framework uses Runnable as its basic task representation.
+			-> "run" cannot return a value or throw checked exceptions.
+
+		- "Callable" is a better abstraction : expects that the main entry point, "call", will return a value and anticipates that it might throw an exception.
+			+ For non-value-returning task with Callable use "Callable<Void>"
+
+		- "Runnable" and "Callable" describe abstract computational tasks.
+			* "Tasks" are usually finite
+				-> have a clear starting point and eventually terminate.
+
+		- Lifecycle of a "task" executed by an Executor has four phases
+			1) created
+			2) submitted
+				-> Tasks that have been submitted but not yet started can always be "Cancelled"
+			3) started
+				-> Sometimes, tasks that have started can be cancelled if they are responsive to interruption.
+			4) completed
+				-> Cancelling a task that has already completed has no effect.
+
+		- "get" (Future)
+			-> returns immediately or 
+			-> throws an Exception if the task has already completed, but if not it blocks until the task completes.
+
+	<6.3.5. CompletionService: Executor Meets BlockingQueue>
+		- "CompletionService"
+			-> combines the functionality of an Executor and a BlockingQueue.
+			-> can submit "Callable" tasks to it for execution and use the queue-like methods "take" and "poll"
+
+	<6.3.6. Page Renderer with CompletionService>
+		- "CompletsionService"
+			-> shorter total runtime
+			-> improved responsiveness.
+
+		- Multiple ExecutorCompletionServices can share a single Executor
+			-> perfectly sensible to create an ExecutorCompletionService that is private to a particular computation while sharing a common Executor.
+
+
+	<6.3.7. Placing Time Limits on Tasks>
+		- "invokeAll"
+			-> adds the "Futures" to the returned collection in the order imposed by the task collection's iterator, thus allowing the caller to aassociate a Future with the Callable it represents.
+
+			-> On return from "invokeAll", each task will have either completed normally or been cancelled; the client code can call "get" or "isCancelled" to find out which.
+
+
+
