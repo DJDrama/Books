@@ -1,0 +1,514 @@
+5. State snapshot system
+	- "The state snapshot system"
+		-> reactive model enables our code to be more powerful and concise.
+		-> it allows components to recompose automatically based on their inputs and only when required
+		-> avoiding all the boilerplate
+
+	(What snapshot state is)
+		- "Snapshot state" : isolated state that can be rememberred and observed for changes.
+			-> what we get when calling functions like "mutableStateOf", "mutableStateListOf", "mutableStateMapOf", "derivedStateOf", "produceState", "collectAsState"
+
+			-> all above calls return some type of "State", and devs frequently refer to it as "snapshot state".
+
+		* All Composable declarations and expressions are wrapped by the Jetpack Compose compiler
+			-> to "automatically" track any snapshot state reads within their bodies.
+
+			-> Every time the state the Composable reads varies, the runtime can invalidate the Composable's "RecomposeScope", so it is executed again in next recomposition.
+
+		* "snapshot"
+			-> "state isolation"
+			-> stands for the level of isolation we apply in the context of concurrency.
+
+		- Concurrency solutions
+			1) Immutability
+			2) Actor system
+				-> focuses on "state isolation" across threads.
+				-> Actors keep their own copy of the state, and communication / coordination is achieved via messages.
+
+			* "Compose snapshot system" is not based on the actor system, but closer to this approach.
+
+		- Snapshot state system
+			-> modeled using a "concurrency control system", since it needs to coordinate state across threads in a safe mannger.
+
+		ex) State interface
+			======================================================================
+			@Stable
+			interface State<out T> {
+				val value: T
+			}
+			======================================================================
+			-> contract is flagged as "@Stable"
+
+			* Any implementation of this interface must ensure
+				1) result of "equals" between two "States" is coherent
+					-> always returns the same result when comparing the same two instances.
+
+				2) When a public property of the ty pe change (value), composition is notified
+
+				3) All its public property types are also stable.
+
+	(Concurrency control systems)
+		- "Concurrency Control"
+			-> ensuring correct results for concurrent operations
+			-> coordination and syncrhonization.
+
+		- Coordination always comes with a cost.
+			-> impacts performance
+			-> design an approach that is as efficient as possible without significant drops in performance.
+
+			ex)
+				-> transaction system present in most of the database management system (DBMS) today.
+				-> any db transactions performed in concurrent environments are done in a safe maner without violating the data integrity of the database.
+				-> aim is to maintain correctness.
+
+				-> "Safety"
+					+ ensuring transactions to be atomic.
+					+ reverted safely
+					+ no effect of a comitted transaction is ever lost
+					+ no effect of an aborted transaction remains in the database.
+
+		- In the Compose state snapshot system
+			-> state writes are applied "as a single atomic operation" when state changes from a snapshot are propagated to other snapshots.
+
+			-> Atomic changes can be easily aborted, reverted, or reproduced.
+
+		- Different categories of concurrency control systems:
+			1) Optimistic
+				-> do not block any reads or writes and be optimistic about those being safe.
+				-> abort a transaction to prevent the violation if it will break the required rules when comitted.
+				-> aborted transaction is immediately re-executed which impiles an overhead.
+				+ Can be a good strategy, when the average amount of aborted transactions is not too high.
+
+			2) Pessimistic
+				-> block an operation from a transaction if it violates the rules, until the possibility of violation disappears.
+
+			3) Semi-optimistic
+				-> hybrid solution
+				-> block operations only in some situations and be optimistic (then abort on commit) for others.
+
+		* Non-optimistic
+			-> prone to deadlock.
+			-> aborting a stalled transaction (hence release the others) and restarting it as soon as possible.
+
+		* Jetpack Compose is "optimistic"
+			-> State update collisions are only reported when propagating the changes (in the end)
+			-> and then they are tried to be merged automatically or discarded (changes aborted) otherwise.
+
+		* Jetpack Compose is "ACI" (NOT ACID), and in-memory, in-process only.
+			-> Atomic
+			-> Consistent
+			-> Isolated
+
+		- MVCC (Multiversion concurrency control)
+			-> Jetpack Compose uses to implement the state snapshot system.
+			-> system increases concurrency and performance by
+				"generating a new version of a database object each time it is written"
+				"also allows reading the several last relevant versions of the object"
+
+	(Multiversion concurrency control(MCC or MVCC))
+		* Compose global state is shared across Compositions, which also means "threads".
+
+		* Main properties of concurrency control is actually "isolation"
+			-> ensures correctness in scenarios of concurrent access to data.
+
+		* MVCC keeps "multiple copies" of the data (snapshots)
+			-> so each thread can work with an isolated snapshot of the state at a given instant.
+			-> can understand those as different "versions" of the state ("multiversion").
+
+			-> Modifications done by a thread remain invisible to other threads until all the local changes are completed and propagate.d
+
+		* MVCC leverages "immutability"
+			-> instead of modifying the original one, whenever data is written a new copy of the data is created.
+
+			-> (State Records): "Multiple" versions of the same data stored in memory.
+
+		* MVCC creates "point-in-time consistent views" of the state.
+			-> usually a property of backup files
+			-> means that all references to objects on a given backup stay coherent.
+
+			-> Each snapshot is assigned its own ID.
+
+	(The snapshot)
+		- snapshot
+			-> reflecs the current state of the program at a given instant.
+
+		* Multiple snapshots can be taken, and all of them will receive " their own isolated copy of the program state".
+
+		- In a concurrent scenario with multiple threads, each thread would point to a different snapshot and therefore a different copy of the state.
+
+		- Jetpack compose, any code that wants to take a Snapshot just needs to call the static method for it.
+			ex)
+				==================================================
+				val snapshot = Snapshot.takeSnapshot()
+				==================================================
+				-> will take a snapshot of the current value of all the state objects
+				-> those values will be preserved until "snapshot.dispose()" is called.
+
+		- Snapshots have a lifecycle.
+			-> whenever we are done using a snapshot, it needs to be disposed.
+
+		* Without "snapshot.dispose()"
+			-> leaking all the resources associated with the snapshot, along with its retained state.
+
+		* Snapshot is considered "active" between the created and disposed states.
+
+		- Snapshot is taken
+			-> given an ID
+			-> all the state on it can be differentiated from other potential versions of the same state retained by other snapshots.
+
+			* Allows to "version" the program state, keep the program state "coherent according to a version" (multiversion conccurency control)
+
+			ex)
+				===============================================================================
+				fun main() {
+				    val dog = Dog()
+				    dog.name.value = "Spot"
+				    val snapshot = Snapshot.takeSnapshot() // read-only(cannot be modified)
+				    dog.name.value = "Fido"
+
+				    println(dog.name.value) // Fido
+				    snapshot.enter { println(dog.name.value) } // Spot
+				    println(dog.name.value) // Fido
+				}
+				===============================================================================
+				-> "enterting the snapshot": runs a lambda in the context of the snapshot.
+					+ snapshot becomes the "source of truth" for any state.
+
+		- Different types of snapshots
+			ex)
+				===============================================================================
+				sealed class Snapshot(...) {
+					class ReadonlySnapshot(...): Snapshot() { ... }
+					class NestedReadonlySnapshot(...): Snapshot() { ... }
+					open class MutableSnapshot(...): Snapshot() { ... }
+					class NestedMutableSnapshot(...): MutableSnapshot() { ... }
+					class GlobalSnapshot(...): MutableSnapshot() { ... }
+					class TransparentOBserverMutableSnapshot(...): MutableSnapshot() { ... }
+				}
+				===============================================================================
+				1) ReadonlySnapshot
+					-> cannot be modified, only read
+
+				2) MutableSnapshot
+					-> read and modified
+
+				3) NestedReadonlySnapshot & NestedMutableSnapshot
+					-> Child read-only and mutable snapshots, since snapshots form a tree.
+					-> Snapshot can have any number of nested snapshots.
+
+				4) GlobalSnapshot
+					-> Mutable snapshot that holds the global program state.
+					-> effectively the ultimate root of all snapshots.
+
+				5) TransparentObserverMutableSnapshot
+					-> exits only to notify read and write observers whenever a state object is read / written.
+					-> All state records on it are automatically flagged as invalid
+						+ not be visible / readable by any other snapshot.
+
+					-> any records created for it are actually associated with the parent instead.
+					-> "transparent" in the sense that all operations performed on it are as if they were performed in the parent snapshot.
+
+	(The snapshot tree)
+		* Snapshots form a tree.
+			-> "NestedReadonlySnapshot" and "NestedMutableSnapshot"
+
+		* Root of the tree: "GlobalSnapshot" (holding the global state)
+
+		- Nested snapshots
+			-> independent copies of the snapshot that can be disposed independently.
+				+ Allows to dispose it while keeping the parent snapshot active.
+				+ Frequent when dealing with "Subcomposition"
+					-> subcompositions are compositions created inline with the only intention to support "independent invalidation".
+					-> Compositions and subcompositions are also connected as a tree.
+
+			-> (when subcomposition is needed)
+				+ a nested snapshot is created to store and isolate its state.
+				+ snapshot can be disposed when subcomposition is gone, while keeping the parent composition and parent snapshot alive.
+
+			- "Snapshot.takeNestedSnapshot()", "MutableSnapshot.takeNestedMutableSnapshot()"
+
+		* Child read-only snapshot can be produced from any snapshot type.
+		* Mutable snapshot can only be produced from another mutable snapshot (or from the global snapshot which can be thought of as a mutable snapshot)
+
+	(Snapshots and threading)
+		* Snapshots "are not necessarily bound to a thread".
+			-> Thread can enter and leave a snapshot arbitraily, and a child snapshot can be entered by a separate thread.
+
+		- "Snapshot.current"
+			-> always possible to retrieve the current snapshot for a thread.
+
+	(Observing reads and writes)
+		- "Snapshot.takeSnapshot()"
+			-> return is a "ReadonlySnapshot"
+
+		- "takeSnapshot" function
+			-> allows us to pass a "readObserver" (as an optional parameter)
+			-> will be notified every time any state object is read from the snapshot "within the enter call"
+				ex)
+					===============================================================================
+					// simple observer to track the total number of reads
+					val snapshot = Snapshot.takeSnapshot { reads++ }
+					// ...
+					snapshot.enter { /* some state reads */ }
+					// ...
+					===============================================================================
+
+		- "SnapshotFlow"
+			ex)
+				===============================================================================
+				fun <T> snapshotFlow(block: ()->T): Flow<T> {
+					// ...
+					snapshot.takeSnapshot { readSet.add(it) }
+					// ...
+					// Do something with the Set
+				}
+				===============================================================================
+				-> converts State<T> objects into a "Flow"
+				-> when collected, it runs its block and emits the result of the "State" objects read in it.
+				-> When one of the "State" objects read mutates, the "Flow" emits the new value to its collector.
+
+				* it needs to record all the state reads so it can reexecute the block whenever any of those state objects change.
+					-> to keep track of the reads, it takes a read-only snapshot and passes a read observer so it can store them in a "Set".
+
+		- Read-only snapshots not only notify their read "readObserver" when some state is read, but also their parent's "readObserver".
+			-> A read on a nested snapshot must be visible to all the parents and their observers
+			-> so all the observers on the snapshot tree are notified accordingly.
+
+		- "writeObserver" can only be passed when creating a "mutable" snapshot.
+			-> "Snapshot.takeMutableSnapshot()".
+
+		- "Recomposer"
+			-> example of observing reads and writes
+			-> able to track any reads and writes into the Composition, to automatically trigger recomposition when required.
+
+		- "Snapshot.observe(readObserver, writeObserver, block)"
+			-> this function is used by "derivedStateOf" to react to all object reads from the provided block.
+			-> only place where the "TransparentObserverMutableSnapshot" is used.
+
+			* Parent snapshot of this type is created with the only purpose of notifying reads to observers, as explained in previous sections.
+
+	(MutableSnapshots)
+		* All changes made in a "MutableSnapshot" are isolated from the changes done by other snapshots.
+
+		* When applying the Composition(we apply changes via the "Applier" as the last step in the composition), any changes in mutable snapshots are applied and notified to their parents
+			-> or ultimately the global snapshot (program state).
+			-> if there is a failure when applying these changes, a new composition is scheduled.
+
+		* A mutable snapshot also has a lifecycle.
+			-> always ends by calling "apply" and / or "dispose"
+				-> required both to propagate state modifications to other snapshots, and to avoid leaks.
+
+		* "apply" -> atomically
+			-> global state or the parent snapshot (in case its nested) will see all those changes "as a single atomic change".
+
+			ex)
+				===============================================================================
+				class Address {
+					var streetname = mutableStateOf("")
+				}
+
+				fun main() {
+					val address = Address()
+					address.streetname.value = "Some street"
+
+					val snapshot = Snapshot.takeMutableSnapshot()
+					println(address.streetname.value) // Some street
+
+					snapshot.enter { // modification is visible
+						address.streetname.value = "Another street"
+						println(address.streetname.value) // Another street
+					}
+
+					// reverted to the original one.
+					// changes in a "MutableSnapshot" are isolated from any other snapshots.
+					println(address.streetname.value) // Some street
+
+					// changes are propagated
+					snapshot.apply()
+					println(address.streetname.value) // Another street
+				}
+				===============================================================================
+				* Only state updates done within the "enter" call will be tracked and propagated.
+
+			ex) Alternative syntax: Snapshot.withMutableSnapshot to shortcut above pattern.
+					-> ensure that "apply is called in the end"
+				===============================================================================
+				fun main(){
+					val address = Address()
+					address.streetname.value = "Some street"
+
+					Snapshot.withMutableSnapshot {
+						println(address.streetname.value) // Some street
+
+						address.streetname.value = "Another street"
+						println(address.streetname.value) // Another street
+					}
+
+					println(address.streetname.value) // Another street
+				}
+				===============================================================================
+
+		* Also possible to register apply observers to observe the ultimate modification changes.
+			-> done via "Snapshot.registerApplyObserver"
+
+
+	(GlobalSnapshot and nested snapshots)
+		- type of mutable snapshot that happens to hold the global state.
+			-> will get updates coming from other snapshots following the bottom to top order.
+
+		* "GlobalSnapshot" cannot be nested.
+			-> only one
+			-> ultimate root of all snapshots.
+			-> holds the current global (shared) state.
+				+ cannot be applied (has no apply call)
+
+		* To "apply" changes in the global snapshot, it must be "advanced".
+			-> by calling "Snapshot.advanceGlobalSnapshot()"
+				+ clears the previous global snapshot and creates a new one, that accepts all the valid state from the previous one.
+
+			-> also not possible to call "dispose()" on it.
+				+ Disposing a global snapshot is also done by "advancing" it.
+
+		- the global snapshot is created during initialization of the snapshot system.
+			-> In JVM this happens when "SnapshotKt.class" is initialized by Java or the Android runtime.
+
+		- After, the global snapshot manager is started when creating the "Composer"
+			-> and then each composition creates its own nested mutable snapshot and attaches it to the tree.
+			-> so it can isolate all the state for the composition.
+
+			-> Compositions will also use this change to register read and write observers to track reads and writes into the Composition.
+
+		* when the "Composer" is created, right when creating the "Composition", a call to "GlobalSnapshotManager.ensureStarted()" is done.
+
+
+	(StateObjects and StateRecords)
+		- Multiversion conccurency control (MCC) ensures that every time state is written, a new version of it is created (copy-on-write).
+
+			1) creating a snapshot is O(1)
+			2) cost of comitting a snapshot is O(N)
+				-> N is the number of objects mutated in the snapshot.
+			3) snapshots do not have a list of snapshot data anywhere (only a transitory list of modified objects) so that objects can be collected by the garbage collector freely without the Snapshot system having to be notified.
+
+		- a snapshot state object is modeled as a "StateObject"
+		- each one of the multiple versions stored for that object is a "StateRecord".
+			-> every record holds the data for a single version of the state.
+			-> version that each snapshot sees corresponds to the most up to date valid version available "when the snapshot was taken." (The valid one with the highest snapshot ID).
+
+		- Any valid records from a previous snapshot are automatically copied to the new one.
+			-> A state record is considered valid "for a snapshot" if its recorded ID is less than or equal to the snapshot id(that is, created in the current or a previous snapshot), and not part of the snapshot's "invalid" set, or specifically flagged as invalid.
+
+		- What makes a record be part of the mentioned "invalid" set or explicitly flagged as invalid?
+			1) Records created "after" the current snapshot are considered invalid
+				-> since the snapshot they were created for was taken "after" this snapshot.
+
+			2) Records created for a snapshot that was already open at the time this snapshot was created are added to the "invalid" set.
+				-> so they are also considered invalid.
+
+			3) Records created in a snapshot that was disposed before it was applied are explicitly "flagged as invalid", also.
+
+		- An "invalid" record
+			-> a record that is not visible by any snapshot, thus it canot be read.
+
+			-> When a snapshot state is read from a Composable function, that record won't be taken into account to return its most up to date valid state.
+
+		- whenever an object is read, the list of "StateRecords" for a given snapshot state(StateObject) is traversed, looking for the most recent valid one (with the highest snapshot ID).
+
+		- "mutableStateOf"
+			-> returns a "SnapshotMutableState"(StateObject)
+				+ maintains a linked list of records of a very specific type "StateStateRecord".
+
+		- "mutableStateListOf"
+			-> creates a "SnapshotStateList" (another implementation of "StateObject").
+				+ this state models a mutable list that can be observed(implements the MutableList Kotlin collection contract), so its recors will have the type "StateListStateRecord", defined by itself.
+
+				+ this record uses a "PersistentList" to hold a version of the state list.
+
+
+	(Reading and writing state)
+		- "When an object is read, the list of "StateRecords" for a given snapshot state(StateObject) is traversed, looking for the most recent valid one (With the highest snapshot ID)"
+
+	(Removing or reusing obsolete records)
+		- "Removing versions that become obsolete" and will never be read.
+
+		- how Compose recycles obsolete records
+			1) It tracks the lowest open snapshot.
+				-> Compose keeps track of a set of open snapshot ids
+				-> Those ids are monotonically generated and constantly increasing.
+			2) If a record is valid but not visible in the lowest open snapshot
+				-> then it can be safely reused as it will never be selected by any other snapshot.
+
+	(Change propagation)
+		- "Closing a snapshot"
+			-> removes its ID from the set of open snapshot IDs
+			-> all its state records (records associated with its ID) become visible/readable by any new snapshots created.
+
+		- "Advancing" : When closing a snapshot, we want to replace it by a new one created right away.
+			-> new snapshot created gets a new ID generated by incrementing the previous one.
+			-> This ID is then added to the set of open snapshot IDs.
+
+		* Global snapshot is never applied, but always advanced
+			-> making all its changes visible to the new global snapshot created.
+
+		* Mutable snapshots can also be advanced when their nested snapshots apply their changes.
+
+		- When calling "snapshot.apply()" on a mutable snapshot
+			-> all the local changes made to state objects within its scope are propagated to the parent, or to the global state.
+
+		- When snapshots are applied
+			-> changes made by the applying snapshot are "added together with changes of other snapshots".
+
+		* When a mutable snapshot wants to apply (notify / propagate) its local changes
+			-> it tries to detect potential write collisions and "merge those as possible".
+
+		- Two scenarios
+			1) "No pending local changes" (If no pending local changes in the snapshot)
+				+ mutable snapshot gets proactively closed
+					-> removes it from the set of open snapshot ids
+					-> making all its state records automatically visible / readable by new snapshots taken.
+
+				+ global snapshot is "advanced" (same as closed but replaced by a new global snapshot created.)
+
+				+ uses the chance to check if there were any state changes in the global snapshot also
+					-> so the mutable snapshot can notify any potential apply observers about those changes in that case.
+
+			2) "With pending local changes" (When there are pending changes)
+				+ detects collisions and calculates the merged records using an optimistic approach.
+					-> Collisions are tried to be merged automatically or discarded othersie.
+
+				+ checks if every pending local changes is different than the current value.
+					-> if it is not, it ignores the change and keeps the current value.
+
+				+ if it's an actual change (different), it checks the already calculated optimistic merges to decide whether to keep the previous, the current, or the applied record.
+					-> can actually create a merge of all of them.
+
+				+ In case it had to perform a merge of the records
+					-> will create a new record (immutability)
+					-> assign the snapshot id to it
+					-> prepend it to the linked list of records, making it be the first one on the list.
+
+		* In case there's any failure when applying the changes
+			-> faillback to the same process down when there are "no" pending local changes.
+
+			-> closing the mutable snapshot to make its records visible to any new ones
+			-> advancing the global snapshot (close and replace it by a new one)
+			-> so it includes all the changes in the mutable snapshot just closed
+			-> notifies any apply observers about any global state changes detected.
+
+		- For nested mutable snapshots
+			-> they add all its modified state objects to the modified set of the parent.
+			-> since all those changes need to be visible by the parent, the nested mutable snapshot removes its own id from the parent set of invalid snapshots.
+
+	(Merging write conflicts)
+		- To do the merge, the mutable snapshot iterates over its list of modified states (local changes), and for every change it does the following.
+
+			1) obtains the current value (state record) in the parent snapshot or the global state.
+			2) obtains the previous value before applying the change.
+			3) obtains the state the object would have after applying the change.
+			4) tries to automatically merge the three of them.
+				-> this is delegated into the state object, which relies on a provided "merging policy"
+
+		- "mutableStateOf" uses a "StructuralEqualityPolicy" for merges
+			-> compares two versions of the object via a deep equals (==)
+			-> so all properties are compared
+			-> including the unique object key
+			-> making it impossible for two objects to collide.
