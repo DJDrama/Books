@@ -1,0 +1,143 @@
+[Chatper 8 - Applying Thread Pools]
+
+(8.1. Implicit Coupling Between Tasks and Execution Policies)
+	- "Executor" framework decouples task submission from task execution.
+
+	- types of tasks that require specific execution policies include:
+		1) Dependent tasks.
+
+		2) Tasks that exploit thread confinement.
+
+		3) Response-time-sensitive tasks.
+
+		4) Tasks that use "ThreadLocal"
+			-> ThreadLocal allows each thread to have its own private "version" of a variable.
+
+	* Tasks that depend on other tasks require that the thread pool be large enough that tasks are never queued or rejected;
+
+	<8.1.1. Thread Starvation Deadlock>
+		* If tasks depend on other tasks execute in a thread pool, they can deadlock.
+
+		- "Starvation Deadlock"
+			ex) If all threads are executing tasks that are blocked waiting for other tasks still on the work queue.
+
+			-> can occur whenever a pool task initiates an unbounded blocking wait for some resource or condition that can succeed only through the action of another pool task
+			-> such as waiting for the return value or side effect of another task, unless you can guarantee that the pool is large enough.
+
+			ex)
+				======================================================================
+				public class ThreadDeadlock {
+					ExecutorService exec = Executors.newSingleThreadExecutor();
+
+					public class RenderPageTask implements Callable<String> {
+						public String call() throws Exception {
+							Future<String> header, footer;
+							header = exec.submit(new LoadFileTask("header.html"));
+							fotter = exec.submit(new LoadFileTask("footer.html"));
+							String page = renderBody();
+
+							// will deadlock -- task waiting for result of subtask
+							return header.get() + page + footer.get()
+						}
+					}
+				}
+				======================================================================
+
+	<8.1.2. Long-running Tasks>
+		- long-running tasks -> use timed resource waits instead of unbounded walts.
+
+		- Most blocking methods in the platform libraries come in both untimed and timed versions
+			ex) Thread.join
+			ex) BlockingQueue.put
+			ex) CountDownLatch.await
+			ex) Selector.select
+
+			-> If the wait times out, you can mark the task as failed and abort it or requeue it for execution later.
+
+(8.2. Sizing Thread Pools)
+	* Thread pool sizes should rarely be hard-coded;
+		-> instaed pool sizes should be provided by a configuration mechanism or computed dynamically by consulting "Runtime.availableProcessors".
+
+
+	- If thread pool is "too big"
+		-> threads compete for scarce CPU and memory resources
+		-> resulting in higher memory usage and possible resource exhaustion.
+
+	- If thread pool is "too small"
+		-> throughput suffers as processors go unused despite available work.
+
+	- For compute-intensive tasks, an N_cpu-processor system usually acheives optimum utilization with a thread pool of N_cpu+1 threads.
+		-> Even compute-intensive threads occasionally take a page fault or pause for some other reason, so an "extra" runnable thread prevents CPU cycles from going unused when this happens.
+
+	- Optimal pool size for keeping the processors at the desired utilization is
+		eq) N_threads = N_cpu * U_cpu * (1 + W/C)
+			-> N_cpu = number of cpus
+			-> U_cpu = target CPU utilization, 0 <= U_cpu <= 1
+			-> W/C = ratio of wait time to compute time
+
+	- you can determine the number of CPUs using Runtime:
+		ex) int N_CPUS = Runtime.getRuntime().availableProcessors();
+
+		ex)
+			======================================================================
+			fun main() {
+			    val cpus = Runtime.getRuntime().availableProcessors()
+			    println(cpus) // 8
+			}
+			======================================================================
+
+(8.3. Configuring ThreadPoolExecutor)
+	- "ThreadPoolExecutor" provides the base implementation for the executors returned by the "newCachedThreadPool", "newFixedThreadPool", and "newScheduled-ThreadExecutor" factories in Executors.
+
+		-> "TrheadPoolExecutor" is flexible, robust pool implementation that allows a variety of customizations.
+
+
+	<8.3.1. Thread Creation and Teardown>
+		- "newFixedThreadPool" factory
+			-> sets both the core pool size and the maximum pool size to the requested pool size, creating the effect of infinite timeout
+
+		- "newCachedThreadPool" factory
+			-> sets the maximum pool size to Integer.MAX_VALUE and the core pool size to zero with a timeout of one minute
+			-> creating the ffect of an infinitely expandable thread pool that will contract again when demand decreases.
+
+	<8.3.2. Managing Queued Tasks>
+		- three basic approaches to task queuing
+			1) Unbounded Queue
+			2) Bounded Queue
+			3) Syncrhonous handoff
+
+		- "newFixedThreadPool" and "newSingleThreadExecutor" is to use an unbounded "LinkedBlockingQueue".
+			-> tasks will queue up if all worker threads are busy
+			-> queue can grow without bound if the tasks keep arriving faster than they can be executed.
+
+		- More stable resource management -> use a bounded queue
+			ex) ArrayBlockingQueue 
+			ex) bounded LinkedBlockingQueue
+			ex) Priority-BlockingQueue
+
+			-> Bounded queues help prevent resource exhaustion but introduce the question of what to do with the new tasks when the queue is full.
+
+		- Large queue coupled with a small pool can help reduce memory usage, CPU usage, and context switching, at the cost of potentially constraining throughput.
+
+		- For very large or unbounded pools,
+			-> you can also bypass queuing entirely and instead hand off tasks directly from producers to worker threads using a "SyncrhonousQueue".
+
+		- "SyncrhonousQueue"
+			-> is not a really a queue at all
+			-> but a mechanism for managing handoffs between threads.
+
+			-> In order to put an element on a SynchronousQueue, another thread must already be waiting to accept the handoff.
+
+		* "newCachedTrheadPool" factory
+			-> good default choice for an "Executor"
+			-> providing better queuing performance than a fixed thread pool.
+
+		* Fixed size thread pool
+			-> good choice when you need to limit the number of concurrent tasks for resource-management purposes
+				ex) server application that accepts requests from network clients and would otherwise be vulnerable to overload.
+
+		* Bounding either the thread pool or the work queue is suitable only when tasks are independent.
+			-> with tasks that depend on other tasks, bounded thread pools or queues can cause thread starvation deadlock; instead, use an unbounded pool configuration like "newCachedThreadPool"
+
+(8.5. Parallelizing Recursive Algorithms)
+	* Sequential loop iterations are suitable for parallelization when each iteration is independent of the others and work done in each iteration of the loop body is significant enough to offset the cost of managing a new task.
