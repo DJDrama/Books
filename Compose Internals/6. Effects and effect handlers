@@ -1,0 +1,274 @@
+6. Effects and effect handlers
+
+(Introducing side effects)
+	- a "side effect" is anything that escapes the control and scope of a function.
+		-> makes functions "non-deterministic"
+		-> hard for developers to reason about code.
+
+		ex) "deterministic" function
+			===========================================================================
+			fun add(a: Int, b: Int) = a + b
+			===========================================================================
+
+		ex) "non-deterministic" function
+			===========================================================================
+			fun add(a: Int, b: Int) = 
+				caclulationsCache.get(a, b) ?:
+					(a+b).also { calculationsCache.store(a, b, it)
+			}
+			===========================================================================
+
+		ex)
+			===========================================================================
+			fun main() {
+				add(1, 2) // 3
+
+				// Another thread calls: cache.store(1, 2, res = 4)
+				add(1, 2) // 4
+			}
+			===========================================================================
+			-> returns a different value for the same inputs (Not determinstic anymore!)
+
+	* side effects are "unexpected" actions happening on the side, out of what callers would expect from the function, and that can alter its behavior.
+		-> make it hard for developers to reason about code, and also remove testability, opening the door to flakiness.
+
+	- Diffferent examples of side effects
+		-> readong from a global variable
+		-> accessing a memory cache, database
+		-> performing a network query
+		-> displaying something on screen
+		-> readong from a file... etc.
+
+(Side effects in Compose)
+	- Running effects inside a Composable is too risky since it can potentially compromise the integrity of our code and our application state.
+
+		ex)
+			===========================================================================
+			@Composable
+			fun EventsFeed(networkService: EventsNetworkService) {
+				val events = networkService.loadAllEvents() // Side Effect
+
+				LazyColumn {
+					items(Events) { event ->
+						Text(text = event.name)
+					}
+				}
+			}
+			===========================================================================
+			-> the effect will run on every recomposition.
+
+		ex)
+			===========================================================================
+			@Composable
+			fun MyScreen(drawerTouchHandler: TouchHandler) {
+				val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+				drawerTouchHandler.enabled = drawerState.isOpen
+
+				// ...
+			}
+			===========================================================================
+			-> "drawerTouchHandler.enabled = drawerState.isOpen" is a "side effect".
+				+ we're assigning a callback reference on an external object as a "side effect of the composition".
+
+			-> we don't have any control on when this effect runs, so it'll run on every composition / recomposition, and will "never get disposed", opening the door to potential leaks.
+
+
+	* Jetpack Compose offers mechanisms to run side effects on a "lifecycle-aware manner"
+		-> so one can span a job across recompositions, or get it automatically cancelled when the Composable leaves the composition.
+
+		-> These mechanisms are called "effect handlers".
+
+(What we need)
+	- Compositions can be "offloaded to different threads", executed in parallel, or in different order, among other runtime execution strategies.
+
+	- We need mechanisms for making sure that:
+		1) Effects run on the correct composable lifecycle step.
+			-> Not too early, not too late.
+			-> Just when the composable is ready for it.
+
+		2) Suspended effects run on a conveniently configured runtime (Coroutine and convenient "CoroutineContext")
+
+		3) Effects that capture references have their chance to dispose those when leaving composition.
+
+		4) Ongoing suspended effects are cancelled when leaving composition.
+
+		5) Effects that depend on an input that varies over time are automatically disposed / cancelled and relaunched every time it varies.
+
+(Effect Handlers)
+	- we can divide effect handlers in two categories:
+		1) Non suspended effects
+			-> Run a side effect to initialize a callback when the Composable enters the composition, dispose it when it elaves.
+
+		2) Suspended effects
+			-> Load data from network to feed some UI state.
+
+(Non suspended effects)
+	<DisposableEffect>
+		- Used for non suspended effects that "require being disposed".
+		- Fire the first time (when composable enters composition) and then every time its keys change.
+		- Requires "onDispose" callback at the end.
+			-> It is disposed when the composable leaves the composition, and also on every recomposition when its key have changed.
+			-> In that case, the effect is disposed and relaunched.
+
+		ex)
+			===========================================================================================
+			@Composable
+			fun backPressHandler(onBackPressed: () -> Unit, enabeld: Boolean = true) {
+				val dispatcher = LocalOnBackPressedDispatcherOwner.current.onBackPressedDispatcher
+
+				val backCallback = remember {
+					object : OnBackPressedCallback(enabled) {
+						override fun handleOnBackPressed() {
+							onBackPressed()
+						}
+					}
+				}
+
+				DisposableEffect(dispatcher) { // dispose / relaunch if dispatcher changes
+					dispatcher.addCallback(backCallback)
+					onDispose {
+						backCallback.remove() // avoid leaks!
+					}
+				}
+			}
+			===========================================================================================
+			-> We want to attach the callback when the composable enters the composition, and also when the dispatcher varies.
+				+ we can "pass the dispatcher as the effect handler key".
+					-> make sure the effect is disposed and relaunched in that case.
+
+			-> Callback is also disposed when the composable finally leaves the composition.
+
+			-> If you want to only run the effect once when entering the composition and dispose it when leaving you could "pass a constant as the key"
+				+ "DisposableEffect(true)"
+				+ "DisposableEffect(Unit)"
+
+			* DisposableEffect always requires at least one key.
+
+	<SideEffect>
+		- Used for effects that "do not require disposing".
+		- Runs after every single composition / recomposition.
+		- Useful to "publishing updates to external states".
+
+			ex)
+				====================================================================================
+				@Composable
+				fun MyScreen(drawerTouchHandler: TouchHandler) {
+					val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+					SideEffect {
+						drawerTouchHandler.enabled = drawerState.isOpen
+					}
+
+					// ...
+				}
+				====================================================================================
+				-> "SideEffect" as an effect handler meant to "publish updates" to some external state not managed by the compose "State" system to keep it always on sync.
+
+	<currentRecomposeScope>
+		- is more an effect itself than an effect handler
+
+		- "currentRecomposeScope" is an interface with a single purpose:
+			ex)
+				====================================================================================
+				interface RecomposeScope {
+					fun invalidate()
+				}
+				====================================================================================
+
+			-> "currentRecomposeScope.invalidate()" will invalidate composition locally "enforces recomposition".
+
+			-> can be useful when using a source of truth that is "not a compose State" snapshot.
+
+			ex)
+				====================================================================================
+				interface Presenter {
+					fun loadUser(after: @Composable () -> Unit): User
+				}
+
+				@Composable
+				fun MyComposable(presenter: Presenter){
+					val user = presenter.loadUser { currentRecomposeScope.invalidate() }
+
+					Text("The loaded user: ${user.name}")
+				}
+				====================================================================================
+
+(Suspended effects)
+	<rememberCoroutineScope>
+		- create jobs that can be thought as children of the composition.
+
+			1) Used to run "suspended effects bound to the composition lifecycle"
+
+			2) Creates CoroutineScope bound to this composition lifecycle
+
+			3) The scope is "cancelled when leaving the composition"
+
+			4) Same scope is returned across compositions, so we can keep submitting more tasks to it and all ongoing ones will be cancelled when finally leaving.
+
+			5) Useful to launch jobs "in response to user interactions".
+
+			6) Runs the effect on the applier (Usually "AndroidUiDispatcher.Main") dispatcher when entering.
+
+		* "rememberCoroutineScope"
+			-> for scoping jobs "initiated by a user interaction"
+
+		* "LaunchedEffect"
+			-> used for scoping jobs initiated by the composition.
+
+	<LaunchedEffect>
+		- loading the initial state of a Composable, as soon as it enters the composition.
+
+			1) Runs the effect when entering the composition.
+
+			2) Cancels the effect when leaving the composition.
+
+			3) Cancels and relaunches the effect when key/s change/s.
+
+			4) Useful to "span a job across recompositions."
+
+			5) Runs the effect on the applier dispatcher (Usually "AndroidUiDispatcher.Main") when entering.
+
+			ex)
+				====================================================================================
+				@Composable
+				fun SpeakerList(eventId: String) {
+					var speakers by remember { mutableStateOf<List<Speaker>>(emptyList()) }
+					LaunchedEffect(eventId) { // cancelled / relaunched when eventId varies
+						speakers = viewModel.loadSpeakers(eventId) // suspended effect
+					}
+
+					ItemsVerticalList(speakers)
+				}
+				====================================================================================
+
+			-> The effect runs once when entering then once again every time the key varies, since our effect depends on its value.(will be cancelled when leaving the composition.)
+
+		* Remember that it's also cancelled every time it needs to be relaunched.
+			-> LaunchedEffect "Requires at least one key".
+
+	<produceState>
+		- syntax sugar built on top of "LaunchedEffect".
+
+			1) Used when your LaunchedEffect ends up feeding a State (which is most of the time).
+
+			2) Relies on LaunchedEffect.
+
+
+			ex)
+				====================================================================================
+				@Composable
+				fun SearchScreen(eventId: String) {
+					val uiState = produceState(initialValue = emptyList<Spaeker>(), eventId) {
+						viewModel.loadSpeakers(eventId) // suspended effect
+					}
+
+					ItemsVerticalList(uiState.value)
+				}
+				====================================================================================
+
+			-> you can provide a default value for the state, and also "one or multiple keys".
+
+			-> "produceState" allows to not pass any key, and in that case it will call LaunchedEffect with Unit as the key, making it "span across compositions".
+
+
