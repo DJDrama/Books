@@ -1,0 +1,46 @@
+[Chapter 9 - GUI Applications]
+
+(9.1. Why are GUIs single-threaded?)
+	- GUI events were processed from a "main event loop".
+
+	* Modern GUI frameworks
+		-> they create a dedicated "event dispatch thread"(EDT) for handling GUI events.
+
+	- Qt, NextStep, MacOS Cocoa, X Windows, and many others are also single-threaded.
+
+	* There have been many attempts to write multithreaded GUI frameworks
+		-> BUT because of persistent problems with race conditions and deadlock
+		-> tey all eventually arrived at the single-threaded event queue model in which a dedicated thread fetches events off a queue and dispatches them to application-defined event handlers.
+
+	- Multithreaded GUI frameworks tend to be particularly susceptible to deadlock
+		-> because of unfortunate interaction between input event processing and any sensible object-oriented modeling of GUI components.
+
+	- Single threaded GUI frameworks achieved thread safety via thread confinement;
+		-> All GUI objects, including visual components and data models, are accessed exclusively from the event thread.
+
+	<9.1.1. Sequential Event Processing>
+		- GUI single threaded
+			-> processed sequentially
+			-> one task finishes before the next one begins, and no two tasks overlap.
+
+			(downside)
+			-> if one task takes a long time to execute, other tasks must wait until it is finished.
+				* tasks that execute in the event thread must return control to the event thread quickly.
+
+(9.2. Short-running GUI Tasks)
+	- In a GUI application, events originate in the event thread and bubble up to application-provided listeners, which will probably perform some computation that affects the presentation objects.
+
+		* short-running tasks
+			-> entire action can stay in the event thread
+
+		* long-running tasks
+			-> should be offloaded to another thread.
+
+(9.3. Long-running GUI Tasks)
+	<9.3.1. Cancellation>
+		- easier to use "Future", which was designed to manage "cancellable" tasks.
+
+(9.4. Shared Data Models)
+	* don't access the data model or presentation components from the main thread.
+		-> More complicated programs may use other threads to move data to or from a persistent store, such as a file system or database, so as not to compromise responsiveness.
+
