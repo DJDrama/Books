@@ -1,0 +1,63 @@
+7. Advanced Compose Runtime use cases
+
+(Compose runtime vs Compose UI)
+	- "Compose UI"
+		-> the new UI toolkit for Android
+		-> tree of "LayoutNodes" which later draw their content on the canvas.
+
+	- "Compose runtime"
+		-> provides underlying machinery and many state / composition-related primitives.
+
+	[Compiler] -> [Runtime] -> [Compose UI] -> [Android UI]
+					|					|
+					 -> [Compose Web]    -> [Compose Desktop]
+
+
+((Re-) Introducing composition)
+	- "Composition" provides the context for all composable functions.
+		-> provides the "cache" backed by the "SlotTable"
+		-> interface to create custom trees through "Applier".
+
+	- "Recomposer" drives "Composition"
+		-> initiating recomposition whenever something (d.g. state) relevant to it has changed.
+
+	- "Composition" is usually constructed for you by the framework.
+
+(Composition of vector graphics)
+	- "Vector" rendering in Compose is implemented through the "Painter" abstraction, similar to the "Drawable" in classic Android system:
+		ex)
+			====================================================================
+			Image(
+				painter = rememberVectorPainter { width, height ->
+					Group(
+						scaleX = 0.75f,
+						scaleY = 0.75f
+					) {
+						val pathData = PathData { ... }
+						Path(pathData = pathData)
+					}
+				}
+			)
+			====================================================================
+			-> Instead of creating "LayoutNodes" as the other composables in Compose UI, they create elements specific to the vector.
+
+			* The "Group" and "Path" exist in a different "composition" from the rest of the UI.
+				-> composition is contained within "VectorPainter" and only allows usage of elements describing a vector image, while usual UI composables are forbidden.
+
+(Buildling vector image tree)
+	- "Applier" provides two methods of insertion
+		1) topDown
+			-> first adds a node to the tree and then adds its children, inserting them one by one.
+
+		2) bottomUp
+			-> creates the node, adds all children, and only then inserts it into the tree.
+
+		* For the vector use-case, there's no such performance cost
+			-> so the nodes are inserted top-down.
+
+(Integrating vector composition into Compose UI)
+
+(Managing DOM with Compose)
+
+(Standalone composition in the browser)
+	
