@@ -1,0 +1,174 @@
+[Chapter 10 - Avoiding Liveness Hazards]
+
+(10.1. Deadlock)
+	- "dining philosophers" problem
+
+	- Database systems are designed to detect and recover from deadlock.
+		-> when it detects that a set of transactions is deadlocked, it picks a victim and aborts that transaction.
+
+		-> This releases the locks held by the victim, allowing the other transactions to proceed.
+
+		-> The application can then retry the aborted transaction, which may be able to complete now that any competing transactions have completed.
+
+	<10.1.1. Lock-ordering Deadlocks>
+		- A program will be free of lock-ordering deadlocks if all threads acquire the locks they need in a fixed global order.
+
+			ex) Simple Lock-ordering Deadlock. DONT DO THIS!
+				========================================================================================
+				public class LeftRightDeadlock {
+					private final Object left = new Object();
+					private final Object right = new Object();
+
+					public void leftRight() {
+						synchronized (left) {
+							synchronized (right) {
+								doSomething();
+							}
+						}
+					}
+
+					public void rightLeft() {
+						synchronized (right) {
+							synchronized (left) {
+								doSomethingElse();
+							}
+						}
+					}
+				}
+				========================================================================================
+
+	<10.1.2. Dynamic Lock Order Deadlocks>
+
+		- Sometimes it's not obvious that you have sufficient control over lock ordering to prevent deadlocks.
+			
+			ex) Dynamic Lock-ordering Deadlock. DONT DO THIS!
+				========================================================================================
+				public void transferMoney(Account fromAccount, Account toAccount, DollarAmount amount)
+					throws InsufficientFundsException {
+
+					synchronized (fromAccount) {
+						synchronized (toAccount) {
+							if(fromAccount.getBalance().compareTo(amount) < 0)
+								throw new InsufficientFundsException();
+							else {
+								fromAccount.debit(amount);
+								toAccount.credit(amount);
+							}
+						}
+					}
+				}
+
+				// Deadlock situation
+				A : transferMoney(myAccount, yourAccount, 10);
+				B : transferMoney(yourAccount, myAccount, 20);
+				========================================================================================
+				-> A will acquire the lock on "myAccount" and wait for the lock on "yourAccount"
+				-> while B is holding the lock on "yourAccount" and waiting for the lock on "myAccount".
+
+		- One way to induce an ordering on objects is to use "System.identityHashCode"
+			-> returns the value that would be returned by "Object.hashCode".
+			-> eliminates the possibility of deadlock.
+
+			ex) Inducing a Lock Ordering to Avoid Deadlock.
+				========================================================================================
+				private static final Object tieLock = new Object();
+
+				public void transferMoney(Account fromAccount, Account toAccount, DollarAmount amount)
+					throws InsufficientFundsException {
+
+					class Helper {
+						public void transfer() throws InsufficientFundsException {
+							if(fromAccount.getBalance().compareTo(amount) < 0)
+								throw new InsufficientFundsException();
+							else {
+								fromAccount.debit(amount);
+								toAccount.credit(amount);
+							}
+						}
+					}
+
+					int fromHash = System.identityHashCode(fromAccount);
+					int toHash = System.identityHashCode(toAccount);
+
+					if(fromHash < toHash) {
+						synchronized(fromAccount) {
+							synchronized(toAccount) {
+								new Helper().transfer();
+							}
+						}
+					} else if (fromHash > toHash) {
+						synchronized(toAccount) {
+							synchronized(fromAccount) {
+								new Helper().transfer();
+							}
+						}
+					} else {
+						synchronized (tieLock) {
+							synchronized (fromAccount) {
+								synchronized (toAccount) {
+									new Helper().transfer();
+								}
+							}
+						}
+					}
+				}
+				========================================================================================
+				-> when two objects have the same hash code, to prevent inconsistent lock ordering, a third "tie breaking" lock is used.
+
+				-> we ensure that only one thread at a time performs the risky task of acquiring two locks in an arbitrary order.
+					+ eliminating the possibility of deadlock.
+
+				* because hash collisions with "System.identityHashCode" are vanishingly infrequent, this technique provides that last bit of safety at little cost.
+
+	<10.1.3. Deadlocks Between Cooperating Objects>
+		* Invoking an alient method with a lock held is asking for liveness problem.
+			-> The alien method might acquire other locks (risking deadlock) or block for an unexpectedly long time, stalling other threads that need the lock you hold.
+
+	<10.1.4. Open Calls>
+		- Calling a method with no locks held is called an "open call", and classes that rely on open calls are more well behaved and composable than classes that make calls with locks held.
+
+		* Strive to use open calls!
+			-> Programs that rely on open calls are far easier to analyze for deadlock-freedom than those that allow calls to alien methods with locks held.
+
+	<10.1.5. Resource Deadlocks>
+
+(10.2. Avoiding and Diagnosing Deadlocks)
+	
+	<10.2.1. Timed Lock Attempts>
+		- timed "tryLock" feature instead of intrinsic locking when to detect and recover from deadlocks.
+
+		- If a lock acquisition times out, you can release the locks, back off and wait for a while, and try again, possibly clearing the deadlock condition and allowing the program to recover.
+
+	<10.2.2. Deadlock Analysis with Thread Dumps>
+		- Thread dumps also include locking information, such as which locks are held by each thread, in which stack frame they were acquired, and which lock a blocked thread is waiting to acquire.
+			ex) SIGQUIT signal (kill -3) on Unix platforms.
+
+(10.3. Other Liveness Hazards)
+	
+	<10.3.1. Starvation>
+		- occurs when a thread is perpetually denied access to resources it needs in order to make progress; the most commonly starved resource is CPU cycles.
+
+		- In Java
+			-> inappropriate use of thread priorities.
+
+		- In most Java applications,
+			-> all application threads have the same priority, Thread.NORM_PRIORITY.
+
+			* Boosting a thread's priority might do nothing or might always cause one thread to be scheduled in preference to the other, causing starvation.
+
+		* Avoid the temptation to use thread priorities
+			-> they increase platform dependence and can cause liveness problems.
+			-> Most concurrent apps can use the default priority for all threads.
+
+	<10.3.2. Poor Responsiveness>
+		- If the work done by other threads are truly background tasks, lowering the priority can make the foreground tasks more responsive.
+
+		- Poor responsiveness can be caused by poor lock management.
+			-> If a thread holds a lock for a long time, other threads that need to access that collection may have to wait a very long time.
+
+	<10.3.3. Livelock>
+		- "Livelock" is a form of liveness failure in which a thread, while not blocked, still cannot make progress because it keeps retrying an operation that will always fail.
+
+		* Retrying with random waits and back-offs can be equally effective for avoiding livelock in concurrent applications.
+		
+
