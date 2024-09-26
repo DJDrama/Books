@@ -1,0 +1,158 @@
+[Chapter 11 - Performance and Scalability]
+
+(11.1. Thinking about Performance)
+	- doing more work with fewer resources.
+
+	* Using multiple threads always introduces some performance costs compared to the single-threaded approach.
+		-> overhead associated with coordinating between threads (locking, signaling, and memory syncrhonization)
+		-> increased context switching, thread creation and teardown, and scheduling overhead.
+
+	<11.1.1. Performance versus Scalability>
+		- "Scalability"
+			-> describes the ability to improve throughput or capacity when additional computing resources are added.
+				+ additional computing resources: additional CPUs, memory, storage, or I/O bandwith
+
+	<11.1.2. Evaluating Performance Tradeoffs>
+		* Avoid premature optimization. First make it right, then make it fast - if it is not already fast enough.
+
+
+(11.2. Amdahl's Law)
+	<11.2.1. Example: Serialization Hidden in Frameworks>
+
+	<11.2.2. Applying Amdahl's Lay Qualitatively>
+		- Lock splitting: splitting one lock into two
+
+		- Lock striping: splitting one lock into many
+
+(11.3. Costs Introduced by Threads)
+	<11.3.1. Context Switching>
+		- If there are more runnable threads than CPUs, eventually the OS will preemt one thread so that another can use the CPU.
+			-> this causes a context switch, which requires saving the execution context of the currently running thread and restoring the execution context of the newly scheduled thread.
+
+		* Context switches are not free!
+			-> thread scheduling requires manipulating shared data structures in the OS and JVM.
+
+			-> OS and JVM use the same CPUs your program does;
+				+ more CPU time spent in JVM and OS code means less is available for your program.
+
+			-> When a new thread is switched in, the data it needs is unlikely to be in the local processor cache, so a context switch casues a flurry of cache misses, and thus threads run a little more slowly when they are first scheduled.
+
+				* instructions and data of the newly-scheduled process may not be in the cache when the operating system switches context!
+
+				+ then processor has to fill up the local memory cache by requesting to main memory, which will cause the thread to initially run slower.
+
+				+ This is why schedulers give each runnable thread a certain minimum time quantum even when many other threads are waiting.
+
+		* Context switch costs the equivalent 5000 to 10000 clock cycles, or several microseconds on most current processors.
+			-> "clock cycle" : (aka machine cycle or a clock tick) is the basic unit of time in a computer's central processing unit (CPU).
+				+ represents one complete operation of the CPU, including fetching, decoding, executing, and storing data.
+
+		* "vmstat" command on Unix systems
+		* "perfmon tool" on Windows systems
+			-> report the number of context switches and the percentage of time spent in the kernel.
+			-> High kernel usage (over 10%) often indicates heavy scheduling activity, which may be caused by blocking due to I/O or lock contention.
+
+	<11.3.2. Memory Syncrhonization>
+		- visibility guarantees provided by "synchronized" and "volatile" may entail using special instructions called "memory barriers"
+			-> that can flush or invalidate caches
+			-> flush hardware write buffers
+			-> stall execution pipelines.
+
+		- "Memory Barriers" (synchronized, volatile)
+			-> may have indirect performance consequences
+				+ they inhibit other compiler optimizations
+				+ most operations cannot be reordered with memory barriers.
+
+		- "synchronized" is optimized for "uncontended case" (volatile is also uncontended)
+			-> performance cost of a "fast-path" uncontended synchronization ranges from 20 to 250 clock cycles for most systems.
+
+		- "stack-confined" variables are automatically thread-local
+			
+			ex) Candidates for Lock Elision.
+				================================================================
+				public String getStoogeNames() {
+					List<String> stooges = new Vector<String>();
+					stooges.add("Moe");
+					stooges.add("Larry");
+					stooges.add("Curly");
+					return stooges.toString();
+				}
+				================================================================
+				-> naive execution of "getStoogeNames" would acquire and release the lock on the "Vector" four times.
+				-> BUT! smart runtime compiler can inline these calls and then see that "stooges" and its internal state never scape
+					+ therefore that all four lock acquisitions can be eliminated. (Lock elision) Java 7
+
+		- Synchronization by one thread affects the performance of other threads.
+			-> it creates traffic on the shared memory bus; this bus has a limited bandwidth and is shared across all processors.
+			-> If threads must compete for synchronization bandwidth, all threads using synchronization will suffer.
+
+	<11.3.3. Blocking>
+		- JVM can implement blocking either via "spin-waiting" or by "suspending" the blocked thread through the operating system.
+			-> "spin-waiting" : repeatedly trying to acquire the lock until it succeeds.
+				* preferable for short waits and
+
+			-> "suspend"
+				* preferable for long waits.
+
+(11.4. Reducing Lock Contention)
+	- "Serialization" hurts scalability!
+
+	- "Context switch" hurts performance!
+
+	* Reducing lock contention can improve both performance and scalability.
+
+	* Three ways to reduce lock contention.
+		1) Reduce the duration for which locks are held.
+		2) Reduce the frequency with which locks are requested.
+		3) Replace exclusive locks with coordination mechanisms that permit greater conccurency.
+
+	<11.4.1. Narrowing Lock Scope ("Get in, Get Out")>
+		- hold locks as briefly as possible.
+			-> move code that doesn't require the lock out of "synchronized" blocks, especially operations and potentially blocking operations such as I/O.
+
+	<11.4.2. Reducing Lock Granularity>
+		- Splitting locks experiencing moderate contention might actually turn them into mostly uncontended locks, which is the most desirable outcome for both performance and scalability.
+			ex)
+				================================================================
+				public final Set<String> users;
+
+				public synchronized void addUser(String u) {
+					users.add(u);
+				}
+
+				// change to
+				public void addUser(String u) {
+					synchronized (users) {
+						users.add(u);
+					}
+				}
+				================================================================
+				-> new finer-grained lock will see less locking traffic than the original coarser lock would have.
+				* "Set" would use a different lock to guard its state.
+
+	<11.4.3. Lock Striping>
+		- downside
+			-> locking the collection for exclusive access is more difficult and costly than with a single lock.
+
+	<11.4.4. Avoiding Hot Fields>
+		- "hot field" -> every mutative operation needs to access it.
+
+		* "ConcurrentHashMap" maintains a separate count field for each stripe, also guarded by the stripe lock.
+
+	<11.4.5. Alternatives to Exclusive Locks>
+		- "ReadWriteLock"
+			-> enforces a multiple-reader, single-writer locking discipline.
+
+(11.5. Example: Comparing Map Performance)
+	* ConcurentHashMap does no locking for most successful "read" operations, and uses lock striping for write operations and those few read operations that do require locking.
+
+	* Synchronized Map, there is a single lock for the entire map -> so only one thread can access the map at a time.
+
+(11.6. Reducing Context Switch Overhead)
+	
+
+
+
+
+
+
