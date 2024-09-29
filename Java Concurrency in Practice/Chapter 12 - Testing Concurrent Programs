@@ -1,0 +1,56 @@
+[Chapter 12 - Testing Concurrent Programs]
+	- "Safety" : nothing bad happens
+
+	- "Liveness" : something good eventually happens
+
+	* Performance tests : Related to liveness tests
+		-> Performance can be measured in a number of ways
+			1) Throughput: the rate at which a set of concurrent tasks is completed;
+			2) Responsiveness: the delay between a request for and completion of some action (also called latency)
+			3) Scalability: the improvement in throughput (or lack thereof) as more resources (usually CPUs) are made available.
+
+	(12.1. Testing for Performance)
+		<12.1.3 Testing Safety>
+			- RNG(Random Number Generator)
+				-> most RNGs are threadsafe and therefore introduce additional Synchronization.
+
+			* better to use simple pseudorandom functions.
+				-> You don't need high quality randomness
+				-> all you need is enough randomness to ensure the numbers change from run to run.
+
+					ex) xor-Shift function : the cheapest medium-quality random number function.
+						========================================================================
+						static int xorShift(int y) {
+							y ^= (y << 6)
+							y ^= (y >>> 21);
+							y ^= (y << 7);
+							return y;
+						}
+						========================================================================
+
+	(12.2. Testing for Performance)
+		<12.2.2. Comparing Multiple Algorithms>
+			* small buffer sizes cause heavy context switching and poor throughput even in nonfair mode
+				-> because nearly every operation involves a context switch.
+
+	(12.3. Avoiding Performance Testing Pitfalls)
+		<12.3.1. Garbage Collection>
+			- Two strategies for preventing Garbage Collection from biasing your results.
+				1) to ensure that garbage collection does not run at all during your test (you can invoke the JVM with -verbose:gc to find out)
+
+				2) reflects the cost of ongoing allocation and garbage collection.
+					-> often better, it requires a longer test and is more likely to reflect real-world performance.
+
+			* Running the bounded buffer tests for long enough to incur multiple garbage collections yields more accurate results.
+
+	(12.4. Complementary Testing Approaches)
+		* effective testing should "find all the bugs", this is an unrealistic goal!
+
+		* "Testing" is to increase confidence that the code works as expected.
+			-> it is unrealistic to assume you can find all the bugs.
+
+			* QA(quality assurance) plan should be to achieve the greatest possible confidence given the testing resources available.
+
+		<12.4.1. Code Review>
+			- not only find erros, but also it improves the quality of comments describing the implementation details, thus reducing future maintenance cost and risk.
+
