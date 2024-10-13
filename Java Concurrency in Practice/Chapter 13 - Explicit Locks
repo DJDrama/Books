@@ -1,0 +1,108 @@
+[Chapter 13 - Explicit Locks]
+	- Java 5.0 adds another option : "ReentrantLock"
+		-> (Before) only "synchronized" and "volatile" for coordinating access to shared data
+
+(13.1. Lock and ReentrantLock)
+	- "ReentrantLock" implements Lock, providing the same mutual exclusion and memory-visibility guarantees as "synchronized".
+
+	- Acquiring a "ReentrantLock" has the same memory semantics as entering a synchronized block.
+	- Releasing a "ReentrantLock" has the same memory semantics as exiting a syncrhonized block.
+
+	* "ReentrantLock" supports all of the lock-acquisition modes defined by "Lock"
+		-> Providing more flexibility for dealing lock unavailability than does "synchrnoized".
+
+		ex) "Lock" interface
+			================================================================
+			public interface Lock {
+				void lock();
+				void lockInterruptibly() throws InterruptedException;
+				boolean tryLock();
+				boolean tryLock(long timeout, TimeUnit unit)
+					throws InterruptedException;
+				void unlock();
+				Condition newCondition();
+			}
+			================================================================
+
+	- Intrinsic locking has some functional limitations
+		1) It's not possible to interrupt a thread waiting to acquire a lock, or to attepmt to acquire a lock without being willing to wait for it forever.
+
+		2) Intrinsic locks must be released in the same block of code in which they are acquired.
+			-> makes non-block-structured locking disciplines impossible.
+
+		ex) Guarding OBject State Using "ReentrantLock"
+			================================================================
+			Lock lock = new ReentrantLock();
+			...
+			lock.lock();
+			try {
+				// update object state
+				// catch exceptions and restore invariants if necessary
+			} finally {
+				lock.unlock();
+			}
+			================================================================
+
+	<13.1.1. Polled and Timed Lock Acquisition>
+		* With Intrinsic locks, a deadlock is fatal
+			-> the only way to recover is to restart the application.
+
+		- "TryLock" (timed or polled lock acquisition)
+			-> lets you regain control if you cannot acquire all the required locks, release the ones you did acquire, and try again ( or at least log the failure and do something else).
+
+	<13.1.2. Interruptible Lock Acquisition>
+		- allows locking to be used within cancellable activities.
+
+	<13.1.3. Non-block-structured Locking>
+
+(13.2. Performance Considerations)
+	* Better lock implementation
+		-> fewer system calls
+		-> fewer context switches
+		-> initiates less memory-synchronization traffic on the shared memory bus, operations that are time-consuming and divert computing resources from the program.
+
+
+	* Performance is a "moving target"
+		-> Yesterday's benchmark showing that X is faster than Y may already be out of date today.
+
+(13.3. Fairness)
+	- ReentrantLock constructor offers a choice of two fairness options.
+		1) nonfair lock (the default)
+		2) fair lock
+
+		-> Threads acquire a fair lock in the order in which they requested it
+		-> Nonfair lock permits barging: Threads requesting a lock can jump ahead of the queue of waiting threads if the lock happens to be available when it is requested.
+
+(13.4. Choosing Between Synchronized and ReentrantLock)
+	* Intrinsic Locks still have advantages over explicit Locks.
+
+	* ReentrantLock is an advanced tool for situations where intrinsic locking is not practical.
+		-> Use it if you need its advanced feautres: timed, polled, or interruptible lock acquisition, fair queuing, or non-block-structured locking.
+
+		-> OTHERWISE, prefer "synchronized".
+
+(13.5. Read-write Locks)
+	* At most one thread at a time can hold a "ReentrantLock".
+
+	* "ReadWriteLock" exposes two Lock objectsone for "reading" and one for "writing".
+
+		ex) ReadWriteLock Interface
+			================================================================
+			public interface ReadWriteLock {
+				Lock readLock();
+				Lock writeLock();
+			}
+			================================================================
+
+		-> Allows multiple simultaneous readers but only a single writer.
+
+	* Can improve performance for frequently accessed read-mostly data structures on multiprocessor systems.
+
+	* "ReentrantReadWriteLock" provides reentrant locking sematics for both locks.
+		1) Fair lock
+			-> preference is given to the thread that has been waiting the longest
+			-> if the lock is held by readers and a thread requests the write lock, no more readers are allowed to acquire the read lock until the writer has been serviced and releases the write lock.
+
+		2) NonFair lock
+			-> order in which threads are granted access is unspecified.
+			-> Downgrading from writer to reader is permitted; upgrading from reader to writer is not.
