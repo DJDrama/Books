@@ -1,0 +1,148 @@
+[Chapter 14 - Building Custom Synchronizers]
+
+	* The smaller the sleep granularity, the more responsive
+		-> but also the more CPU resources consumed.
+
+	<14.1.3. Condition Queues to the Rescue>
+		- it gives a group of threads -called the "wait set" - a way to wait for a specific condition to become true.
+
+		* the elements of the condition queue are the threads waiting for the condition.
+
+		- as each Java object can act as a lock -> each object can also act as a condition queue, and the wait, notify, and notifyAll methods in Object constitute the API for intrinsic condition queues.
+
+		* An object's intrinsic lock and its intrinsic condition queue are related.
+			-> in order to call any of the condition queue methods on object X, you must hold the lock on X.
+
+(14.2. Using Condition Queues)
+	- "Condition Predicate"
+		-> the precondition that makes an operation state-dependent in the first place.
+
+			ex) In a bounded buffer
+				1) "take" can proceed only if the buffer is not empty; otherwise it must wait
+
+				2) "take"
+					-> condition predicate : "the buffer is not empty" ("take" must test for before proceeding.)
+
+				3) "put" 
+					-> condition predicate : "the buffer is not full".
+
+	- The condition predicate involves state variables, and the state variables are guarded by a lock
+		-> so before testing the condition predicate, we must hold that lock.
+
+		ex) Canonical Form for State-dependent Methods
+			====================================================================
+			void stateDependentMethod() throws InterruptedException {
+				// condition predicate must be guarded by lock
+				synchronized(lock) {
+					while(!conditionPredicate())
+						lock.wait();
+
+					// object is now in desired state
+				}
+			}
+			====================================================================
+
+	* When using condition waits (Object.wait or Condition.await):
+		1) Always have a condition predicate; some test of object state that must hold before proceeding.
+
+		2) Always test the condition predicate before calling wait, and again after returning from wait.
+
+		3) Always call "wait" in a loop.
+
+		4) Ensure that the state variables making up the condition predicate are guarded by the lock associated with the condition queue.
+
+		5) Hold the lock associated with the condition queue when calling wait, notify, or notifyAll
+
+		6) Do not release the lock after checking the condition predicate but before acting on it.
+
+	<14.2.4. Notification>
+
+		- "notify" : causes the JVM to select one thread waiting on that condition queue to wake up
+
+		- "notifyAll": wakes up all the threads waiting on that condition queue.
+
+		* Because you must hold the lock on the condition queue object when calling "notify" or "notifyAll"
+			-> and waiting threads cannot return from "wait" without reacquiring the lock
+			-> the notifying thread should release the lock quickly to ensure that the waiting threads are unblocked as soon as possible.
+
+		* using "notify" instead of "notifyAll" can be dangerous
+			-> Because multiple threads could be waiting on the same condition queue for different condition predicates.
+			-> Because single notification is prone to a problem akin to missed signals.
+
+		* Single "notify" can be used instead of "notifyAll" only when both of the following conditions hold
+			1) Uniform waiters.
+				-> Only one condition predicate is associated with the condition queue, and each thread executes the same logic upon returning from wait.
+
+			2) One-in, one-out
+				-> A notification on the condition variable enables at most one thread to proceed.
+
+		- "Conditional notification"
+
+			ex) Using Conditional notification in BoundedBuffer.put
+				===============================================================
+				public synchronized void put(V v) throws InterruptedException {
+					while (isFull())
+						wait();
+
+					boolean wasEmpty = isEmpty();
+					doPut(v);
+					if (wasEmpty)
+						notifyAll();
+				}
+				===============================================================
+				-> observing that a thread can be released from a wait only if the buffer goes from empty to not empty or from full to not full.
+				-> and notifying only if a put or take effected one of these state transitions.
+
+(14.3. Explicit Condition Objects)
+	* Explicit locks can be useful in some situations where intrinsic locks are too inflexible.
+		- "Lock": generalization of intrinsic locks
+		- "Condition": generalization of intrinsic condition queues.
+
+	* Intrinsic condition queues have several drawbacks.
+		- each intrinsic lock can have only one associated condition queue.
+
+	ex)	Condition interface
+		===============================================================
+		public interface Condition {
+			void await() throws InterruptedException;
+			boolean await(long time, TimeUnit unit)
+				throws InterruptedException;
+			long awaitNanos(long nanosTimeout)
+				throws InterruptedException;
+			void awaitUninterruptibly();
+			boolean awaitUntil(Date deadline)
+				throws InterruptedException;
+			void signal();
+			void singalAll();
+		}
+		===============================================================
+		-> you can have as many Condition objects per Lock as you want.
+		- for fair locks, threads are released from Condition.await in FIFO order.
+
+	* wait = await
+	* notify = signal
+	* notifyAll = signalAll
+		-> Condition extends Object, which means that it also has wait and notify methods.
+		-> BE SURE to use the proper versions - await and signal - instead!
+
+(14.6. AQS in Java.util.concurrent Synchronizer Classes)
+	<14.6.1. ReentrantLock>
+		- supports only exclusive acquisition, so it implements "tryAcquire", "tryRelease", and "isHeldExclusively"; "tryAcquire" for the non-fair version.
+
+		- uses the synchronization state to hold the lock acquisition count
+		- maintans an owner variable holding the identity of the owning thread that is modified only when the current thread has just acquired the lock or is just about to release it.
+
+	<14.6.2. Semaphore and CountDownLatch>
+		- uses the AQS synchronization state to hold the count of permits curerntly available.
+
+	<14.6.3. FutureTask>
+		- uses the AQS synchronization state to hold the task status running, completed, or cancelled.
+		- maintains additional state variables to hold the result of the computation or the exception it threw.
+		- further maintains a reference to the thread that is running the computation, so that it can be interuupted if the task is cancelled.
+
+	<14.6.4. ReentrantReadWriteLock>
+		- uses 16 bits of the state for the write-lock count, and the other 16 bits for the read-lock count.
+		- Operations on the read lock use the shared acquire and release methods.
+		- Operations on the write lock use the exclusive acquire and release methods.
+
+
