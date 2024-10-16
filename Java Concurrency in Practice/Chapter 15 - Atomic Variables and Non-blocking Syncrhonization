@@ -1,0 +1,100 @@
+[Chapter 15 - Atomic Variables and Non-blocking Syncrhonization]
+
+(15.1. Disadvantages of Locking)
+	- Volatile
+		-> light-weight synchronization mechanism than locking
+		-> do not involve context switches or thread scheduling
+
+		-> BUT! they cannot be used to construct atomic compound actions.
+			+ volatile variables cannot be used when one variable depends on another, or when the new value of a variable depends on its old value.
+
+			+ they cannot be used to reliably implement common tools such as counters or mutexes.
+
+			ex) ++i
+				-> may look like an atomic operation
+				-> three distinct operations
+					1) fetch the current value of the variable.
+					2) add one to it
+					3) then write the updated value back.
+
+					* In order to not lose an update, the entire "read-modify-write" operation must be atomic.
+					(only way is with locking)
+
+	- Locking Counter
+		-> performance suffers because of "context-switch" overhead and scheduling delays.
+
+	- Locking has a few other disadvantages.
+		-> When a thread is waiting for a lock, it cannot do anything else.
+		
+		-> If a thread holding a lock is delayed (due to a page fault, scheduling delay, or the like), then no thread that needs that lock can make progress.
+
+			+ If the blocked thread is a high-priority thread but the thread holding the lock is a lower-priority thread -> a performance hazard known as "priority inversion".
+
+(15.2. Hardware Support for Concurrency)
+	
+	<15.2.1. Compare and Swap>
+		- has three operands
+			1) a memory location V on which to operate
+
+			2) expected old value A
+
+			3) the new value B
+
+		- CAS atomically updates V to the new value B, but only if the value in V matches the expected old value A; otherwise it does nothing.
+
+			-> "I think V should have the value A; if it does, put B there!, otherwise don't change it but tell me i was wrong."
+
+		* CAS is an optimistic technique
+			-> proceeds with the update in the hope of success, and can detect failure if another thread has updated the variable since it was last examined.
+
+		- Typical pattern for using CAS
+			1) first read the value A from V
+
+			2) derive the new value B from A
+
+			3) and then use CAS to atomically change V from A to B so long as no other thread has changed V to another value in the meantime.
+
+		* CAS addresses the problem of implementing atomic read-modify-write sequences without locking
+			-> because it can detect interference from other threads.
+
+	<15.2.2. A Non-blocking Counter>
+		* Primary disadvantage of CAS
+			-> it forces the caller to deal with contention (by retrying, backing off, or giving up)
+			-> whereas locks deal with contention automatically by blocking until the lock is available.
+
+(15.3. Atomic Variable Classes)
+	- Atomic variables are finer-grained and lighter-weight than locks, and are critical for implementing high-performance concurrent code on multiprocessor systes.
+
+	* The most commonly used atomic variables are the scalars:
+		"AtomicInteger"
+		"AtomicLong"
+		"AtomicBoolean"
+		"AtomicReference"
+
+	* Atomic scalar classes extend Number, they do not extend the primitive wrapper classes such as Integer or Long.
+		-> They cannot! the primitive wrapper classes are immutable whereas the atmoic variable classes are mutable.
+
+		-> Atomic variable classes do not redefine hasCode or equals; each instance is distinct.
+
+(15.4. Non-blocking Algorithms)
+	
+	<15.4.1. A Non-blocking Stack>
+		- Stacks are the simplest linked data structure
+			-> linked list of Node elements, rooted at top, each of which contains a value and a link to the next element.
+
+	<15.4.2. A Non-blocking Linked List>
+		* Trick to building non-blocking algorithms is to limit the scope of atomic changes to a single variable.
+
+	<15.4.3. Atomic Field Updaters>
+
+	<15.4.4. The ABA Problem>
+		- ABA problem can arise in algorithms that do their own memory management for link node objects.
+
+
+		* "AtomicStampedReference"
+			-> updates an object reference-integer pair, allowing "versioned" references that are immune to the ABA problem.
+
+		* "AtomicMarkableReference"
+			-> updates an object reference-boolean pair that is used by some algorithms to let a node remain in a list while being marked as deleted.
+
+
