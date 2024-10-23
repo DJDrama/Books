@@ -1,0 +1,149 @@
+[04 The Abstraction - The Process]
+	- Process : one of the most fundamental abstractions that the OS provides to users.
+		-> "running program".
+
+	* Although there are only a few physical CPUs available, how can the OS provide the illusion of a nearly-endless supply of said CPUs?
+		
+		-> "virtualizing" the CPU
+
+		-> By running one process, then stopping it and running another, and so forth.
+
+		-> the OS can promote the illusion that many virtual CPUs exist when in fact there is only one physical CPU.
+
+
+	- "Time Sharing" of the CPU
+		-> allows users to run as many concurrent processes as they would like
+		-> the potential cost is performance (as each will run more slowly if the CPU(s) must be shared.)
+
+	- "Space Sharing" (counterpart of "Time Sharing")
+		-> resource is divided (in space) among those who wish to use it.
+		-> disk space is naturally a "space-shared" resource, as once a block is assigned to a file, it is not likely to be assigned to another file until the user deletes it.
+
+	- "mechanisms"
+		-> mechanisms are low-level methods or protocols that implement a needed piece of functionality.
+
+	- "Context Switch"
+		-> which gives the OS the ability to stop running one program and start running another on a given CPU.
+		-> this "time-sharing" mechanism is employed by all modern OSes.
+
+	- "Policies"
+		-> algorithms for making some kind of decision within the OS.
+		-> "Scheduling Policy" in the OS will make the decision(which programs should the OS run?)
+
+	(4.1. The Abstraction: A Process)
+		- the memory that the process can address (called its "address space") is part of the process.
+
+		- part of the process's machine state are "registers"
+			-> many instructions explicitly read or update registers and thus clearly they are important to the execution of the process.
+
+		- "Program Counter"(PC) (sometimes called the "instruction pointer" or "IP")
+			-> tells us which instruction of the procgram is currently being executed.
+
+			-> similarly a "stack pointer" and associated "frame pointer" are used to manage the stack for function parameters, local variables and return addresses.
+
+	(4.2. Process API)
+		- "Create"
+			-> An operating system must include some method to create new processes.
+				ex)
+					1) type a command into the shell
+					2) or double-click on an application icon
+
+		- "Destroy"
+			-> destroy process forcefully.
+
+		- "Wait"
+			-> wait for a process to stop running; thus some kind of waiting interface is often provided.
+
+		- "Miscellaneous Control"
+			-> other than killing or waiting, other controls are also possible.
+				ex)
+					1) suspend a process (stop it from running for a while)
+					2) and then resume it (continue it running)
+
+		- "Status"
+			-> get some status information about process as well, such as how long it has run for, or what state it is in.
+
+		ex) Loading : From Program to Process
+			====================================
+			[Disk]
+			(Program)
+				- Code
+				- Static data
+
+			--> [Memory]
+				(Process)
+					- Code
+					- Static data
+					- heap
+					- stack
+			====================================
+
+	(4.3. Process Creation: A Little More Detail)
+		- First thing that the OS must do to run a program
+			1) "load" its code and any static data (d.g., initialized variables) into memory, into the address space of the process.
+
+			2) Programs initially reside on "disk" (or, in some modern systems, flash-based SSDs) in some kind of "executable format"
+				-> the process of loading a program and static data into memory requires the OS to read those bytes from disk and place them in memory somewhere.
+
+		- In early operating systems, the loading process is done "eagerly".
+			-> "All at once" before running the program.
+
+		- Modern Oses perform the process "lazily".
+			-> by loading pieces of code or data only as they are needed during program execution.
+
+			-> "paging" and "swapping".
+
+		- Once the code and the static data are loaded into memory, there are a few other things the OS needs to do before running the process.
+			1) Some memory must be allocated for the program's "run-time stack" (or just stack).
+				ex)
+					+ C programs use the stack for local variables, function parameters, and return addresses
+					+ OS allocates this memory and gives it to the process.
+					+ OS will also initialize the stack with arguments; specifically, it will fill in the parameters to the "main()" function, i.e., argc and the argv array.
+
+			2) The OS may also allocate some memory for the program's heap.
+				-> "heap" is used for explicitly requested dynamically allocated data; programs request such space by calling "malloc()" and free it explicitly by calling "free()".
+
+				-> "heap" is needed for data structures such as "linked lists", "hash tables", "trees", and other interesting data structures.
+
+			3) OS will also do some other initialization tasks, particularly related to input / output (IO).
+				-> in UNIX systems, each process by default has three open "file descriptors".
+					+ Standard input
+					+ Standard output
+					+ error
+
+				-> These descriptors let programs easily read input from the terminal as well as print output to the screen.
+
+			4) By loading the code and static data into memory, by creating and initializing a stack, and by doing other work as related to I/O setup, the OS has now set the stage for program execution.
+				-> to start the program running at the entry point, namely "main()".
+				-> By jumping to the  "main()" routine, the OS transfers control of the CPU to the newly-created process, and thus the program begins its execution.
+
+	(4.4. Process States)
+		- states
+			1) Running
+				-> executing instructions.
+
+			2) Ready
+				-> ready to run but for some reason the OS has chosen not to run it at this given moment.
+
+			3) Blocked 
+				-> makes it not ready to run until some other event takes place.
+					ex)
+						+ when a process initiates an I/O request to a disk, it becomes blocked and thus some other process can use the processor.
+
+		* Running <-> Ready
+			+ Running -> Ready (Descheduled)
+			+ Ready -> Running (Scheduled)
+
+	(4.5. Data Structures)
+		- OS likely will keep some kind of "process list" for all processes that are ready, as well as some additional information to track which process is currently running.
+
+		- OS must also track blocked processes.
+
+		- "Register Context"
+			1) When a process is stopped
+				-> its registers will be saved to this memory location; by restoring these registers, the OS can resume running the process. ("Context Switch")
+
+		- sometimes people refer to the individual structure that stores information about a process as a "Process Control Block (PCB)". (Fancy way of talking about a C structure that contains information about each process.)
+
+	
+
