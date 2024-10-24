@@ -1,0 +1,44 @@
+[05 Interlude: Process API]
+
+(5.1. The fork() System Call)
+	- system call "fork()"
+		-> used to create a new process.
+
+(5.2. The wait() System Call)
+	- even the parent runs first, it politely waits for the ch ild to finish running, then "wait()" returns, and then the parent prints its message.
+
+(5.3. Finally, The exec() System Call)
+	- usefull when you want to run a program that is different from the calling program.
+		ex)
+			+ calling fork() is only useful if you want to keep running copies of the same program.
+			+ However, often you want to run a different program; exec() des just that.
+
+	* Successful call to "exec()" never returns.
+
+(5.4 Why? Motivating the API)
+	- fork()
+		-> create a new child process to run the command,
+
+	- calls some variant of "exec()"
+
+	- and then waits for the command to complete by calling "wait()".
+		-> and prints out a prompt again, ready for your next command.
+
+	* separation of "fork()" and "exec()" allows the shell to do a whole bunch of useful things rather easily.
+
+		ex) [prompt> wc p3.c > newfile.txt]
+			-> the output of the program "wc" is redirected into the output file "newfile.txt"
+
+			-> when the child is created, before calling "exec()", the shell closes "standard output" and opens the new file "newfile.txt".
+
+			-> any output from the soon-to-be-running program "wc" are sent to the file instead of the screen.
+
+(5.5 Other Parts Of The API)
+	- "kill()"
+		-> used to send signals to process, including directives to go to sleep, die, and other useful imperatives.
+
+	- "ps"
+		-> allows you to see which processes are running; read the man pages for some useful flags to pass to "ps".
+
+	- "top"
+		-> displays the processes of the system and how much CPU and other resources they are eating up.
