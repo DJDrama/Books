@@ -1,0 +1,79 @@
+[07 - Scheduling: Introduction]
+
+(7.1 Workload Assumptions)
+	- "scheudling policies" = "disciplines"
+	- "workload" assumption.
+		-> determining the workload is a critical part of building policies, and the more you know about workload, the more fine-tuned your policy can be.
+
+(7.2. Scheudling Metrics)
+	- "scheduling metric"
+		-> something that we use to measure something.
+
+	- "turnaround time"
+		-> of a job is defined as the time at which the job completes minus the time at which the job arrived in the system.
+
+		-> T(turnaround) = T(completion) - T(arrival)
+
+		-> performance metric.
+
+	- "fairness"
+
+(7.3. First In, First Out(FIFO))
+	- "First In, First Out(FIFO)" = "First Come, First Served(FCFS)"
+
+	- "convoy effect"
+		-> where a number of relatively-short potential consumers of a resource get queued behind a heavyweight resource consumer.
+
+(7.4. Shortest Job First(SJF))
+	- runs the shortest job first, then the next shortest, and so on.
+
+	- "Non-preemptive"
+		-> if the arrival time differs, and the longest job comes first, than the turnaround time will be bad like FIFO.
+
+(7.5. Shortest Time-to-Completion First (STCF))
+	- or "Preemptive Shortest Job First(PSJF)"
+
+	- any time a new job enters the system, the STCF scheduler determines which of the reamining jobs has the least time left, and schedules that one.
+
+	- optimal
+
+(7.6. A New Metric: Response Time)
+	- "Response Time"
+		-> time from when the job arrives in a system to the first time it is cheduled.
+
+		-> T(response) = T(firstrun) - T(arrival)
+
+(7.7. Round Robin)
+	- instead of running jobs to completion, RR runs a job for a "time slice" (scheduling quantum) and then switches to the next job in the run queue.
+		-> repeatedely does so until the jobs are finished.
+
+	- sometimes called "time-slicing".
+
+	* the length of a time slice must be a multiple of the timer-interrupt period;
+		ex) if the timer interrupts every 10 milliseconds, the time slice could be 10, 20, or any other multiple of 10ms.
+
+	* making the time slice too short is problematic.
+		-> suddenly the cost of context switching will dominate overall performance.
+
+		-> deciding on the length of the time slice presents a trade-off to a system designer, making it long enough to "amortize" the cost of switching without making it so long that the system is no longer responsive.
+
+
+	* RR is one of the worst policies if turnaround time is our metric!
+		-> RR stretches out each job as long as it can, by only running each job for a short bit before moving to the next.
+
+		-> because turnaround time only cares about when jobs finish, RR is nearly pessimal, even worse than simple FIFO in many cases.
+
+
+	* SJF, STCF -> optimizes turnaround time, but is bad for response time.
+
+	* RR -> optimizies response time, but bad for turnaround.
+
+(7.8. Incorporating I/O)
+	- Just running one job and then the other without considering how to take I/O into account makes little sense.
+
+	- "overlap"
+		-> with the CPU being used by one process while waiting for the I/O of another process to complete; the system is thus better utilized.
+
+(7.9. No More Oracle)
+	- OS usually knows very little about the length of each job.
+		-> how can we build an approach that behaves like SJF / STCF without such a priori knowledge?
