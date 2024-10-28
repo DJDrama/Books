@@ -1,0 +1,129 @@
+[08 - Scheduling: The Multi-Level Feedback Queue]
+	- "Multi-level Feedback Queue" (MLFQ)
+
+(8.1 MLFQ: Basic Rules)
+	- has number of distinct "queues".
+		-> each assigned a different "priority level".
+
+	- uses priorities to decide which job should run at a given time.
+		-> job with higher priority is chosen to run.
+
+	- if more than onejob have the "same" priority?
+		-> use "round-robin" scheduling among those jobs.
+
+	* key: how the scheduler sets priorities.
+
+	- "MLFQ" varies the priority of a job based on its "observed behavior".
+		ex)
+			+ if a job repeatedely relinquishes the CPU while waiting for input from the keyboard
+				-> MLFQ will keep its priority high.
+
+			+ if a job uses the CPU intensively for long periods of time
+				-> MLFQ will reduce its priority.
+
+			* MLFQ will learn about processes as they run, and thus use the "history" of the job to predict its future behavior.
+
+	- RULE
+		1) Rule 1
+			-> If Priority(A) > Priority(B), A runs (B doesn't)
+		
+		2) Rule 2
+			-> If Priority(A) = Priority(B), A & B run in RR.
+
+	- how job priority changes over time?
+
+(8.2. Attempt #1: How To Change Priority)
+	- First attempt to a priority adjustment algorithm:
+		1) Rule 3
+			-> When a job enters the system, it is placed at the highest priority. (the topmost queue)
+
+		2) Rule 4a
+			-> If a job uses up an entire time slice while running, its priority is reduced (i.e., it moves down one queue)
+
+		3) Rule 4b
+			-> If a job gives up the CPU before the time slice is up, it stays at the "same" priority level.
+
+	* It doesn't "know" whether a job will be a short job or a long-running job.
+		-> It first "assumes" it might be a short job, thus giving the job high priority.
+
+		-> If it actually is a short job, it will run quickly and complete
+		-> If it is not a short job, it will slowly move down the queues, and thus soon prove itself to be a long-running more batch-like process.
+
+		-> MLFQ approximates SJF.
+
+	<Problems With Our Current MLFQ>
+		1) "Starvation"
+			-> If there are "too many" interactive jobs in the system, they will combine to consume all CPU time, and thus long-running jobs will never receive any CPU time (they starve).
+
+		2) a smart user could rewrite their program to "game the scheduler".
+			-> doing something sneaky to trick the scheduler into giving you more than you fair share of the resource.
+
+			-> before the time slice is over, issue an I/O operation and thus relinquish the CPU; doing so allows you to remain in the same queue. (Rule 4b)
+			-> and thus gain a higher percentage of CPU time. when done right, a job could nearly monopolize the CPU.
+
+		3) a program may change its behavior over time; what was CPU-bound may transition to phase of interactivity.
+
+(8.3. Attempt #2: The Priority Boost)
+	- boost the priority of all the jobs in the system.
+		1) Rule 5
+			-> After some time period S, move all the jobs in the system to the topmost queue.
+
+	* "voo-doo constants"
+
+	- If time period "S" set too high, long-running jobs could starve, too low, and interactive jobs may not get a proper share of the CPU.
+
+(8.4. Attempt #3: Better Accounting)
+	- "accounting" of CPU time at each level of the MLFQ
+		-> Instead of forgetting how much of a time slice a process used at a given level, the scheduler should keep track
+
+		-> once a process has used its allotment, it is demoted to the next priority queue.
+
+	- RULE (Rewrite Rules 4a and 4b)
+		1) Rule 4: Once a job uses up its time allotment at a given level, its priority is reduced. (moves down one queue)
+
+(8.5. Tuning MLFQ And Other Issues)
+	- how to "parameterize" such a scheduler?
+
+	- The Solaris MLFQ implementation - the Time-Sharing scheduling class, or TS
+		-> provides a set of tables that determine exactly how the priority of process is altered through out its lifetime, how long each time slice is, and how often to boost the priority of a job.
+
+	- Default values of the table are 60 queues, with slowly increasing time-slice lengths from 20ms (highest) to a few hundred milliseconds (lowest), and priorities boosted around every 1 second or so.
+
+	- Other MLFQ schedulers don't use a table or the exact rules described above.
+		-> rather they just adjust priorities using mathematical formulae.
+
+	- Many schedulers have a few other features.
+		ex)
+			+ some schedulers reserve the highest priority levels for operating system work; thus typical user jobs can never obtain the highest levels of priority in the system.
+
+			+ Some systems also allow some user "advice" to help set priorities.
+				-> by using the command-line utility "nice" you can increase or decrease the priority of job and thus increase or decrease its chances of running at any given time.
+
+(Summary)
+	- MLFQ
+		-> has multiple levels of queues, and uses feedback to determine the priority of a given job.
+
+		-> History is its guide: pay attention to how jobs behave over time and treat them accordingly.
+
+	- Reproduced Rules
+		1) Rule 1
+			-> If Priority(A) > Priority(B), A runs (B doesn't)
+
+		2) Rule 2
+			-> If Priority(A) == Priority(B), A & B runs in Round Robin.
+
+		3) Rule 3
+			-> When a job enters the system, it is placed at the highest priority (the topmost queue)
+
+		4) Rule 4
+			-> Once a job uses its time allotment at a given level, its priority is reduced.
+
+		5) Rule 5
+			-> After some time period S, move all the jobs in the system to the topmost queue.
+
+	* MLFQ observes the execution of a job and prioritizes it accordingly.
+		-> can deliver excellent overall performance for short-running interactive jobs.
+
+		-> fair and makes progress for long-running CPU-intensive workloads.
+
+		-> Many systems including BSD Unix derivatives, Solaris, and Windows NT and subsequent Windows operating systems use a form of MLFQ as their base scheduler.
