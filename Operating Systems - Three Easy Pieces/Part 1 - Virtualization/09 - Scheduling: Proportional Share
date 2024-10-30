@@ -1,0 +1,93 @@
+[09 - Scheduling: Proportional Share]
+	- "proportional-share" scheduler (a.k.a "fair-share" scheduler)
+
+	- instead of optimizing for turnaround and response time, a scheduler might instead try to guarantee that each job obtain a certain percentage of CPU time.
+
+(9.1. Basic Concept: Tickets Represent Your Share)
+	- "tickets"
+		ex)	If A process has 75 tickets, and B process has 25 tickets, A would receive 75% of the CPU and B the remaining 25%.
+
+		-> represent a process's share of the CPU.
+
+	- "lottery scheduling"
+		-> use of "randomness".
+			+ has three advantages
+				1) random often avoids trange corner-case behaviors.
+
+				2) random also is lightweight, requiring little state to track alternatives.
+					-> necessitates only the most minimal of per-process state. (e.g., the number of tickets each has)
+
+				3) random can be quite fast.
+					-> as long as generating a random number is quick, making the decision is also, and thus random can be used in a number of places where speed is required.
+
+(9.2. Ticket Mechanisms)
+	- "ticket currency"
+		-> allows a user with a set of tickets to allocate tickets among their own jobs in whatever currency they would like;
+
+	- "ticket transfer"
+		-> a process can temporarily hand off its tickets to another process.
+
+	- "ticket inflation"
+		-> a process can temporarily raise or lower the number of tickets it owns.
+
+(9.3. Implementation)
+	- All you need is a good random number generator to pick the winning ticket, a data structure to track the processes of the system, and the total number of tickets.
+
+(9.5. How to Assign Tickets?)
+	- one approach: user is handed some number of tickets, and a user can allocate tickets to any jobs they run as desired.
+		-> However, this solution is non-solution: it really doesn't tell you what to do.
+
+(9.6. Why Not Deterministic?)
+	* Randomness won't deliver the exact right proportions, especially over short time scales.
+
+	- "stride scheduling"
+		-> a deterministic fair-share scheduler.
+
+		-> each job in the system has a stride, which is inverse in proportion to the number of tickets it has.
+
+			ex) jobs A, B, and C with 100, 50, and 250 tickets,
+				-> divide 10,000 by each of those ticket values
+				-> we get A, B, and C: 100, 200, and 40.
+
+				-> We call this value the "stride" of each process; every time a process runs, we will increment a counter for it (called its "pass" value) by its tride to track its global progress.
+
+		-> scheduler uses the stride and pass to determine which process should run next.
+
+	- pick the process to run that has the lowest pass value so far; when you run a process, increment its pass counter by its stride.
+
+		ex) A, B, and C with 100, 200, and 40 stride values.
+			1) all pass values are initially 0.
+
+			2) at first, any of the processes might run, as their pass values are equally low.
+
+			3) If we pick A, A runs; when finished with the time slice, we update its pass value to 100.
+
+			4) Then we run B, whose pass value is then set to 200.
+
+			5) Then we run C, whose pass value is incremented to 40.
+
+			6) At this point, algorithm will pick the lowest pass value, which is C's, and run it, updating its pass to 80. -> then C will run again. -> becomes 120.
+
+			7) A will run now (whose pass value is 100), updating its pass to 200 (now equal to B's).
+
+			8) Then C will run twice more, updating its pass to 160 then 200.
+
+			9) All pass values are equal again, and the process will repeat, ad infinitum.
+
+			-> C ran 5 times, A twice, B just once.
+
+	* Lottery scheduling achieves the proportions probabilistically over time
+
+	* Stride scheduling gets them exactly right at the end of each scheduling cycle.
+
+	* Lottery scheudling has one nice property that stride does not -> "Global State"
+		ex) If a new job enters in the middle of our stride scheduling example above; what should its pass value be?
+			-> If 0, then it will monopolize the CPU.
+
+			-> With lottery scheduling, there is no global state per process
+				+ We simply add a new process with whatever tickets it has, update the single global variable to track how many total tickets we have, and go from there.
+
+		-> lottery scheduling makes it much easier to incorporate new processes in a sensible mannger.
+
+
+
