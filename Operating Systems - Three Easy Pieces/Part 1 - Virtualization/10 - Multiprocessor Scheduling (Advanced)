@@ -1,0 +1,106 @@
+[10 - Multiprocessor Scheduling (Advanced)]
+
+(10.1. Background: Multiprocessor Architecture)
+	- In a system with a single CPU, there are a hierarchy of "hardware caches" that in general help the processor run programs faster.
+		-> Caches are small, fast memories that hold copies of popular data that is found in the main memory of the system.
+
+		-> Main memory holds all of the data, but access to this larger memory is slower.
+
+		* By keeping frequently accessed data in a cache, the system can make the large, slow memory appear to be a fast one.
+
+	<example>
+		- consider a program that issues an explicit load instruction to fetch a value from memory, and a simple system with only a single CPU; the CPU has a small cache (say 64KB) and a large main memory.
+
+			1) first time a program issues this load, the data resides in main memory, and thus takes a long time to fetch.
+
+			2) processor, aniticpating that the data may be reused, puts a copy of the loaded data in to the CPU cache.
+
+			3) If the program later fetches this same data item again, the CPU first checks for it in the cache; if it finds it there, the data is fetched much more quickly, and thus the program runs faster.
+
+	- Caches are based on the notion of "locality".
+		1) Temporal locality
+			-> when a piece of data is accessed, it is likely to be accessed again in the near future.
+
+		2) Spatial locality
+			-> if a program accesses a data item at address x, it is likely to access data items near x as well.
+			(ex: program streaming through an array, or instructions being executed one after the other)
+
+	- What happens when you have multiple processors in a single system, with a single shared main memory?
+		-> caching with multiple CPUs is much more complicated.
+
+	- Problem of "Cache coherence"
+		-> if OS decides to stop running the program and move it to CPU2 from CPU1, then cache data will be lost, and when CPU2 reads from the main memory, it will retrieve the old value instead of the cache value.
+
+	* "bus snooping"
+		-> each cache pays attention to memory updates by observing the bus that connects them to main memory.
+
+		-> when a CPU then sees an update for a data item it holds in its cache, it will notice the change and either "invalidate" its copy (remove it from its own cache) or "update" it (put the new value into its cache too).
+
+(10.2. Don't Forget Synchronization)
+
+(10.3. One Final Issue: Cache Affinity)
+	- "cache affinity"
+		-> a process, when run on a particular CPU, builds up a fair bit of state in the caches (and TLBs) of the CPU.
+		-> The next time the process runs, it is often advantageous to run it on the sam eCPU, as it will run faster if some of its state is already present in the caches on that CPU.
+
+(10.4. Single-Queue Scheduling)
+	- putting all jobs that need to be scheduled into a single queue. 
+		-> we call this "Single queue multiprocessor scheduling" (SQMS)
+
+	* (Shortcomings)
+		1) Lack of scalability
+			-> developers have inserted some form of "locking" into the code
+			-> "locks" can greatly reduce performance, particularly as the number of CPUs in the systems grows.
+
+			* Because each CPU simply picks the next job to run from the globally shared queue, each job ends up bouncing around from CPU to CPU, thus doing exactly the opposite of what would make sense from the stand point of cache affinity.
+
+	- SQMS schedulers include some kind of affinity mechanism to try to make it more likely that process will continue to run on the same CPU if possible.
+		-> HOWEVER can be comples.
+
+	* SQMS does not scale well (due to synchronization overheads), and it does not readily preserve cache affinity.
+
+(10.5. Multi-Queue Scheduling)
+	- Multi-queue multiprocessor scheduling (MQMS)
+		-> one per CPU
+
+		-> when a job enters the system, it is placed on exactly one scheduling queue, according to some heruistic (random or picking one with fewer jobs than others.)
+
+		-> then it is scheduled essentially independently, thus avoiding the problems of information sharing and synchronization found in the single-queue approach.
+
+	* (advantage)
+		-> more scalable.
+			+ as the number of CPUs grows, so too does the number of queues, and thus lock and cache contention should not become a central problem.
+
+		-> provides cache affinity; jobs stay on the same CPU and thus reap the advantage of reusing cached contents therein.
+
+	* (Problem)
+		-> "load imbalance"
+			ex) If A, B in Queue 1 that are in CPU 1, and C, D in Queue 2 that are in CPU 2
+				+ When A and B completes, CPU 1 has no jobs(idle), and CPU 2 will still have C and D running.
+
+	* "migration"
+		-> move jobs around.
+		-> migrate a job from one CPU to another, true load balance can be achieved.
+
+	* "work stealing"
+		-> a queue that is low on jobs will occasionally peek at another queue, to see how full it is.
+			+ If the target queue is more full than the source queue, the source will "steal" one or more jobs from the target to help balance load.
+
+(10.6. Linux Multiprocessor Schedulers)
+	- O(1) scheduler, CFS(Completely Fair Scheduler), BF(Brain Fuck) Scheduler(BFS)
+
+	- O(1) and CFS use multiple queues
+
+	- BF uses a single queue.
+
+	- O(1) scheduler
+		-> Priority-based scheduler (similar to the MLFQ)
+		-> changing a process's priority over time and then scheduling those with highest priority in order to meet various scheduling objectives; interactivity is a particular focus.
+
+	- CFS(Completely Fair Scheduler)
+		-> deterministic proportional-share approach (more like Stride scheduling)
+
+	- BFS(Brain Fuck Scheduler)
+		-> only single-queue approach among the three, is also proportional-share, but based on a more complicated scheme known as Earliest Eligible Virtual Deadline First (EEVDF).
+
+
