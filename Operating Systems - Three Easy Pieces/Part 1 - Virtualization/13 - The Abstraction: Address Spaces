@@ -1,0 +1,106 @@
+[13 - The Abstraction: Address Spaces]
+
+(13.1. Early Systems)
+	- In early systems,
+		-> ex) OS was a set of routines (a library, really) that sat in memory (starting at physical address 0), and there would be one running program (a process) that currently sat in physical memory (starting at physical address 64K) and use the rest of memory.
+
+(13.2. Multiprogramming and Time Sharing)
+
+	1) era of "multiprogramming"
+		-> multiple processes were ready to run at a given time, and the OS would switch between them.
+
+		-> increased the effective "utilization" of the CPU
+
+		-> Such increases in "efficiency" were particularly important in those days where each machine cost hundreds of thousands or even millions of dollars.
+
+	2) era of "time sharing"
+		-> notion of "interactivity" became important, as many users might be concurrently using a machine, each waiting for a timely response from their currently-executing tasks.
+
+		-> one way to implement "time sharing" would be to run one process for a short while, giving it full access to all memory, then stop it, save all of its state to some kind of disk (including all of physical memory), load some other process's state, run it for a while, and thus implement some kind of crude sharing of the machine.
+
+		-> has a big problem!
+			+ way too slow, particularly as memory grows.
+			+ While saving and restoring register-level state (the PC, general-purpose registers, etc) is relatively fast, saving the entire contents of memory to disk is brutally non-performant.
+
+			-> THUS! we'd rather leave processes in memory while switching between them, allowing the OS to implement time sharing efficiently.
+
+		-> NEW demand were placed
+			+ allowing multiple programs to reside concurrently in memory makes "protection" an important issue
+				-> you don't want a process to be able to read, or worse, write some other process's memory.
+
+(13.3. The Address Space)
+	- abstraction the "address space", and it is the running program's view of memory in the system.
+
+	- "address space" of a process contains all of the memory state of the running program.
+		ex) An Example Address Space
+				------------- 0kb
+				|	code	|
+				|-----------| 1kb
+				|	heap	|
+				|-----------| 2kb
+				|			|
+				|	free	|
+				|			|
+				|-----------| 15kb
+				|	stack	|
+				------------- 16kb
+
+			-> "code" : code of the program (instructions) have to live in memory somewhere.
+				+ lives at the top of the address space
+				+ static: and thus easy to place in memory.
+				+ won't need any more space as the program runs.
+
+			-> "heap" : dynamically-allocated, user-managed memory, such as that you might receive from a call to "malloc()" in C or "new" in object oriented language such as C++ or Java.
+				+ may grow and shrink while program runs.
+				+ grows downward. (convention)
+
+			-> "stack" : keep track of where it is in the function call chain as well as to allocate local variables and pass parameters and return values to and from routines.
+				+ may grow and shrink while program runs.
+				+ grows upward. (convention)
+
+	* Of course, when we describe the "address space", what we are describing is the "abstraction" that the OS is providing to the running program.
+		-> Program isn't really in memory at physical address 0 through 16KB!
+		-> rather it is loaded at some arbitrary physical address(es).
+
+	* How can the OS build this abstraction of a private, potentially large address space for multiple running process (all sharing memory) on top of a single, physical memory?
+		-> When the OS does hits, we say the OS is "virtualizing memory"
+			+ because the running program thinks it is loaded into memory at a particular address (say 0) and has a potentially very large address space (say 32-bits or 64-bits); the reality is quite different.
+				ex)
+					+ process A tries to perform a load at address 0 (which we will call a "virtual address"), somehow, the OS, in tandem with some hardware support, will have to make sure the load doesn't actually go to physical address 0 but rather to physical address 320KB (where A is loaded into memory).
+
+	* Principle of Isolation
+		-> if two entities are properly isolated from one another, this implies that one can fail without affecting the other.
+
+(13.4. Goals)
+	- "transparency"
+		-> OS should implement virtual memory in a way that is invisible to the running program.
+		
+		-> The program shouldn't be aware of the fact that memory is virtualized; rather, the program behaves as if it has its own private physial memory.
+
+		-> the OS does all the work to multiplex memory among many different jobs, and hence implements the illusion.
+
+	- "efficiency"
+		-> OS should strive to make the virtualization as "efficient" as possible, both in terms of time and space.
+			+ time: not making programs run much more slowly
+			+ space: not using too much memory for structures needed to support virtualization
+
+		-> OS will have to rely on hardware support, including hardware features such as TLBs.
+
+	- "protection"
+		-> OS should make sure to "protect" processes from one another as well as the OS itself from processes.
+			+ When one process performs a load, a store, or an instruction fetch, it should not be able to access or affect in any way the memory contents of any other process or the OS itself.
+
+		-> Protection enables us to deliver the property of "isolation" among processes.
+			+ each process should be running in its own isolated cocoon, safe from the ravages of other faulty or even malicious processes.
+
+	* Every Address You See Is Virtual
+		-> a C program that prints out a pointer, the value you see is a "virtual address".
+
+		-> any address you can see as a programmer of a user-level program is a virtual address.
+
+		* if you print out an address in a program, it's a virtual one, an illusion of how things are laid out in memory; only the OS knows the real truth.
+
+		* virtual addresses will be translated by the OS and hardware in order to fetch values from their true physical locations.
+	
+
+
