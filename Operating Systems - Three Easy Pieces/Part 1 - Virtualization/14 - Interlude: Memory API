@@ -1,0 +1,104 @@
+[14 - Interlude: Memory API]
+
+(14.1. Types of Memory)
+	- In running a C program, two types of memory
+		1) Stack Memory (Automatic Memory)
+			-> allocations and deallocations of it are managed implicitly by the compiler for you, the programmer.
+				ex)
+					=====================================================
+					void func() {
+						int x; // declares an integer on the stack.
+						// ...
+					}
+					=====================================================
+					-> when return from the function, the compiler deallocates the memory for you.
+
+		2) Heap Memory
+			-> all allocations and deallocations are explicitly handled by you, the programmer.
+				ex)
+					=================================================
+					void func() {
+						int *x = (int *) malloc(sizeof(int));
+						// ...
+					}
+					=================================================
+					-> both stack and heap allocation occur on the above line.
+						1) compiler knows to make room for a pointer to an integer when it sees your declaration of said pointer (int *x)
+
+						2) when the program calls malloc(), it requests space for an integer on the heap
+
+						3) which is then stored on the stack for use by the program.
+
+(14.2. The malloc() Call)
+(14.3. The free() Call)
+	- to free heap memory that is no longer in use, call "free()" in C.
+		ex)
+			=================================================
+			int *x = malloc(10 * sizeof(int));
+			...
+			free(x);
+			=================================================
+
+(14.4. Common Errors)
+	* many newer languages have support for automatic memory management.
+		-> a "garbage collector" runs and figures out what memory you no longer have references to and frees it for you.
+
+	<Forgetting To Allocate Memory>
+		* "segmentation fault"	
+			-> illegal memory access
+			-> YOU DID SOMETHING WRONG WITH MEMORY YOU FOOLISH PROGRAMMER AND I AM ANGRY.
+
+	<Not Allocating Enough Mmmory>
+		* "buffer overflow"
+			-> not allocating enough memory.
+
+	<Forgetting To Initialize Allocated Memory>
+		- program will encounter an "uninitialized read"
+			ex)
+				+ you call "malloc()" but forget to fill in some vlaues into your newly-allocated data type.
+
+	<Forgetting To Free Memory>
+		- "memory leak"
+			-> when you forget to free memory.
+			-> slowly leaking memory eventually leads one to run out of memory, at which point a restart is required.
+
+	<Freeing Memory Before You Are Done With It>
+		- "dangling pointer"
+			-> sometimes program will free memory before it is finished using it.
+			-> can crash the program, or overwrite valid memory.
+
+	<Freeing Memory Repeatedly>
+		- "double free"
+			-> when the program free memory more than once.
+			-> result is "undefined"!
+			-> memory-allocation library might get confused and do all sorts of weird things; crashes are a common outcome.
+
+	<Calling free() Incorrectly>
+		- when you pass some other value to "free()", bad things can happen.
+			-> "invalid frees"
+
+(14.5. Underlying OS Support)
+	- "malloc()" and "free()" are not "system calls"
+		-> THEY ARE "library calls".
+
+	- malloc livbrary manages space within your virtual address space, but itself is built on top of some system calls which call into the OS to ask for more memory or release some back to the system.
+		-> one such system call is "brk".(used to change the location of the program's break: the location of the end of the heap)
+			+ either increases or decreases the size of the heap based on whether the new break is larger or smaller then the current break.
+
+		-> additional system call "sbrk" is passed an increment but otherwise serves a similar purpose.
+
+		* NEVER call "brk" or "sbrk".
+			-> stick to "malloc()" and "free()"
+
+		-> "mmap()" call.(can obtain memory from the operating system)
+			+ can create an "anonymouse" memory region within your program - a region which is not associated with any particular file but rather with "swap space".
+
+(14.6. Other Calls)
+	- "calloc()"
+		-> allocates memory and also zeroes it before returning
+		-> prevents some errors where you assume that memory is zeroed and forget to initialize it yourself.
+
+	- "realloc()"
+		-> when you already allocated space but need to add something ot it, use it.
+		-> makes a new larger region of memory, copies the old region into it, and returns the pointer to the new region.
+
