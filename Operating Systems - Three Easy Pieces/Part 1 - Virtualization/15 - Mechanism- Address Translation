@@ -30,7 +30,7 @@
 	- "bounds" register is there to help with protection.
 		-> processor will first check that the memory reference is "within bounds" to make sure it is legal;
 
-	- "memory management unit" (MMU")
+	- "memory management unit" (MMU)
 		-> part of the processor that helps with address translation.
 
 (15.4. Hardware Support: A Summary)

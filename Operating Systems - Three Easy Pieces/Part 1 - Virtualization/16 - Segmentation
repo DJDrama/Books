@@ -1,0 +1,82 @@
+[16 - Segmentation]
+	- although the space between the stack and heap is not being used by the process, it is still taking up physical memory when we relocate the entire address space somewhere in physical memory.
+		-> simple approach of using a base and bounds register pair to virtualize memory is wasteful.
+
+(16.1. Segmentation: Generalized Base / Bounds)
+	- an idea was born -> "segmentation"
+		-> intead of having just one base and bounds pair in our MMU(memory management unit), why not have a base and bounds pair per logical "segment" of the address space?
+
+		* segment: just a contiguous portion of the address space of a particular length, and in our canonical address space. (code, stack, and heap)
+
+		-> segmentation allows the OS to place each one of those segments in different parts of physical memory.
+
+		-> avoid filling physical memory with unused virtual address space.
+
+(16.2 Which Segment Are We Referring To?)
+	- hardware uses segment registers during translation.
+
+	- How does it know the offset into a segment, and to which segment an address refers?
+
+		1) "explicit" approach
+			-> chop up the address space into segments based on the top few bits of the virtual address.
+
+			ex)
+				[1] If the top two bits are 00
+					-> code segment
+
+				[2] If the top two bits are 01
+					-> heap
+
+		2) "Implicit" approach
+			-> hardware determines the segment by noticing how the address was formed.
+
+			ex)
+				[1] If the address was generated from the program counter
+					-> the address is within the code segment
+
+				[2] If the address is based off of the stack or base pointer
+					-> it must be in the stack segment
+
+				[3] Any other address must be in the heap
+
+(16.3. What About the Stack?)
+	- hardware needs to know which way the segment grows
+		-> 1: positive direction
+		-> 0: negative direction
+
+(16.4 Support For Sharing)
+
+(16.5 Fine-grained vs. Coarse-grained Segmentation)
+	- "coarse-grained" 
+		-> systems with just a few segments (i.e., code, stack, heap)
+		-> as it chops up the address space into relatively large, coarse chunks.
+
+	- "fine-grained"
+		-> early systems were more flexible and allowed for address spaces to consist of large number of smaller segments.
+
+	- "segment table"
+		-> usually supports the creation of a very large number of segments, and thus enable a system to use segments in more flexible ways than we have thus far discussed.
+
+(16.6. OS Support)
+	- "segmentation" raises a number of new issues.
+		1) What should the OS do on a context switch?
+			-> segment registers must be saved and restored.
+			-> each process has its own virtual address space, and the OS must make sure to set up these registers correctly before letting the process run again.
+
+		2) managing free space in physical memory.
+			-> when a new address space is created, the OS has to be able to find space in physical memory for its segments.
+
+			-> physical memory becomes full of little holes of free space, making it difficult to allocate new segments, or to grow existing ones.
+			(we call this problem "external fragmentation")
+
+	<solution>
+		[1] "compact" physical memory by rearranging the existing segments.
+			ex)
+				+ OS could stop whichever processes are running, copy their data to one contiguous region of memory, change their segment register values to point to the new physical locationsm and thus have a large free extent of memory with which to work.
+					-> OS enables the new allocation request to succeed.
+
+			* HOWEVER! "compaction" is expensive, as copying segments is memory-intensive and generally uses a fair amount of processor time.
+
+		(simple approach)
+		[2] use a free-list management algorithm that tries to keep large extents of memory available for allocation.
+
