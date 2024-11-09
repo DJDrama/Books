@@ -1,0 +1,89 @@
+[17 - Free-Space Management]
+
+(17.1 Assumptions)
+
+(17.2. Low-level Mechanisms)
+	<Splitting and Coalescing>
+		- "splitting"
+			-> allocator will find a free chunk of memory that can satisfy the request and split it into two.
+
+			-> when requests are smaller than the size of any particular free chunk.
+
+		- "coalescing"
+			-> coalesce free space when a chunk of memory is freed.
+			-> look carefully at the addresses of the chunk you are returning as well as the nearby chunks of free space
+			-> if the newly freed space sits right next to one exsisting free chunks, merge them into a sinlge larger free chunk
+
+	<Tracking the size of allocated regions>
+		- most allocators store a little bit of extra information in a "header" block which is kept in memory, usually just before the handed-out chunk of memory.
+
+		- when user requests N bytes of memory, the library does not search for a free chunk of size N; rather it searches for a free chunk of size N plus the size of the header.
+
+	<Embedding a Free List>
+
+	<Growing The Heap>
+		- traditional allocators start with a small-sized heap and then request more memory from the OS when they run out.
+			-> system call (e.g., "sbrk" in most UNIX systems) to grow the heap, and then allocate the new chunks from there.
+
+			-> OS finds free physical pages, maps them into the address space of the requesting process, and then returns the value of the end of the new heap; at that point, a larger heap is available, and the request can be successfully sericed.
+
+(17.3. Basic Strategies)
+	<Best Fit>
+		-> first, search through the free list and find chunks of free memory that are as big or bigger than the requested size.
+
+		-> then, return the one that is the smallest in that group of candidates; this is so called "best-fit" chunk.
+
+		* penalty: when performing an exhaustive search for the correct free block.
+
+	<Worst Fit>
+		-> find the largest chunk and return the requested amount; keep the remaining chunk on the free list.
+
+		-> tries to thus leave big chunks free instead of lots of small chunks that can arise from a best-fit approach.
+
+		* however, a full search of free space is required, and thus this approach can be costly.
+			-> leading to excess fragmentation while still having high overheads.
+
+	<First Fit>
+		-> simply finds the first block that is big enough and return the requested amount to the user.
+
+		-> benefit: speed (no exhaustive search of all the free spaces are necessary)
+			+ BUT! sometimes pollutes the beginning of the free list with small objects.
+
+		-> "address-based ordering"
+			+ by keeping the list ordered by the address of the free space, coalescing becomes easier, and fragmentation tends to be reduced.
+
+	<Next Fit>
+		- keeps an extra pointer to the location within the list where one was looking last.
+		-> spread the searches for free space throughout the list more uniformly, thus avoiding splintering of the beginning of the list.
+
+		-> performance is similiar to first fit, as an exhaustive search is once again avoided.
+
+
+(17.4 Other Approaches)
+	<Segregated Lists>
+		- if a particular application has one popular-sized request that it makes, keep a separate list just to manage objects of that size; all other requests are forwarded to a more general memory allocator.
+
+		- when the kernel boots up, it allocates a number of "object caches" for kernel objects that are likely to be requested frequently.
+			-> the object caches thus are each segregated free lists of a given size and serve memory allocation and free requests quickly.
+
+		- when a given cache is running low on free space, it requests some "slabs" of memory from a more general memory allocator.
+
+		- by keeping freed objects in a particular list in their initialized state
+			-> the slab allocator thus avoids frequent initialization and destruction cycles per object and thus lowers overheads noticeably.
+
+	<Buddy Allocation>
+		- "binary buddy allocator"
+			* this scheme can suffer from "internal fragmentation"
+
+		- when freed
+			1) when returning the 8KB block to the free list, the allocator checks whehter the "buddy" 8KB is free
+
+			2) if so, it coalesces the two blocks into a 16KB block.
+
+			3) the allocator then checks if the buddy of the 16KB block is still free; if so, it coalesces those two blocks.
+
+			4) recursive coalescing process continues up the tree, either restoring the entire free space or stopping when a buddy is found to be in use.
+
+	<Other Ideas>
+		- above approaches -> "lack of scaling"
+			-> searching lists can be quite slow.
