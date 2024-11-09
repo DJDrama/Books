@@ -1,0 +1,69 @@
+[18 - Paging: Introduction]
+	- "segmentation"
+		-> chop things up into "variable-sized" pieces in virtual memory.
+
+	- "fragmented"
+		-> dividing a space into different-size chunks
+
+	- "paging"
+		-> chop up space into "fixed-sized" pieces.
+
+		-> divide process's address space into fixed-sized units, each of which we call a "page".
+
+		-> we view physical memory as an array of fixed-sized slots called "page frames"
+			+ each of these frames can contain a single virtual-memory page.
+
+(18.1 A Simple Example And Overview)
+	
+	- advantages of "paging"
+		1) "flexibility"
+			-> system will be able to support the abstraction of an address space effectively, regardless of how a process uses the address space
+
+		2) "simplicity"
+			-> ex) when the OS wishes to place our tiny 64-byte saddress space into our eight-page physical memory, it simply finds four free pages.
+			-> OS keeps a "free list" of all free pages and just grabs the first four free pages off of the list.
+
+	- to record where each virtual page of the address space is placed in physical memory, the operating system usually keeps a "per-process" data structure known as a "page table".
+		-> role of "page table"
+			1) store "address translations" for each of the virtual pages of the address space, letting us know ehre in physical memory each page resides.
+
+(18.2 Where Are Page Tables Stored?)
+	- pages tables are so big, we don't keep any special on-chip hardware in the MMU to store the page table of the currently-running process.
+		-> Instead, we store the page table for each process in memory somwehre.
+
+(18.3. What's actually in the page table?)
+	- "page table" is just a data structure that is used to map virtual addresses to physical addresses.
+
+	- "linear page table" (array)
+		-> OS indexes the array by the virtual page number (VPN), and looks up the page-table entry (PTE) at that index in order to find the desired physical frame number (PFN).
+
+	- "valid bit"
+		-> common to indicate whether the particular translation is valid
+			ex) when a program starts running, it will have code and heap at one end of its address space, and the stack at the other.
+				-> All the unused space in-between will be marked "invalid"
+				-> if the process tries to access such memory, it will generate a trap to the OS which will likely terminate the process.
+
+	- "protection bits"
+		-> whether the page could be read from, written to, or executed from.
+		-> accessing a page in a way not allowed by these bits will generate a trap to the OS.
+
+	- "present bit"
+		-> whether this page is in physical memory or on disk.
+
+	- "dirty bit"
+		-> indiciating whether the page has been modified since it was brought into memory.
+
+	- "reference bit" (accessed bit)
+		-> sometimes used to track whether a page has been accessed, and is useful in determining which pages are popular and thus should be kept in memory.
+		-> such knowledge is ciritical during "page replacement"
+
+(18.4 Paging: Too Slow)
+	- with page tables in memory, they might be too big. -> they can slow things down.
+
+	- without careful design of both hardware and software, page tables will cause the system to run too slowly, as well as take up too much memory.
+
+(18.5 A Memory Trace)
+	- page table stores "virtual-tophysical address translations"
+		-> letting the system know where each page of an address space actually resides in physical memory.
+
+		-> one page table per process (each address space requires such translations)
