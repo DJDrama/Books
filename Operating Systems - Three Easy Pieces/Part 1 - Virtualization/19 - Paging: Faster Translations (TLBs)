@@ -1,0 +1,54 @@
+[19 - Paging: Faster Translations (TLBs)]
+	- "translation-lookaside buffer" (TLB)
+		-> part of the chip's memory management unit (MMU)
+		-> simply a hardware cache of popular virtual-to-physical address translations
+		-> a better name would be an "address-translation cache".
+
+(19.3 Who Handles The TLB Miss?)
+	- the hardware or the Software(OS)
+
+	- Modern architectures, both RISC or reduced-instruction set computers have what is known as a "software-managed TLB"
+		-> ON a TLB miss, the hardware simply raises an exception, which pauses the current instruction stream
+		-> raises the privilege level to the kernel mode, and jumps to a "trap handler".
+
+	- advantages
+		1) Flexibility
+			-> the OS can use any data structure it wants to implement the page table, without necessitating hardware change.
+
+		2) Simplicity
+			-> hardware doesn't have to do much on a miss; it raises an exception, and the OS TLB miss handler does the rest.
+
+
+(19.4 TLB Contents: What's In There?)
+	- A typical TLB might have 32, 64, or 128 entries and be what is called "fully associative".
+
+	- A TLB entry might look like this:
+		VPN | PFN | other bits
+
+		* VPN: Virtual Page Number
+		* PFN: Physical Frame Number
+
+(19.5 TLB Issue: Context Switches)
+	- TLB contains virtual-to-physical translations that are only valid for the currently running process
+		-> When switching from one process to another, the hardware or OS must be careful to ensure that the about-to-be-run process does not accidentally use translations from some previously run process.
+
+	- "flush" the TLB on context siwtches, thus emptying it before running the next process.
+		-> sets all valid bits to 0, essentially clearing the contents of the TLB.
+
+		-> HOWEVER, there is a cost!
+			+ each time a process runs, it must incur TLB misses as it touches its data and code pages.
+			+ If the OS switches between processes frequently, this cost may be high.
+
+	- "address space identifier" (ASID) field in the TLB
+		-> ASID field is needed to differentiate processes otherwise identical translations.
+		-> TLB can hold translations from different processes at the same time without any confusion.
+
+(19.6 Issue: Replacement Policy)
+	- "cache replacement"
+		-> When we are installing a new entry in the TLB, we have to replace an old one, and thus the question: which one to replace?
+			1) Evict the least-recently-used or LRU entry.
+				-> LRU tries to take advantage of locality in the memory-reference stream, assuming it is likely that an entry that has not recently been used is a good candidate for eviction.
+
+			2) "random" policy
+				-> evicts a TLB mapping at random.
+				-> useful due to its simplicity and ability to avoid corner-case behaviors.
