@@ -1,0 +1,42 @@
+[20 - Paging: Smaller Tables]
+	- linear page tables are pretty big.
+		ex) Assume
+			+ 32-bit address space(2^32 bytes), with 4KB(2^12 byte) pages and a 4-byte page-table entry.
+				-> 4MB in size.
+
+	- we have one page table for every process
+		-> with a hundred active processes, will be allocating hundreds of megabytes of memory just for page tables!
+
+(20.1 Simple Solution: Bigger Pages)
+	- we can reduce the size of the page table
+		1) use bigger pages.
+
+		-> Big pages lead to waste within each page, a problem known as "internal fragmentation" (as the waste is internal to the unit of allocation).
+
+
+(20.2 Hybrid Approach: Paging and Segments)
+	- instead of having a single page table for the entire address space of the process, why not have one per logical segment?
+		1) "base" register that told us where each segment lived in physical memory
+		2) "bound" or "limit" register that told us the size of said segment
+			+ "bound" register is used to indicate the end of the page table
+
+		-> when a process is running,
+			+ "base" register for each of these segments contains the physical address of a linear page table for that segment.
+				-> each process in the system now has three page tables associated with it.
+
+			+ On a context switch, these registers must be changed to reflect the location of the page tables of the newly running process.
+
+		-> On a TLB miss, the hardware uses the segment bits (SN) to determine which base and bounds pair to use.
+
+	- Problems
+		1) still requires us to use segmentation
+			-> segmentation is not quite as flexible as we would like; as it assumes a certain usage pattern of the address space
+				ex)
+					+ If we have a large but sparsely-used heap, we can still end up with a lot of page table waste.
+
+		2) causes external fragmentation to arise again.
+			-> page tables can be of arbitrary size.
+			-> finding free space for them in memory is more complicated.
+
+(20.3 Multi-level Page Tables)
+	
