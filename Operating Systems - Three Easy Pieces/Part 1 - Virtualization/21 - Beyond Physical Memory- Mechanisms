@@ -1,0 +1,85 @@
+[21 - Beyond Physical Memory: Mechanisms]
+
+(21.1 Swap Space)
+	- reserve some space on the disk for moving pages back and forth
+		-> "swap" pages out of memory to it and "swap" pages into memory from it.
+		-> OS can read from and write to the swap space, in page-sized units.
+		-> OS will need to remember the "disk address" of a given page.
+
+	- size of swap space is important
+		-> it determines the maximum number of memory pages that can be in use by a system at a given time.
+
+
+(21.2 The Present Bit)
+	- remember
+		1) hardware first extracts the VPN from the virtual address
+		2) checks the TLB for a match (TLB hit)
+		3) if a hit, produces the resulting physical address and fetches it from memory.
+
+		* if VPN not found in the TLB (TLB miss), the hardware locates the page table in memory (using the page table base register) and looks up the page table entry (PTE) for this page using the PVN as an index.
+
+		* if the page is valid and present in physical memory, the hardware extracts the PFN from the PTE, installs it in the TLB, and retries the instruction, this time generating a TLB hit.
+
+	- present bit
+		1) If the present bit is set to one
+			-> the page is present in physical memory and everything proceeds as above
+			-> tells us the page is present in memory or not.
+
+		2) If the present bit is set to zero
+			-> the page is NOT in memory but rather on disk somewhere.
+
+	* act of accessing a page that is not in physical memory is commonly referred to as a "page fault".
+
+(21.3 The Page Fault)
+	- "page-fault handler"
+		-> runs and services the page fault
+
+	- If a page is not present and has been swapped to disk, the OS will need to swap the page into memory in order to service the page fault.
+
+	- When the OS receives a page fault
+		-> it looks in the PTE to find the address, and issues the request to disk to fetch the page into memory.
+
+(21.4 What If Memory Is Full?)
+	- "page-replacement policy" -> process of picking a page to kick out, or "replace"
+		-> OS might like to first "page out" one or more pages to make room for the new page(s) the OS is about to bring in.
+
+
+(21.5 Page Fault Control Flow)
+	- hardware control flow
+		1) page was both "present" and "valid"
+			-> the TLB miss handler can simply grab the PFN from the PTE
+			-> retry the instruction
+
+		2) if page was "not present"
+			-> page fault handler must be run (raise page fault exception)
+
+		3) access could be to an invalid page, due for example to a bug in the program (valid is false)
+			-> no other bits in the PTE really matter
+			-> hardware traps this invalid access, and the OS trap handler runs, likely terminating the offending process.
+
+	- software control flow
+		1) OS must find a physical frame for the soon-to-be-faulted-in page to reside within
+			-> if there is no such page, we'll have to wait for the replacement algorithm to run and kick some pages out of memory, freeing them for use here.
+
+		2) handler then issues the I/O request to read in the page from swap space.
+
+		3) when that slow operation completes, the OS updates the page table and retries the instruction.
+			-> retry will result in a TLB miss, and then, upon another retry, a TLB hit, at which point the hardware will be able to access the desired item.
+
+(21.6 When Replacements Really Occur)
+	- most operating systems have some kind of "high watermark"(HW) and "low watermark"(LW) to help decide when to start evicting pages from memory.
+
+		-> when the OS notices that there are fewer than LW pages available
+			+ a background thread that is responsible for freeing memory runs.
+
+		-> The thread evicts pages until there are HW pages available.
+			-> background thread, sometimes called the "swap daemon" or "page deamon" then goes to sleep, happy that it has freed some memory for running processes and the OS to use.
+
+	- many systems will cluster or group a number of pages and write them out at once to the swap partition
+		-> increasing the efficiency of the disk.
+
+		1) algorithm will check if there are any free pages available.
+		2) if not, it would inform the background paging thread that free pages are needed.
+		3) when the thread frees up some pages, it would re-awaken the original thread, which could then page in the desired page and go about its work.
+
+
