@@ -1,0 +1,96 @@
+[22 - Beyond Physical Memory: Policies]
+
+	- when little memory is free
+		-> "memory pressure" forces the OS to start "paging out" pages to make room for actively-used pages.
+
+	- deciding which page to evict is encapsulated within the "replacement policy" of the OS
+
+(22.1 Cache Management)
+	- knowing the number of cache hits and misses let us calculate the "average memory access time (AMAT)" for a program.
+		ex)
+			AMAT = (P Hit * T M) + (P Miss * T D)
+				+ T M : cost of accessing memory
+				+ T D : cost of accessing disk
+
+				+ P Hit : probability of finding the data item in the cache (a hit)
+				+ P Miss : probability of not finding the data in the cache (a miss)
+					-> each vary from 0.0 to 1.0 and P Miss + P Hit = 1.0
+
+(22.2 The Optimal Replacement Policy)
+	- "cord-start miss"
+		-> miss, as the cache begins in an empty state
+
+(22.3 A Simple Policy: FIFO)
+	- FIFO replacement
+		-> pages were simply placed in a queue when they enter the system
+		-> when a replacement occurs, the page on the tail of the queue is evicted.
+
+(22.4 Another Simple Policy: Random)
+	- picks a random page to replace under memory pressure.
+
+(22.5 Using History: LRU)
+	- "FIFO" or "Random" problem
+		-> can kick out an important page, one that is about to be referenced again.
+
+	(principle of locality)
+		1) "frequency" (one type of historical information a page-replacement policy could be used)
+			-> if a page has been accessed many times, it should not be replaced as it clearly has some value.
+
+		2) "recency" of access
+			-> the more recently a page has been accessed, the more likely it will be accessed again.
+
+	- "LFU" : Least Frequently Used <-> "MFU" : Most Frequenty Used
+	- "LRU" : Least Recently Used <-> "MRU" : Most Recently Used
+
+(22.6 Workload Examples)
+
+(22.8 Approximating LRU)
+	- "use bit" (reference bit)
+		-> one use bit per page of the system
+		-> the use bits live in memory somewhere
+		-> whenever a page is referenced, the use bit is set by hardware to 1.
+		-> hardware never cleans the bit, though that is the responsibility of the OS.
+
+	- "clock algorithm"
+		-> imagine all the pages of the system arranged in a circular list.
+		-> a "clock hand" points to some particular page to begin with.
+		-> when a replacement must occur, the OS checks if the currently-pointed to page P has a use bit of 1 or 0.
+		-> If 1, this implies that page P was recently used and thus is not a good candidate for replacement.
+		-> the use bit for P set to 0 (cleared), and the clock hand is incremented to the next page (P + 1).
+
+		* the algorithm continues until it finds a use bit that is set to 0, implying this page have been and that we have now searched through the entire set of pages, clearing all the bits.
+
+(22.9 Considering Dirty Pages)
+	- if a page has been modified and is thus "dirty"
+		-> must be written back to disk to evict it, which is expensive.
+
+	- hardware should include a "modified bit" (a.k.a. dirty bit)
+
+(22.10 Other VM policies)
+	- "page selection" policy
+		-> OS has to decide when to bring a page into memory.
+
+	- OS simply uses "demand paging"
+		-> OS brings the page into memory when it is accessed, "on demand" as it were.
+
+	- "prefetching"
+		-> the OS could guess that a page is about to be used, and thus bring it in ahead of time.
+		-> should only be done when there is reasonable chance for success.
+			ex)
+				+ if a code page P is brought into memory, the code page P+1 will likely soon be accessed and thus should be brought into memory too.
+
+	- "clustering" or "grouping" of writes
+		-> many systems collect a number of pending writes together in memory and write them to disk in one write.
+		-> effective because of the nature of disk drives, which perform a single large write more efficiently than many small ones.
+
+(22.11 Trashing)
+	- when memory is simply oversubscribed, and the memory demands of the set of running processes simply exceeds the available physical memory.
+		-> the system will constantly be paging, a condition sometimes referred to as "trashing".
+
+	- current systems
+		-> "out-of-memory killer"
+			+ when memory is oversubscribed; this daemon chooses a memory intensive process and kills it, reducing memory in a none-too-subtle manner.
+
+			* can have problems
+				-> if it kills the X server and thus renders any apps requiring the display unsuable.
+
