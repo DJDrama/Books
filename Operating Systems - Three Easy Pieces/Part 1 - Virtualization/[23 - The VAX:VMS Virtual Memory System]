@@ -1,0 +1,70 @@
+[23 - The VAX/VMS Virtual Memory System]
+
+- VAX : Virtual Address Extension
+
+(23.4 Page Replacement)
+	- PTE(Page Table Entry) in VAX contains
+		1) a valid bit
+		2) a protection field (4 bits)
+		3) a modify (or dirty) bit
+		4) a field reserved for OS use (5 bits)
+		5) physical frame number (PFN) to store the location of the page in physical memory.
+
+		* No reference bit
+
+		* the VMS replacement algorithm must make do without hardware support for determining which pages are active.
+
+	- "memory hogs" problem
+		-> programs that use a lot of memory and make it hard for other programs to run.
+		* LRU is a global policy that doesn't share memory fairly among processes.
+
+	(to address two(no reference bit, memory hogs) problems, developers came up with)
+		1) "Segmented FIFO"
+			-> each process has a max number of pages it can keep in memory (resident set size(RSS))
+
+			-> Each of these pages is kept on a FIFO list
+			-> when a process exceeds its RSS, the "first-in" page is evicted
+			-> FIFO clearly does not need any support from the hardware, and is thus easy to implement.
+
+			* two "second-chance lists"
+				-> pages are placed before getting evicted from memory
+					1) global "clean-page free list"
+					2) global "dirty-page list"
+
+			ex)
+				+ When a process P exceeds its RSS(resident set size)
+					-> a page is removed from its per-process FIFO; if clean(not modified)
+					-> it is placed on the end of the clean-page list
+					-> if dirty (modified), it is placed on the end of the dirty-page list.
+
+				+ If another process Q needs a free page
+					-> it takes the first free page off of the global clean list.
+					-> If the original process P faults on that page before it is reclaimed, P reclaims it from the free (or dirty) list
+						-> avoiding a costly disk access.
+
+				* The bigger the global second-chance lists are, the closer the segmented FIFO algorithm performs to LRU.
+
+		2) "Page Clustering"
+			-> with such small pages, disk I/O during swapping could be highly inefficient, as disks do better with large transfers.
+
+			-> with clustering, VMS groups large batches of pages together from the global dirty list, and writes them to disk in one fell swoop (thus making them clean).
+
+			-> Clustering is used in most modern systems, as the freedom to place pages anywhere within swap space lets the OS group pages, perform fewer and bigger writes, and thus improve performance.
+
+(23.5 Other Neat VM Tricks)
+	- two other now-standard tricks (lazy optimizations)
+		1) demand zeroing
+			-> OS does little work when the page is added to your address space.
+			-> It puts an entry in the page table that marks the page inaccessible.
+			-> if the process then reads or writes the page, a trap into the OS takes place.
+			-> when handling the trap, the OS notices that this is actually a deamdn-zero page; at this point, the OS then does the needed work of finding a physical page, zeroing it, and mapping it into the process's address space.
+
+			* If the process never accesses the page, all of this work is avoided, and thus the virtue of demand zeroing.
+
+		2) copy-on-write
+			-> any sort of shared library can be mapped copy-on-write into the address spaces of many processes, saving valuable memory space.
+				+ fork() creates an exact copy of the address space of the caller, with a large address space, making such a copy is slow and data intensive.
+				+ even worse, most of the address space is immediately over-written by a subsequent call to exec(), which overlays the calling process's address space with that of the soon-to-be-exec'd program.
+
+			-> By instead performing a copy-on-write fork(), the OS avoids much of the needless copying and thus retains the correct semantics while improving performance.
+
