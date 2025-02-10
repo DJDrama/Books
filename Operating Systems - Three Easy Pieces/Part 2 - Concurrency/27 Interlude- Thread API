@@ -1,0 +1,36 @@
+[27 Interlude: Thread API]
+
+(27.3 Locks)
+	- "Lack of proper initialization"
+		-> All locks must be properly initialized in order to guarantee that they have the correct values to begin with and thus work as desired when lock and unlock are called.
+
+(27.4 Condition Variables)
+	- "Condition Variables"
+		-> useful when some kind of signaling must take place between threads, if one thread is waiting for another to do something before it can continue.
+
+	- signaling and waiting
+
+(Thread API Guidelines)
+	1) Keep it simple
+		-> any code to lock or signal between threads should be as simple as possible.
+
+	2) Minimize thread interactions
+		-> keep the number of ways in which threads interact to a minimum.
+		-> Each interaction should be carefully thought out and constructed with tried and true approaches.
+
+	3) Initialize locks and condition variables
+		-> Failure to do so will lead to code that sometimes works and sometimes fails in very strange ways.
+
+	4) Check your return codes
+		-> Failure to do so will lead to bizarre and hard to understand behavior, making you likely to scream, pull some of your hair out, or both.
+
+	5) Be careful with how you pass arguments to, and return values from threads
+
+	6) Each thread has its own stack
+		-> If you have a locally-allocated variable inside of some function a thread is executing, it is essentially private to that thread; no other thread can access it.
+		-> To share data between threads, the values must be in the "heap" or otherwise some locale that is globally accessible.
+
+	7) Always use condition variables to signal between threads.
+		-> while it is often tempting to use a simple flag, don't do it.
+
+	8) Use the manual pages.
