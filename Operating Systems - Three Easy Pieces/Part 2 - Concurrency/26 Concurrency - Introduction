@@ -1,0 +1,56 @@
+[26 Concurrency - Introduction]
+
+	- Virtual CPUs
+		-> enabling the illusion of multiple programs running at the same time.
+
+	- Virtual Memory
+		-> abstraction of address space enables each program to behave as if it has its own memory when indeed the OS is secretly multiplexing address spaces accross physical memory (and sometimes disk).
+
+	- Multi-threaded
+		-> share the same address space and thus can access the same data.
+
+	- Single-threaded
+		-> similar to that of a process.
+
+	- Each thread has its own private set of registers it uses for computation.
+		* When switching from one to another, a "context switch" must take place.
+
+	- Context switch (Thread)
+		-> register state of Thread 1 must be saved and the reigster state of Thread 2 restored before running Thread 2.
+		* Address space remains the same.
+
+	- Context switch (Process)
+		-> save state to a process control block (PCB).
+
+	- Thread Control Blocks (TCBs)
+		-> store the state of each thread of a process.
+
+	- In Multi-Threaded process, there will be one stack per thread. (in the address space)
+
+
+(26.3 The Heart Of The Problem: Uncontrolled Scheduling)
+	
+	- "Indeterminate" : it is not known what the output will be and it is indeed likely to be different across runs.
+
+	- "Critical Section"
+		-> multiple threads executing the code can result in a race condition.
+		-> piece of code that accesses a shared variable (or a shared resource) and must not be concurrently executed by more than one thread.
+
+	- "Mutual Exclusion"
+		-> guarantees that if one thread is executing within the critical section, the others will be prevented from doing so.
+
+
+(26.4 The Wish For Atomicity)
+	
+	- "Syncrhonization Primitives"
+		-> ask the hardware for a few useful instructions upon
+		-> by using these hardware synchronization primitives, we will be able to build multi-threaded code that accesses cricial sections in a synchronized and controlled manner.
+
+* "Atomic"
+	-> "all or nothing"
+	-> either appear as if all of the actions you wish to group together occurred, or that none of them occured, with no in-between state visible.
+
+* "Transaction"
+	-> grouping of many actions into a single atomic action
+	-> idea developed in great detail in the world of databases and transaction processing.
+
