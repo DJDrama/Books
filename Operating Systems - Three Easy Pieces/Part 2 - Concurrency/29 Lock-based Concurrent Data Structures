@@ -1,0 +1,32 @@
+[29 Lock-based Concurrent Data Structures]
+
+(29.1 Concurrent Counters)
+
+	- "monitors"
+		-> where locks are acquired and released automatically as ou call and return from object methods.
+
+	- "sloppy counter"
+		-> works by representing a single logical counter via numerous "local" physical counters, one per CPU core, as well as a single "global" counter.
+			ex)
+				4 CPUs
+					-> four local counter
+					-> one global counter
+					-> locks: one for each local counter & one for the global counter
+
+		-> When a thread running on a given core wishes to increment the counter, it increments its local counter; access to this local counter is synchronized via the corresponding local lock.
+			* Because each CPU has its own local counter, threads across CPUs can update local counters without contention, and thus counter updates are scalable.
+
+		-> "local-to-global" transfer
+			+ local values are perioically transferred to the global counter, by acquiring the global lock and incrementing it by the local counter's value; the local counter is then reset to zero.
+
+
+(Avoid Premature Optimization - Knuth's Law)
+	
+	- start with the most basic approach, which is to add a single big lock to provide synchronized access.
+		-> you are likely to build a "correct" lock
+		-> if you then find that it suffers from performance problems, you can refine it.
+
+	- "Premature optimization is the root of all evil." by Knuth
+
+	- "Big kernel lock" (BCK)
+		-> Many operating systems utilized a single lock when first transitioning to multiprocessors, including Sun OS and Linux.
