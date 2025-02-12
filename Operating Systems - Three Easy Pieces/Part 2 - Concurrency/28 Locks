@@ -1,0 +1,147 @@
+[28 Locks]
+
+(28.1 Locks: The Basic Idea)
+
+	- "Lock Variable"
+		-> holds the state of the lock at any instant in time.
+			+ either "available" (or "unlocked" or "free") and thus no thread holds the lock
+			+ or "acquired" (or "locked" or "held"), and thus exactly one thread holds the lock and presumably is in a critical section.
+
+	- "lock()" and "unlock()" rotouines
+		1) "lock()"
+			-> tries to acquire the lock; if no other thread holds the lock, the thread will acquire the lock and enter the critical section
+			-> this thread is sometimes said to be the "owner" of the lock.
+
+			* other threads are prevented from entering the critical section while the first thread that holds the lock is in there.
+
+		2) "unlock()"
+			-> the lock is now available (free) again.
+			-> if there are waiting threads, notice this change of the lock's state, acquire the lock, and enter the critical section.
+
+	* By putting a lock around a section of code, the programmer can guarantee that no more than a single thread can ever be active within that code.
+
+
+(28.2 Pthread Locks)
+	
+	- POSIX library uses for a lock is a "mutex", as it is used to provide "mutual exclusion" between threads.
+
+	- "Coarse-grained" Locking strategy
+		-> one big lock that is used any time any critical section is accessed.
+
+	- "Fine-grained" Locking strategy
+		-> one will often protect different data and data structures with different locks, thus allowing more threads to be in locked code at once.
+
+
+(28.4 Evaluating Locks)
+	
+	- To evaluate whether a lock works, we should first establish some basic criteria.
+		1) whether the lock does its basic task, which is to provide "mutual exclusion".
+			-> Does the lock work, preventing multiple threads from entering a critical section?
+
+		2) Fairness
+			-> Does each thread contending for the lock get a fair shot at acquiring it once it is free?
+			-> Does any thrad contending for the lock "starve" while doing so, thus never obtaining it?
+
+		3) Performance
+			ex)
+				1) when a single thread is running and grabs and release the lock, what is the overhead of doing so?
+
+				2) multiple threads are contending for the lock on a single CPU
+					-> are there performance concerns?
+
+				3) how does the lock perform when there are multiple CPUs involved, and threads on each contending for the lock?
+
+
+(28.6 Test And Set(Atomic Exchange))
+	
+	- "test-and-set instruction" (a.k.a "atomic exchange")
+		1) "test" the old value
+		2) while simultaneously "setting" the memory location to a new value
+
+		* "spin waiting"
+			-> wastes time waiting for another thread to release a lock.
+			-> the waste is exceptionally high on a uniprocessor, where the thread that the waiter is waiting for cannot even run! (at least, until a context switch occurs!)
+
+
+(28.7 Building A Working Spin Lock)
+	- "spin lock"
+		-> the simplest type of lock to build, and simply spins, using CPU cycles, until the lock becomes available.
+		-> to work correctly on a single processor, it requires a "preemptive schduler"
+
+
+(28.8 Evaluating Spin Locks)
+	
+	1) "correctness"
+		-> does it provide mutual exclusion? YES
+		-> spin lock only allows a single thread to enter the critical section at a time.
+
+	2) "fairness"
+		-> spin locks don't provide any "fairness" guarantees. (NOT FAIR! and may lead to starvation.)
+
+	3) "performance"
+		[1] In a single CPU case
+			-> performance overhead can be quite painful
+			-> scheduler might run every other thread, each of which tries to acquire the lock.
+			-> each of those threads will spin for the duration of a time slice before giving up the CPU, a waste of CPU cycles.
+
+		[2] In multiple CPUs
+			-> work reasonably well (if the number of threads roughly equals the number of CPUs)
+			-> Spinning to wait for a lock held on another processor doesn't waste many cycles, and thus can be effective.
+
+
+(28.9 Compare-And-Swap)
+	
+	- "Compare-and-swap" or "Compare-and-exchange"
+		-> basic idea
+			+ test whether the value at the address specified by "ptr" is equal to "expected"; if so, update the memory location pointed to by "ptr" with the new value. (IF NOT, do nothing!)
+
+			+ in either case, return the actual value at that memory location, thus allowing the code calling compare-and-swap to know whether it succeeded or not.
+
+
+(28.10 Load-Linked and Store-Conditional)
+	- "load-linked"
+		-> fetches a value from memory and places it in a register.
+
+	- "store-conditional"
+		-> only succeeds if no intervening store to the address has taken place.
+		-> success: store conditional returns 1 and updatees the value at ptr to value
+		-> fails: the value at ptr is not updated and 0 is returned.
+
+
+(28.11 Fetch-And-Add)
+	- "fetch-and-add" (one final hardware primitive)
+		-> increments a value while returning the old value at a particular address.
+
+	- "ticket lock"
+		-> when a thread wishes to acquire a lock
+			1) atomic fetch-and-add on the ticket value
+			2) unlock is accomplished by incrementing the turn such that the next waiting thread can now enter the critical section.
+
+
+(28.13 A Simple Approach: Just Yield, Baby)
+	
+	- Thread 3 states
+		1) Running
+		2) Ready
+		3) Blocked
+
+	- "yield()"
+		-> thread can call when it wants to give up the CPU and let another thread run.
+		-> "deschedules" itself!
+
+		* moves the caller from the "running" -> "ready"
+
+
+(28.16 Two-Phase Locks)
+	
+	- "two-phase lock"
+		-> realizes that spinning can be useful, particularly if the lock is about to be released.
+			1) lock spins for a while, hoping that it can acquire the lock.
+			2) however if the lock is not acquired during the first spin phase, a second phase is entered, where the caller is put to sleep, and only woken up when the lock becomes free later.
+			
+		-> "hybrid" approach
+
+
+
+
+
