@@ -1,0 +1,43 @@
+[30 Condition Variables]
+	
+	* In multi-threaded programs, it is often useful for a thread to wait for some condition to become true before proceeding.
+		ex)
+			// while(true) { ... }
+		
+		-> BUT! just spinning until the condition becomes true, is inefficient
+			+ wastes CPU cycles
+			+ can be incorrect.
+
+
+(30.1 Definition and Routines)
+
+	- "condition variable"
+		-> explicit queue that threads can put themselves on when some state of execution is not as desired (by waiting on the condition)
+			+ when it changes state, can then wake one of those waiting threads and thus allow them to continue (by signaling).
+
+	* for simplicity, "Hold the lock when calling signal"
+
+	* "hold the lock when calling signal or wait"
+
+
+(30.2 The Producer/Consumer (Bounded Buffer) Problem)
+
+	- "producer/consumer" problem (a.k.a "bounded buffer" problem)
+
+	- "bounded buffer" is a shared resource
+		-> we must require synchronized access to it.
+			1) need a shared buffer, into which a producer puts data, and out of which a consumer takes data.
+
+	* Use "while" (NOT if) for conditions
+		-> in a multi-threaded program, using a "while" loop is always correct
+		-> using an "if" statement only might be, depending on the semantics of signaling.
+
+	- "spurious wakeups" can occur when using while loops.
+		-> further reason to re-check the condition a thread is waiting on.
+
+
+(30.3 Covering Conditions)
+	
+	- "covering condition"
+		-> it covers all the cases where a thread needs to wake up;
+			(cost : too many threads might be woken.)
