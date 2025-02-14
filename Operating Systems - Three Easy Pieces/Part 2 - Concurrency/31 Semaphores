@@ -1,0 +1,41 @@
+[31 Semaphores]
+
+(31.1 Semaphores: A Definition)
+	
+	- "Semaphore" is an object with an integer value that we can manipulate with two routines
+		ex) in the POSIX standard
+			+ "sem_wait()"
+				-> decrement the value of semaphore by one, wait if value of it is negative.
+
+			+ "sem_post()"
+				-> increment the value of it by one, if there are one or more threads waiting, wake one.
+
+		* we must first initialize it to some value before calling any other routine to interact with the semaphore, because the initial value of it determines its behavior.
+
+
+
+(31.2 Binary Sempahores (Locks))
+	
+	- Because locks only have two states (held and not held)
+		-> we sometimes call a semaphore used as a lock a "binary semaphore".
+
+
+(31.3 Semaphores As Condition Variables)
+	
+	- Semaphores are useful when a thread wants to halt its progress waiting for a condition to become true.
+		ex) a thread may wish to wait for a list to become non-empty, so it can delete an element from it.
+			+ thread "Waiting" for something to happen, and a different thread making that something happen and then "signaling" that it has happened, thus waking the waiting thread.
+
+			+ because the waiting thread is waiting for some "condition" in the program to change, we are using the semaphore as a "condition variable".
+
+
+(31.5 Reader-Writer Locks)
+	
+	- Multiple readers to read a resource simultaneously.
+	- Only one writer to write at a time, and no readers can read during writing.
+
+	* if multiple readers access shared data without modifying it, don't block each other.
+	* if a writer modifies the data, it must have exclusive access to avoid data corruption.
+
+	* reading lock is needed, so "no write" happens during reading (without it, reading can get corrupted or incorrect data)
+	
