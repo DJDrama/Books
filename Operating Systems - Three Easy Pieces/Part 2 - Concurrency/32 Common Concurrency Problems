@@ -1,0 +1,128 @@
+[32 Common Concurrency Problems]
+
+(32.1 What Types Of Bugs Exist?)
+	
+	- non-deadlock bugs
+
+	- deadlock bugs
+
+
+(32.2. Non-Deadlock Bugs)
+		
+	1) Atomicity-Violation Bugs
+		ex)
+			========================================
+			(Thread 1)
+			if(something!=null)
+				put(something, ...)
+
+			(Thread 2)
+			something = null
+			========================================
+			-> something can throw null pointer exception if thread2 sets something to null, when thread1 tries to try the put logic.
+
+			<solution : put locks>
+
+	2) Order-Violation Bugs
+		ex) non-initialized exception
+			=====================================================
+			(Thread 1)
+			init {
+				thread = Thread() //...
+			}
+
+			(Thread 2)
+			main(){
+				state = thread.state // may not be initialized
+			}
+			=====================================================
+			-> thread may not be initialized, and will throw null pointer exception.
+
+			<solution : use locks and "condition variables">
+
+	* A large fraction (97%) of non-deadlock bugs are either "atomicity" or "order" violations.
+
+
+(32.3 Deadlock Bugs)
+	
+	- "Deadlock" occurs, when a thread
+		1) is holding a lock (L1) and waiting for another one (L2)
+			-> unfortunately, the thread that holds lock (L2) is waiting for (L1) to be released.
+				ex)
+					+ Thread 1 grabs lock (L1) and then a context switch occurs to Thread 2.
+					+ At that point, Thread 2 grabs (L2), and tries to acquire (L1).
+						-> Deadlock! (each thread is waiting for the other and neither can run.)
+
+	<Why Do Deadlocks Occur?>
+		1) in large code bases, complex dependencies arise between components.
+			ex)
+				+ virtual memory system might need to access the file system in order to page in a block from disk
+				<-> the file system might require a page of memory to read the block into and thus contact the virtual memory system.
+
+		2) nature of encapsulation
+			-> encapsulation: hide details of implementations and make software easier to build in a modular way.
+			-> Unfortunately, such modularity does not mesh well with locking.
+			ex)
+				================================================================================
+				Vector v1, v2;
+				v1.addAll(v2); // acquires said locks in some arbitrary order to add contents.
+				================================================================================
+				+ if some other thread calls "v2.addAll(v1)" at nearly the same time, we have the potential for deadlock.
+
+	<Conditions for Deadlock>
+
+		-> Four conditions need to hold for a deadlock to occur. (If any of these four conditions are not met, deadlock cannot occur.)
+
+			1) "Mutual exclusion"
+				-> Threads claim exclusive control of resources that they require.
+
+			2) "Hold-and-wait"
+				-> Threads hold resources allocated to them while waiting for additional resources.
+
+			3) "No preemption"
+				-> Resources cannot be forcibly removed from threads that are holding them.
+
+			4) "Circular wait"
+				-> there exists a circular chain of threads such that each thread holds one or more resources that are being requested by the next thread in the chain.
+
+	<Prevention>
+
+		1) To prevent "Circular Wait"
+			-> provide a "total ordering" on lock acquisition.
+				ex)
+					+ always acquire (L1) before (L2). (Strict ordering)
+						-> no cyclical wait arises; hence, no deadlock.
+
+			-> "partial ordering"
+
+		2) To prevent "Hold-and-wait"
+			-> acquire all locks at once, atomically.
+
+			* BUT, decreases concurrency as all locks must be acquired early on instead of when they are truly needed.
+
+		3) To prevent "No Preemption"
+			-> "trylock()" routine will grab the lock or return -1 indicating that the lock is held right now and that you should try again later if you want to grab the lock.
+
+			* One new problem "livelock"
+				-> two threads could both be repeatedly attempting this sequence and repeatedly failing to acuire both locks.
+				-> both systems are running through this code sequence over and over again, but progress is not being made, hence the name "livelock".
+
+		4) To prevent "Mutual Exclusion"
+			-> avoid the need for mutual exclusion at all.
+				-> make it in a manner that does not require explicit locking.
+
+	<Deadlock Avoidance via Scheduling>
+		- avoidance requires some global knowledge of which locks various threads might grab during their execution, and subsequently schedules said threads in a way as to guarantee no deadlock can occur.
+
+		* But such approaches can limit concurrency.
+			-> avoidance of deadlock via scheduling is not a widely-used general-purpose solution.
+
+	<Detect and Recover>
+		- allow deadlocks to occasionally occur, and then take some action once such a deadlock has been detected.
+			ex) if an OS froze once a year, just reboot it and get happily on with your work.
+				-> if deadlocks are rare, such a non-solution is indeed quite pragmatic.
+
+
+
+
+
