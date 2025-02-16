@@ -1,0 +1,94 @@
+[33 Event-based Concurrency (Advanced)]
+	
+	- "event-based concurrency"
+		+ different style of concurrent programming is often used in both GUI-based applications as well as some types of internet servers.
+			ex) node.js
+
+		+ operates by responding to events such as user inputs (mouse clicks, key presses), system messages, or other triggers.
+
+	- problems of event-based concurrency
+		1) managing concurrency corectly in multi-threaded applications can be challenging
+			-> missing locks
+			-> deadlock
+			-> and other nasty problems can arise.
+
+		2) in a multi-threaded application, the developer has little or no control over what is scheduled at a given moment in time; rather, the programmer simply creates threads and then hopes that the underlying OS schedules them in a reasonable manner across available CPUs.
+
+
+(33.1 The Basic Idea: An Event Loop)
+	
+	- "event-based concurrency"
+		-> simply wait for something (i.e., an "event") to occur, when it does, you check what type of event it is and do the small amount of work it requires.
+
+	- "event loop"
+		ex)
+			===========================
+			while (1) {
+				events = getEvents();
+				for (e in events)
+					processEvents(e);
+			}
+			===========================
+			+ main loop simply waits for something to do(by calling getEvents())
+			+ for each event returned, processes them, one at a time; the code that processes each event is known as an "event handler".
+				* when a handler processes an event, it is the only activity taking place in the system
+					-> thus, deciding which event to handle next is equivalend to scheduling.
+					* (this explicit control over scheduling is one of the fundamental advantages of the event-based approach.)
+
+
+(33.2 An Important API: select() (or poll()))
+	
+	- "select()" : examines the I/O descriptor sets whose addresses are passed in readfds, writefds, and errorfds to see if some of ther descriptors are ready for eading, are ready for writing, or have an exceptional condition pending, respectively.
+
+
+(33.4 Why Simpler? No Locks Needed)
+	
+	- with a single CPU and an event-based application, the problems found in concurrent programs are no longer present.
+		-> because only one event is being handled at a time, there is no need to acquire or release locks; the event-based server cannot be interrupted by another thread because it is decidedly single threaded.
+
+
+(33.5 A Problem: Blocking System Calls)
+	
+	* if an event handler issues a call that blocks, the entire server will do just that: block until the call completes.
+
+	* When the event loop blocks, the system sits idle, and thus is a huge potential waste of resources.
+
+
+(33.6 A Solution: Asynchronous I/O)
+	
+	- "asynchronous I/O"
+		-> these interfaces enable an application to issue an I/O request and return control immediately to the caller, before the I/O has completed; additional interfaces enable an application to determine whehter various I/Os have completed.
+
+
+(33.7 Another Problem: State Management)
+	
+	* event-based approach is that such code is generally more complicated to write than traditional thread-based code.
+		-> when an event handler issues an asynchronous I/O, it must package up some program state for the next event handler to use when the I/O finally completes
+
+		-> this additional work is not needed in thread-based programs.
+
+	- "manual stack management"
+		-> as the state the program needs is on the stack of the thread.
+		-> it is fundamental to event-based programming.
+
+	- the solution is to use an old programming language construct known as a "continuation".
+		-> basically, record the needed information to finish processing this event in some data structure; when the event happens, look up the needed information and process the event.
+
+
+(33.8 What Is Still Difficult with Events)
+	
+	1) single CPU -> multiple CPUs
+		-> the event server has to run multiple event handlers in parallel
+			+ usual synchronization problems arise and the usual solutions (locks) must be employed.
+
+	2) does not integrate well with certain kinds of systems activity, such as "paging".
+		ex)
+			+ if an event-handler page faults, it will block, and thus the server will not make progress until the page fault completes.
+
+			* even though the server has been structured to avoid "explicit" blocking, this type of "implicit" blocking due to page faults is hard to avoid and thus can lead to large performance problems when prevalent.
+
+	3) can be hard to manage over time, as the exact semantics of various routines changes.
+		ex)
+			+ if a routine changes from non-blocking to blocking, the event handler that calls that routine must also change to accommodate its new nature, by ripping itself into two pieces.
+				-> because blocking is so disastrous for event-based servers, a programmer must always be on the lookout for such changes in the semantics of the APIs each event uses.
+	
