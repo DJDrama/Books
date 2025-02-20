@@ -1,0 +1,184 @@
+[37 Hard Disk Drives]
+
+	- "hard disk drive"
+		-> has been the main form of persistent data storage in computer systems for decades and much of the development of file system technology is predicated on their behavior.
+
+
+(37.1 The Interface)
+	
+	- the basic interface for all modern drives is straightforward.
+		-> the drive consists of a large number of sectors (512-byte blocks)
+		-> each of which can be read or written.
+
+		* we can view the disk as an array of sectors; 0 to n-1 is thus the "address space" of the drive.
+
+	- many file systems will read or write 4KB at a time (or more).
+
+	* when updating the disk, the only guarantee drive manufactures make is that a single 512-byte write is "atomic" (either complete entirety or won't complete at all)
+		-> "torn write"
+			+ thus if an ultimely power loss occus, only a poertion of a larger write may complete.
+
+
+(37.2 Basic Geometry)
+	
+	- "platter"
+		-> a circular hard surface on which data is stored persistently by inducing magnetic changes to it.
+
+		-> a disk may have one or more platters; each platter has 2 sides, each of which is called "surface".
+
+		-> these platters are usually made of some hard material (such as aluminum), and then coated with a thin magnetic layer that enables the drive to persistently store bits even when the drive is powered off.
+
+	- "spindle"
+		-> platters are all bound together around the spindle, which is conneted to a motor that spins the platters around (while the drive is powered on) at a constant (fixed) rate.
+
+		-> the rate of rotation is often measured in "rotations per minute (RPM)"
+			+ typical modern values are in the 7,200 RPM to 15,000 RPM range.
+
+				ex) a drive that rotates at 10,000 RPM means that a single rotation takes about 6 milliseconds (6 ms). (10000 : 60 = 1 : 0.0006)
+
+	- "track"
+		-> data is encoded on each surface in concentric circles of sectors; we call one such concentric circle a "track".
+
+		-> single surface contains many thousands of trakcs, tightly packed together, with hundreds of tracks fitting into the width of a human hair.
+
+	- "disk head"
+		-> the process of reading and writing is accomplished by the "disk head"
+
+		-> there is one such head per surface of the drive.
+
+		-> the disk head is attached to a single "disk arm", which moves across the surface to position the head over the desired track.
+
+
+(38.3 A Simple Disk Drive)
+	
+	<Single-track Latency: The Rotational Delay>
+
+		- must wait for the desired sector to rotate under the disk head.
+
+		- "rotational delay" (sometimes "rotation delay")
+			-> if the full rotational delay is R, the disk has to incur a rotational delay of about R/2 to wait for 0 to come hunder the read/write head (if we start at 6).
+
+			-> a worst-case request on this single track would be to sector 5, causing nearly a full rotational delay in order to service suh a request.
+
+	<Multiple Tracks: Seek Time>
+
+		- "seek"
+			-> the drive has to first move the disk arm to the correct track.
+
+			-> seeks along with rotations, are one of the most costly disk operations.
+
+			* To seek
+				1) "acceleration" phase at the disk arm gets moving
+
+				2) "coasting" as the arm is moving at full speed
+
+				3) "deceleration" as the arm slows down
+
+				4) finally "settling" as the head is carefully positioned over the correct track.
+
+				* the "settling time" is often quite significant
+					ex)
+						0.5 to 2ms, as the drive must be certain to find the right track
+
+		- "transfer"
+			-> when sector passes under the disk head, the final phase of I/O will take place, known as "transfer", where data is either read from or written to the surface.
+
+	<Some Other Details>
+
+		- "track skew"
+			-> many drives employ some kind of track skew to make sure that sequential reads can be properly serviced even when crossing track boundaries.
+
+		- outer tracks have more sectors than inner tracks, which is a result of geometry; there is simply more room out there.
+
+		- these tracks are often referred to as "multi-zoned" disk drives, where the disk is organized into multiple zones, and where a zone is consecutive set of tracks on a surface.
+
+		- each zone has the same number of sectors per track, and outer zones have more sectors than inner zones.
+
+		* "cache" ("tracked buffer")
+			-> is just some small amount of memory (usually around 8 or 16MB) which the drive can use to hold data read from or written to the disk.
+
+			- "write back"
+				-> acknowledge the write has completed when it has put the data in its memory
+				-> "faster", but can be dangerous; if the file system or applications require that data be written to disk in a certain order for correctness.
+
+			- "write through"
+				-> acknowledge the write has completed after the write has actually been written to disk.
+
+(37.4 I/O Time: Doing The Math)
+	
+	- I/O time as the sum of three major components
+
+		T I/O = T seek + T rotation + T transfer
+
+	- the rate of I/O (R I/O), which is often more easily used for comparison between drives, is easily computed from the time.
+
+		R I/O = Size transfer / T I/O
+
+	- "random" workload
+		-> issues small (e.g., 4KB) reads to random locations on the disk.
+
+		-> "random" workloads are common in many important applications, including database management systems.
+
+	- "sequential" workload
+		-> simply reads a large number of sectors consecutively from the disk, without jumping around.
+
+
+(37.5 Disk Scheduling)
+
+	- "disk scheduler"
+		-> examines the request and deides which one to schedule next.
+
+	<SSTF: Shortest Seek Time First>
+		- also called "shortest-seek-first" or "SSF"
+
+		- SSTF orders the queue of I/O requests by track, picking requests on the nearest track to complete first.
+
+			ex) seeking to the middle track first and then the outer track.
+
+		- problems
+			1) the drive geometry is not available to the host OS; rather, it sees an array of blocks.
+				-> OS can simply implement "nearest-block-first" (NBF), which schedules the request with the nearest block address next.
+
+			2) "starvation"
+				-> if there were a steady stream of requests to the inner track, where the head currently is positioned.
+				-> requests to any other tracks would then be ignored completely by a pure SSTF approach.
+
+	<Elevator (a.k.a. SCAN or C-SCAN)>
+		- "SCAN"
+			-> simply moves back and forth across the disk servicing requests in order across the tracks.
+
+		- "sweep" : single pass across the disk (From outer to inner tracks, or inner to outer)
+
+		* thus if a request comes for a block on a track that has already been serviced on the sweep of the disk, it is not handled immediately, but rather queued until the next sweep (in the other direction).
+
+		- "F-SCAN"
+			-> freezes the queue to be serviced when it is doing a sweep
+			-> this action places requests that come in during the seep into a queue to be serviced later.
+
+			-> doing so avoids starvation of far-away requests, by delaying the servicing of late-arriving(but nearer by) requests.
+
+		- "C-SCAN" (short for Circular SCAN)
+			-> instead of sweeping in both directions across the disk, the algorithm only seeps from outer-to-inner, and then resets at the outer track to begin again.
+
+			-> doing so is a bit more fair to inner and outer tracks, as pure back-and-forth SCAN favors the middle tracks, i.e., after servicing the outer track, SCAN passes through the middle twice before coming back to the outer track again.
+
+		* "SCAN" algorithm is sometimes referred to as the "elevator" algorithm, because it behaves like an elevator which either going up or down and not just servicing requests to floors based on which floor is closer.
+
+		* BUT! SCAN and its cousins do not represent the best scheduling technology.
+
+	<SPTF: Shortest Positioning Time First>
+		- sometimes also called "shortest access time first" or "SATF"
+
+		- is useful and improves performance, but more difficult to implement in an OS, which generally does not have a good idea where track boundaries are or where the disk head currently is (in a rotational sense).
+
+	<Other Scheduling Issues>
+		- "I/O merging"
+			-> merging reduces the number of requests sent to the disk and thus lowers overheads.
+
+		- "work-conserving"		
+			-> disk will never be idle if there are requests to serve.
+
+		- "non-work-conserving"
+			-> sometimes it is better to wait for a bit
+			-> by waiting, a new and "better" request may arrive at the disk, and thus overall efficiency is increased.
+
