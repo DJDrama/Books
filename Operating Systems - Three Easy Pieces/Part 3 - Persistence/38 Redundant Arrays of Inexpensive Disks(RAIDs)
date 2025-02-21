@@ -1,0 +1,104 @@
+[38 Redundant Arrays of Inexpensive Disks(RAIDs)]
+
+	- "Redundant Arrays of Inexpensive Disks" (RAID)
+		-> a technique to use multiple disks in concert to build a faster, bigger, and more reliable disk system.
+
+	- Externally
+		-> a RAID looks like a disk: a group of blocks one can read or write.
+
+	- Internally
+		-> the RAID is a complex beast, consisting of multiple disks, memory (both volatile and non-), and one or more processors to manage the system.
+
+	- a hardware RAID is very uch like a computer system, specialized for the task of managing a group of disks.
+
+	* RAIDs offer a number of advantages over a single disk.
+		1) performance
+			-> using multiple disks in parallel can greatly speed up I/O times.
+
+		2) capacity
+			-> large data sets demand large disks.
+
+		3) reliability
+			-> spreading data cross multiple disks (Without RAID techniques) makes the data vulnerable to the loss of a single disk
+			-> with some form of redundancy, RAIDS can tolerate the loss of a disk and keep operating as if nothing were wrong.
+
+		(RAIDs provide above advantages "transparently" to systems that use them, a RAID just looks like a big disk to the host system.)
+			-> "transparency"
+				+ it enables one to simply replace a disk with a RAID and not change s single line of software; the operating system and client applications continue to operate without modification.
+
+				+ transparency greatly improves the "deployability" of RAID, enabling users and administrators to put a RAID to use without worries of software compatibility.
+
+
+(38.1 Interface And RAID Internals)
+	
+	- RAID looks like a big, fast, and reliable disk.
+
+	- Just as with a single disk, it presents itself as a linear array of blocks, each of which can be read or written by the file system.
+
+	- When a file system issues a "logical I/O" request to the RAID, the RAID internally must calculate which disk (or disks) to access in order to complete the request, and the issue one ore more "physical I/Os" to do so.
+
+	- A RAID system is often built as a separate hardware box, with a standard connection to a host.
+
+
+(38.2 Fault Model)
+
+	- "fail-stop" fault model.
+		-> a disk can be in exactly one of two states: working or failed.
+
+		1) "working"
+			-> with a working disk, all blocks can be read or written.
+
+		2) "failed"
+			-> assume it is permanently lost.
+
+	* when a disk has "failed", we assume that this is easily detected.
+		ex) in a RAID array, we would assume that the RAID controller hardware (or software) can immediately observe when a disk has failed.
+
+		-> we do not have to worry about complex "silent" failures such as disk corruption.
+
+		-> we do not have to worry about a single block becoming inaccessible upon an otherwise working disk (sometimes called a latent sector error).
+
+
+(38.3 How To Evaluate A RAID)
+	
+	- we evaluate each RAID design along three axes.
+		1) capacity
+			-> given set of N disks each with B blocks
+				+ without redundancy, the answer is N*B
+				+ if we have a system that keeps two copies of each block (called "mirroring"), we obtain a useful capacity of (N * B)/2
+
+		2) reliability
+
+		3) performance
+
+
+(38.4 RAID Level 0: Striping)
+	
+	- the simplest form of striping will "stripe" blocks across the disks of the system as follows
+
+	<Chunk Sizes>
+		- most affects performance of the array.
+
+
+(38.5 RAID level 1: Mirroring)
+	
+	- with a mirrored system, we make more than one copy of each block in the system; each copy should be placed on a separate disk, of course.
+
+	- when reading, it is free to read it from either disk 1 or disk 2.
+
+	- when writing a block, the RAID must update both copies of the ata, in order to preserve reliability. (Write can take place in parallel)
+
+	* because the logical write must wait for both physical writes to complete, it suffers fthe worst-case seek and rotational delay of the two requests, and thus will be slightly higher than a write to a single disk.
+
+
+(38.6 RAID level 4: Saving Space With Parity)
+	- "parity"
+		-> parity-based approaches attempt to use less capacity and thus overcome the huge space penalty paid by mirrored systems.
+
+	- add a single "parity" block that stores the redundant information for that stripe of blocks.
+
+	- use "XOR"
+		-> XOR of all of those bits return a 0 if there are an even number of 1's in the bits, and a 1 if there are an odd number of 1's.
+
+(38.7 RAID level 5: Rotating Parity)
+	
