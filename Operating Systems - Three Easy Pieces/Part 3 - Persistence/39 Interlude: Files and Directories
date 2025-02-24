@@ -1,0 +1,279 @@
+[39 Interlude: Files and Directories]
+
+(39.1 Files and Directories)
+	- Two key abstractions have developed over time in the virtualization of storage.
+		1) "File"
+			- a linear array of bytes, each of which you can read or write.
+			- each file has some kind of "low-level name" usually a number of some kind.
+				-> low-level name of a file is often referred to as its "inode number".
+
+		2) "Directory"
+			- like a file, also has a low-level name (an inode number), but its contents are quite specific.
+				-> it contains a list of (user-readable name, low-level name) pairs.
+					ex) a file with the low-level name "10", and it is referred to by the user-readable name of "foo"
+						-> the directory that "foo" resides in thus would have an entry ("foo", "10") that maps the user-readable name to the low-level name.
+
+			- each entry in a directory refers to either files or other directories.
+				-> users are able to build an arbitrary "directory tree" (or "directory hierarchy"), under which all files and directories are stored.
+
+			- "directory hierarchy" starts at a "root directory" (/) and uses some kind of "separator" to name subsequent "sub-directories".
+
+
+(39.2 The File System Interface)
+	
+	- "unlink()"
+		-> mysterious call that is used to remove files
+
+
+(39.3 Creating Files)
+	
+	- "open()" + O_CREAT flag -> a program can create a new file.
+		ex)
+			========================================================================
+			int fd = open("foo", O_CREAT | O_WRONLY | O_TRUNC);
+			========================================================================
+			-> the program creates the file (O_CREAT), can only write to that file while opened in this manner (O_WRONLY), and, if the file already exists, first truncate it to a size of zero bytes thus removing any existing content (O_TRUNC).
+
+	- "file descriptor"
+		-> open() returns a file descriptor.
+
+		-> is just an integer, private per process, and is used in UNIX systems to access files; thus, once a file is opened, you use the file descriptor to read or write the file (assuming you have permission to do so)
+
+	- "capability"
+		-> an opaque handle that gives you the power to perform certain operations.
+
+
+(39.4 Reading and Writing Files)
+	
+	- "strace" (LINUX)
+		-> "dtruss" on Mac OS X
+		-> "truss" on some older UNIX variants.
+
+		-> "strace" does is trace every system call made by a program while it runs, and dump the trace to the screen for you to see.
+
+			ex)
+				========================================================================
+				prompt> strace cat foo
+				...
+				open("foo", O_RDONLY|O_LARGEFILE)	= 3
+				read(3, "hello\n", 4096)			= 6
+				write(1, "hello\n", 6)				= 6
+				hello
+				read(3, "", 4096)					= 0
+				close(3)							= 0
+				...
+				prompt>
+				========================================================================
+				+ O_RDONLY : opened for reading only
+				+ O_LARGEFILE : the 64-bit offset be used
+				+ open() succeeds and returns a file descriptor, which has the value of 3.
+					* why 3? (already has three files opened)
+						-> 0: standard input (can read to receive input)
+						-> 1: standard output (can write to in order to dump info to the screen)
+						-> 2: standard error (can write error messages to)
+				+ read returning 6
+					-> which includes 5 for the letters "hello" and one for an end-of-line marker
+				+ read returning 0
+					-> has read the entire file.
+
+
+(39.5 Reading and Writing, But Not Sequentially)
+	
+	- "lseek()" system call
+		ex)
+			========================================================================
+			off_t lseek(int fildes, off_t offset, int whence);
+			========================================================================
+			-> first argument: a file descriptor
+			-> second argument: which positions the "file offset" to a particular location within the file.
+			-> third argument: determines exactly how the seek is performed.
+				+ SEEK_SET: offset is set to offset bytes.
+				+ SEEK_CUR: offset is set to its current location plus offset bytes.
+				+ SEEK_END: offset is set to the size of the file plus offset bytes.
+
+
+(39.6 Writing Immediately with fsync())
+	
+	- "write()" is just telling the file system: please write this data to persistent storage, at some point in the future.
+		-> for performance reasons, the file system will "buffer" such writes in memory for some time (say 5 seconds, or 30); at that later point in time, the write(s) will actually be issued to the storage device.
+
+		* if the machine crashes after write() call but before the write to disk, then data will be lost.
+
+	- "fsync()"
+		-> the file system responds by forcing all "dirty"(not yet written) data to disk, for the file referred to by the specified file descriptor.
+
+		-> fsync() routine returns once all of these writes are complete.
+
+
+(39.7 Renaming Files)	
+	- "mv" command
+		-> Using "strace", "mv" uses the system call "rename(char *old, char *new)"
+			ex)
+				========================================================================
+				prompt> mv foo bar
+				========================================================================
+		* "rename()" call is implemented as an "atomic" call with respect to system crashes.
+			-> if the system crashes during the renaming, the file will either be named the older name or the new name, and no odd in-between state can arise.
+
+
+(39.8 Getting Information About Files)
+	- "metadata"
+		-> file system to keep a fair amount of information about each file it is storing.
+		-> use the "stat()" or "fstat()" system calls.
+
+		* each file system usually keeps this type of information in a structure called an "inode".
+
+
+(39.9 Removing Files)
+	- "rm"
+		-> strace it
+			========================================================================
+			prompt> strace rm foo
+			...
+			unlink("foo")	= 0
+			...
+			========================================================================
+			-> unlink() just takes the name of the file to be removed and returns zero upon success.
+
+
+(39.10 Making Directories)
+	
+	* you can never write to a directory directlry
+		-> because the format of the directory is considered file system metadata, you can only update a directory indirectly by, for example, creating files, directories, or other objec types within it.
+
+	- "mkdir()" : to create a directory.
+		ex)
+			========================================================================
+			prompt> strace mkdir foo
+			...
+			mkdir("foo", 0777)	= 0
+			...
+			prompt>
+			========================================================================
+
+	- an empty directory has two entires
+		1) one entry that refers to itself
+			-> referred to as the "." (dot) directory
+		2) one entry that refers to its parent.
+			-> ".." (dot-dot)
+
+			* you can see these directories by passing a flag(-a) with "ls"
+
+
+(39.11 Reading Directories)
+	- "opendir()"
+	- "readdir()"
+	- "closedir()"
+
+
+(39.12 Deleting Directories)
+	- "rmdir()"
+		-> requirement that the directory be empty before it is deleted. (you can delete a large amount of data with a single command, which is dangerous!)
+		* if you try to delete a non-empty directory, the call to "rmdir()" simply will fail.
+
+
+(39.13 Hard Links)
+	- "link()" ("ln")
+		-> takes two arguments, an old pathname and a new one;
+		-> when you link a new file name to an old one, you essentially create another way to refer to the same file.
+		ex)
+			========================================================================
+			prompt> echo hello > file
+			prompt> cat file
+			hello
+			prompt> ln file file2
+			prompt> cat file2
+			hello
+			========================================================================
+			+ link simply creates another name in the directory you are creating the link to, and refers it to the same inode number(low-level name) of the original file.
+				-> the file is not copied, rather, you just have two human names(file and file2)
+			+ both file and file2 refer to the same file.
+
+		ex)
+			========================================================================
+			prompt> ls -i file file2
+			671508084 file
+			671508084 file2
+			prompt>
+			========================================================================
+			+ "-i" : prints out the inode number of each file(as well as the file name).
+
+	- when you create a file...
+		1) you are making a structure (the inode) that will track virtually all relevant information about the file, including its size, where its blocks are on disk, and so forth.
+
+		2) you are "linking" a human-readable name to that file, and putting that link into a directory.
+
+	* After creating a hard link to a file, to the file system, there is no difference between the original file name (file) and the newly created file name (file2)
+		-> indeed, they are both just links to the underlying metadata about the file.
+
+		ex)
+			========================================================================
+			prompt> rm file
+			removed 'file'
+			prompt> cat file2
+			hello
+			========================================================================
+			+ the system checks a "reference count" within the inod enumber.
+			+ "reference count" (sometimes called the "link count") allows the file system to track how many different file names have been linked to this particular inode.
+				-> when "unlink()" is called, it removes the "link" between the human-readable name to the given inode number, and decrements the reference count; only when the reference count reaches zero does the file system also free the inode and related data blocks, and thus truly "delete" the file.
+
+		ex)
+			========================================================================
+			prompt> echo hello > file
+			prompt> stat file
+			... Inode: 67158084 	Links: 1 ...
+			prompt> ln file file2
+			prompt> stat file
+			... Inode: 67158084 	Links: 2 ...
+			prompt> stat file2
+			... Inode: 67158084 	Links: 2 ...
+			prompt> ln file2 file3
+			prompt> stat file
+			... Inode: 67158084 	Links: 3 ...
+			prompt> rm file
+			prompt> stat file2
+			... Inode: 67158084 	Links: 2 ...
+			prompt> rm file2
+			prompt> stat file3
+			... Inode: 67158084 	Links: 1 ...
+			prompt> rm file3
+			========================================================================
+
+
+(39.14 Symbolic Links)
+	- "symbolic link" or "soft link"
+
+	* you can't hard link to files in other disk partitions (because inode numbers are only unique within a particular file system, not across file systems).
+
+		ex) ln -s (-s required for softlink)
+			========================================================================
+			prompt> echo hello > file
+			prompt> ln -s file file2
+			prompt> cat file2
+			hello
+			========================================================================
+
+	- difference from hard links
+		1) symbolic link is actually a file itself, of a different type.
+			-> symbolic links are a third type the file system knows about
+
+			ex)
+				========================================================================
+				prompt> stat file
+				... regular file ...
+				prompt> stat file2
+				... symbolic link ...
+				========================================================================
+
+	- "dangling reference"
+		-> removing the original file causes the link to point to a pathname that no longer exists.
+
+
+(39.15 Making and Mounting a File System)
+	- "mkfs" (pronounced "make fs")
+		-> to make a file system
+
+	- what "mount" does
+		-> takes an existing directory as a target "mount point" and essentially paste a new file system onto the directory tree at that point.
+
+	
