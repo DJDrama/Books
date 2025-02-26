@@ -1,0 +1,123 @@
+[40 File System Implementation]
+
+	- vsfs (Very Simple File System)
+
+
+(40.1 The Way To Think)
+	
+	- aspects
+		1) "data structures" of the file system.
+		2) "access methods"
+
+
+(40.2 Overall Organization)
+	
+	- "blocks"
+		-> simple file systems just use one block size. (commonly-used size of 4KB)
+
+	- "data region"
+		-> region of the disk we use for user data
+
+	- "inode"
+		-> store metadata, and tracks things like which data blocks comprise of file, the size of the file, its owner and access rights, access and modify times, and others.
+
+	- "inode table"
+		-> to accommodate inodes, we need to reserve some space on the disk for them as well.
+		-> simply holds an array of on-disk inodes.
+
+	- "allocation structures"
+		-> component needed to track whether inodes or data blocks are free or allocated.
+
+	- many allocation-tracking methods are possible.
+		ex)
+			+ use a "free list" that points to the first free block, which then points to the next block, and so forth.
+
+	- "bitmap"
+		-> simple and popular structure
+		-> one for the data region (the data bitmap)
+		-> and one for the inode table (the inode bitmap)
+
+		* each bit is used to indicate whehter the corresponding object/block is free (0) or in-use (1).
+
+	- "superblock"
+		-> contains information about particular file system
+			+ how many inodes and data blocks are in the file system
+			+ where the inode table begins, and so forth.
+			+ includes a magic number of some kind to identify the file system type (vsfs)
+
+	* when mounting a file system
+		1) OS will read the superblock first
+			-> initialize various parameters
+
+		2) attach the volume to the file-system tree
+
+		-> when files within the volume are accessed, the system will thus know exactly where to look for the needed on-disk structures.
+
+
+(40.3 File Organization: The Inode)
+	
+	- "inode" (Index Node)
+
+	- Each inode is referred to by a number (called the "inumber")
+		-> In vsfs, given an i-number, we can calculate where on the disk the corresponding inode is located.
+
+	- "indirect pointer"
+
+	- "double indirect pointer"
+
+
+(40.5 Free Space Management)
+
+	- "free space management"
+		-> modern file systems use some form of a "B-tree" to compactly represent which chunks of the disk are free.
+
+
+(40.6 Access Paths: Reading and Writing)
+	
+	(Reading)
+	1) The file system must "traverse" the pathname and thus locate the desired inode.
+
+	2) All traversals begin at the root of the file system, in the "root directory" (/.)
+		-> first thing the file system will read from disk is the inode of the root directory.
+		
+		* to find an inode, we must know its "i-number".
+			-> we find it in its parent directory.
+
+		* in most UNIX file systems, the root inode number is 2.
+
+	3) Once the inode is read in, the FS can look inside of it to find pointers to data blocks, which contain the contents of the root directory.
+
+	4) Recursively traverse the pathname until the desired inode is found.
+
+	(Writing)
+	1) writing to the file also "allocate" a block.
+		-> first decide which block to allocate to the file and thus update other structures of the disk accordingly (e.g., the data bitmap and inode)
+
+
+(40.7 Caching and Buffering)
+	
+	- reading and writing files can be expensive, incurring many I/Os to the (slow) disk.
+
+	- "static partitioning" of memory
+		-> however, can be wasteful.
+		-> simply divides the resource into fixed proportions once.
+		-> each user receives some share of the resource -> predictable performance, easy to implement.
+
+	- Modern systems use "dynamic partitioning" approach.
+		-> gives out differing amounts of the resource over time.
+		-> better utilization, but more complext to implement, and can lead to worse performance for users whose idle resources get consumed by others and then take a long time to reclaim when needed.
+		-> integrate virtual memory pages and file system pages into a "unified page cache"
+			+ memory can be allocated more flexibly across virtual memory and file system, depending on which needs more memory at a given time.
+
+	- "write buffering"
+		1) by delaying writes, the file system can "batch" some updates into a smaller set of I/Os
+
+		2) by buffering a number of writes in memory, the system can "Schedule" the subsequent I/Os and thus increase performance.
+
+		* most modern file systems buffer writes in memory for anywhere between five and thirty seconds
+			-> BUT! if the system crashes before the updates have been propagated to disk, the updates are lost.
+			-> BUT! by keeping writes in memory longer, performance can be improved by batching, scheduling, and even avoiding writes.
+
+		
+	
+
