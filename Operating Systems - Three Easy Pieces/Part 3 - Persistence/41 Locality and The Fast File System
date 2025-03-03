@@ -1,0 +1,114 @@
+[41 Locality and The Fast File System]
+
+	- "old UNIX file system"
+		(structure)
+			[ S | Inodes | Data ]
+
+			-> S(super block) : contained info about the entire file system
+				+ how big the volume is
+				+ how many inodes there are
+				+ a pointer to the head of a free list of blocks, and so forth.
+
+			-> Inodes : contained all the inodes for the file system
+
+			-> Data : most of the disk was taken up by data blocks.
+
+		* Very simple, and supported the basic abstractions the file system was trying to deliver: files and the directory hierarchy.
+
+
+(41.1 The Problem: Poor Performance)
+	
+	- performance was terrible.
+		-> old UNIX file system treated the disk like it was a random-access memory.
+			+ data was spread all over the place without reagard to the fact that the medium holding the data was a disk.
+			+ real and expensive positioning costs.
+
+				ex) data blocks of a file were often very far away from its inode.
+					-> inducing an expensive seek whenever one first read the inode and then the data blocks of a file.
+
+	- file system would end up getting "fragmented", as the free space was not carefully managed.
+		-> the free list would end up pointing to a bunch of blocks spread across the disk, and as files got allocated, they would simply take the next free block.
+
+			ex) data block region
+				1) contains four files (A, B, C, and D), each of size 2 blocks.
+					[ A1 | A2 | B1 | B2 | C1 | C2 | D1 | D2 ]
+
+				2) Delete B and D
+					[ A1 | A2 |    |    | C1 | C2 |    |    ]
+					-> free space is fragmented into two chunks of two blocks
+
+				3) allocate a file E, of size four blocks
+					[ A1 | A2 | E1 | E2 | C1 | C2 | E3 | E4 ]
+					-> E gets spread across the disk, and as a result, when accessing E, you don't get peak (sequential) performance from the disk.
+					-> you first read E1 and E2, then seek, then read E3 and E4
+
+
+(41.2 FFS: Disk Awareness Is The Solution)
+	
+	- "Fast File System" (FFS)
+		-> design the file system structures and allocation policies to be "disk aware" and thus improve performance.
+
+		-> by keeping the same interface to the file system (the same APIs, including "open()", "read()", "write()", "close()", and other file system calls) but changing the internal implementation,.
+
+
+(41.3 Organizing Sturcture: The Cylinder Group)
+	
+	- FFS divides the disk into a number of "cylinder groups".
+
+	- A single "cylinder" is a set of tracks on different surfaces of a hard drive that are the same distance from the center of the drive.
+
+	- modern file systems (such as Linux ext2, ext3, and ext4) instead organize the drive into "block groups"
+		-> each of which is just a consecutive portion of the disk's address space.
+
+	- "cylinder groups" or "block groups" are the central mechanism that FFS uses to improve performance.
+
+	- depiction of what FFS keeps within a single cylinder group:
+		[ S | ib | db | Inodes | Data ]
+
+		-> S(super block) : FFS keeps a copy of it for reliability reasons.
+			+ needed to mount the file system; by keeping multiple copies, if one becomes corrupt, you can still mount and access the file system by using a working replica.
+
+		-> ib(inode bitmap)
+			+ track whether the inodes and data blocks of the group are allocated
+
+		-> db(data bitmap)
+			+ track whether the inodes and data blocks of the group are allocated
+
+		* Bitmaps are an excellent way to manage free space in a file system because it is easy to find a large chunk of free space and allocate it to a file.
+
+
+(41.4 Policies: How To Allocate Files and Directories)
+
+	- "keep related stuff together" (corollary, "keep unrelated stuff far apart")
+
+		1) placement of directories.
+			-> FFS finds the cylinder group with a low number of allocated directories and a high number of f ree inodes, and put the directory data and inode in that group.
+
+		2) For files, 
+			[1] FFS makes sure to allocate the data blocks of a file in the same group as its inode, thus preventing long seeks between inode and data.
+
+			[2] it places all files that are in the same directory in the cylinder group.
+
+
+(41.6 The Large-File Exception)
+	
+	- "amortization"
+		-> if the chunk size is large enough, the file system will spend most of its time transferring data from disk and just a little time seeking between chunks of the block.
+
+		-> process of reducing an overhead by doing more work per overhead paid
+
+
+(41.7 A Few Other Things About FFS)
+	
+	- "sub-blocks"
+		-> 512-byte little blocks that the file system could allocate to files.
+
+	- "parameterization"
+		-> figure out for a particular disk "how many" blocks it should skip in doing layout in order to avoid the extra rotations, as FFS would figure out the specific performance parameters of the disk and use those to decide on the exact staggered layout scheme.
+
+	- FFS introduced
+		1) long file names
+		2) symbolic links
+		3) rename operation that worked atomically.
+		
+
