@@ -1,0 +1,219 @@
+[42 Crash Consistency: FSCK and Journaling]
+
+	- how to update persistent data structures despite the presence of a "power loss" or "system crash"?
+
+	- "crash-consistency problem"
+		-> if the system crashes or loses power after one write completes (A or B disk), the on-disk structure will be left in an "inconsistent" state.
+
+	- "fsck" (file system checker)
+
+	- "journaling" (write-ahead logging)
+		-> adds a little bit of overhead to each write but recovers more quickly from crashes or power losses.
+
+(42.1 A Detailed Example)
+	
+	<Crash Scenarios>
+		- Just the data block (Db) is written to disk.
+			-> data is on disk
+			-> but no inode that points to it
+			-> no bitmap that even says the block is allocated.
+
+		- Just the updated inode (I[v2]) is written to disk.
+			-> inode points to the disk address (5) where data block was about to be written, but data block has not yet been written there.
+			-> we will read "garbage" data from the disk (the old contents of disk address 5)
+
+			-> "file-system inconsistency"
+				+ the on-disk bitmap is telling us that data block 5 has not been allocated, but the inode is saying that it has.
+
+		- Just the updated bitmap (B[v2]) is written to disk.
+			-> bitmap indicates that block 5 is allocated, but there is no inode that points to it.
+			-> if left unresolved, this write would result in a "space leak", as block 5 would never be used by the file system.
+
+		(more crash scenarios - two writes succeed and the last one fails)
+
+		- The inode (I[v2]) and bitmap (B[v2]) are written to disk, but not data (Db).
+			-> address 5 has garbage in it.
+
+		- The inode (I[v2]) and the data blcok (Db) are written, but not the bitmap.
+			-> inconsistency between the inode and the old version of the bitmap (B1).
+
+		- The bitmap (B[v2]) and data blcok (Db) are written, but not the inode (I[v2]).
+			-> we have no idea which file it belongs to, as no inode points to the file.
+
+	- "The Crash Consistency Problem"
+		-> we can have inconsistency in file system data structures
+		-> we can have space leaks
+		-> we can return garbage data to a user
+
+
+(42.2 Solution #1: The File System Checker)
+	
+	- "fsck"
+		-> a UNIX tool for finding such inconsistencies and repairing them.
+
+		* "runs" before the file system is mounted and made available; once finished, the on-disk file system should be consistent and thus can be made accessible to users.
+
+		<Basic summary>
+			+ "Superblock"
+				-> fsck first checks if the superblock looks reasonable, doing sanity checks such as making sure the file system size is greater than the number of blocks allocated.
+				-> goal is to find a suspect(corrupt) superblock; in this case, the system may decide to use an alternate copy of the superblock.
+
+			+ "Free blocks"
+				-> fsck scans the inodes, indirect blocks, double indirect blocks, etc., to build an understanding of which blocks are currently allocated within the file system.
+
+			+ "Inode state"
+				-> fsck makes sure that each allocated inode has a valid type field (e.g., regular file, directory, symbolic link, etc.).
+
+			+ "Inode links"
+				-> fsck verifies the link count of each allocated inode.
+					(link count = indicates the number of diferent directories that contain a reference to this particular file)
+
+				-> fsck scans through the entire directory tree, starting at the root directory, and builds its own link counts for every file and directory in the file system.
+
+				-> if an allocated inode is discovered but no directory refers to it, it is moved to the "lost+found" directory.
+
+			+ "Duplicates"
+				-> fsck checks for duplicate pointers, i.e., cases where two different inodes refer to the same block.
+
+			+ "Bad blocks"
+				-> check for bad block pointers
+					("bad" if it obviously points to something outside its valid range, e.g., it has an address that refers to a block greater than the partition size.)
+
+				- fsck just removes (clears) the pointer from the inode or indirect block.
+
+			+ "Directory checks"
+				-> fsck does not understand the contents of user files.
+				-> however, directories hold specifically formatted information created by the file system itself.
+				-> fsck performs additional integrity checks on the contents of each directory, making sure that "." and ".." are the first entries, that each inode referred to in a directory entry is allocated, and ensuring that no directory is linked to more than once in the entire hierarchy.
+
+		* fsck (and similar approaches) are too "SLOW".
+			-> scanning entire disk to find all the allocated blocks and read the entire directory tree may take many minutes or hours.
+
+
+(42.3 Solution #2: Journaling (or Write-Ahead Logging))
+	- when updating the disk, before overwriting the structures in place, first write down a little note describing what you are about to do. (Write Ahead)
+
+	- write it to a structure that we organize as a "log" (Logging)
+
+	- By writing the note to disk, guarantees that if a crash takes places during the update of the structures you are updating, you can go back and look at the note you made and try again.
+		-> knowing what to fix after a crash.
+
+	<Data Journaling>
+		- available with the Linux ext3 file system
+
+		ex) Journal
+			TxB | I[v2] | B[v2] | Db | TxE
+
+			+ (TxB) transaction begin
+				-> tells us about this update, including info about the pending update to the file system, as well as some kind of "transaction identifier (TID)".
+
+			+ I, B, Db (Physical logging)
+				-> as we put the exact physical contents of the update in the journal
+
+			+ (TxE) transaction end
+				-> also contains the TID.
+
+		- once the transaction is safely on disk, we are ready to overwrite the old structures in the file system ("checkpointing")
+
+			1) Journal write
+				-> write the transaction, including a TxB block, all pending data and metadata updates, and a TxE, to the log; wait for these writes to complete.
+			
+			2) Checkpoint
+				-> write the pending metadata and data updates to their final locations in the file system.
+
+	- our current protocol to update the file system, with each of its three phases labeled:
+		1) Journal write
+			-> write the contents of the transaction (TxB, meatadata and data) to the log; wait for these writes to complete
+
+		2) Journal commiit
+			-> write the transaction commit block to the log, wait for write to complete; transaction is said to be "committed".
+
+		3) Checkpoint
+			-> write the contents of the update (metadata and data) to their final on-disk locations.
+
+	<Recovery>
+		- when the system boots, the file system recovery process will scan the log and look for transactions that have committed to the disk; these transactions are thus "replayed (in order)", with the file system again attempting to write out the blocks in the transaction to their final on-disk locations.
+			-> "redo logging"
+
+	<Making the Log Finite>
+		- the log is of a finite size.
+		- what happens when we keep adding transactions to it?
+			1) the larger the log, the longer recovery will take, as the recovery process must replay all the transactions within the log (in order) to recover.
+
+			2) when the log is full, no further transactions can be committed to the disk, making the file system "less than useful".
+
+		- "circular log"
+			-> to address above problems, journaling file systems treat the log as a circular data structure, re-suing it over and over.
+			-> once a transaction has been checkpointed, the file system should free the space it was occupying within the journal, allowing the log space to be reused.
+
+		- mark the oldest and newest non-checkpointed transactions in the log in a "journal superblock"; all other space is free.
+			-> the journaling system recors enough info to know which transactions have not yet been checkpointed, and thus reduces recovery time as well as enables re-use of the log in a circular fashion.
+
+				1) Journal write
+					-> write the contents of the transaction to the log; wait for these writes to complete.
+
+				2) Journal commit
+					-> write the transaction commit block to the log; wait for the write to complete; the transaction is now "committed".
+
+				3) Checkpoint
+					-> write the contents of the update to their final locations within the file system.
+
+				4) Free
+					-> mark the transactino free in the journal by updating the journal superblock.
+
+			* BUT we are writing each data blcok to the disk "twice", which is a heavy cost to pay.
+
+	<Metadata Journaling>
+
+		- "data journaling"
+			-> journals all user data (in addition to the metadata of the file system)
+
+		- "ordered journaling" (or just "metadata journaling") - simpler form of journaling
+
+		(protocol)
+			1) Data write
+				-> Write data to final location; wait for completion
+
+			2) Journal metadata write
+				-> write the begin block and metadata to the log; wait for writes to complete
+
+			3) Journal commit
+				-> write the transaction commit block to the log; wait for the write to complete; the transaction is now "committed".
+
+			4) Checkpoint metadata
+				-> writes the contents of the metadata update to their final locations within the file system.
+
+			5) Free
+				-> mark the transaction free in journal superblock.
+
+			* By forcing the data write first, a file system can guarantee that a pointer will never point to garbage.
+
+		- in most systems, metadata journaling is more popular than full data journaling.
+
+	<Tricky Case: Block Reuse>
+
+		- "revoke" record
+			-> when replaying the journal, the system first scans for such revoke records; any such revoked data is never replayed, thus avoiding the problem.
+
+
+(42.4 Solution #3: Other Approaches)
+	
+	- "Soft Updates"
+		-> writing a pointed-to data block to disk "before" the inode that points to it.
+		-> ensures that the inode never points to garbage
+		* But adds a fair amount of complexity to the system
+
+	- "copy-on-write" (COW)
+		-> never overwrites files or directories in place
+		-> places new updates to previously unused locations on disk.
+		-> after updates are completed, COW file systems flip the root structure of the file system to include pointers to the newly updated structures.
+
+	- "backpointer-based consistency" (BBC)
+		-> an additional "back pointer" is added to every block in the system.
+		-> each data block has a reference to the inode to which it belongs.
+
+
+
+
+
+

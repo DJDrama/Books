@@ -100,5 +100,7 @@
 	- use "XOR"
 		-> XOR of all of those bits return a 0 if there are an even number of 1's in the bits, and a 1 if there are an odd number of 1's.
 
+
 (38.7 RAID level 5: Rotating Parity)
+	- rotates the parity block across drives
 	
