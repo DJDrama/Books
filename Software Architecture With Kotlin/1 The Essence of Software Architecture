@@ -1,0 +1,59 @@
+[1 The Essence of Software Architecture]
+
+(Conway's Law)
+	- "Conway's Law" is an observation that the system design of an organization mirrors the organizational structure.
+		"Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communicatino structure." (Melvin Conway 1967)
+
+	- Software architecture mirrors the organization structure.
+
+	- Jeff Bezos from Amazon
+		"If you can't feed your team with two large pizzas in a meeting, you're in a trouble."
+
+(Business Process Model and Notation)
+	- "Business Process Model and Notation" (BPMN)
+		-> standardizes graphical notations and provides a common language for modeling business processes.
+
+		-> commonly used among engineers and stakeholders for communication and documentation purposes.
+
+
+(Architecture decision record)
+	- "Architecture Decision Record"(ADR)
+		-> document that captures the decision made based on the context at that time and the consequences coming with it.
+
+
+(Request for Comments)
+	- "Request for Comments" (RFC)
+		-> a series of documents in which standards, protocols, procedures, and guidelines are proposed, discussed, agreed, and defined.
+
+(UML diagrams)
+	- "Unified Modeling Language" (UML)
+		-> a software modeling language standardized from different modeling languages and notations since 1994.
+
+	- "Structural diagrams"
+		-> represent the static structure of a system.
+		-> focus on elements such as classes, objects, components, and packages.
+		-> emphasizes how elements are organized and connected with each other in a system.
+
+	- "Behavioral diagrams"
+		-> represent the dynamic interactions of a system.
+		-> include elements such as actors, messages, activities, states, and transitions.
+
+(The C4 Model)
+	- "The C4 model"
+		-> is a visual modeling approach developed in the 2010s.
+		-> aims to provide a set of guidelines and conventions to document architectures at the right level of abstraction.
+
+	1) Level 1 - System Context Diagram
+		-> "big picture" diagram, and the major focus is the "system".
+		* useful for communication with non-technical stakeholders and external organizations.
+
+	2) Level 2 - Container diagram
+		-> zooms in on the "system" and focuses on how multiple containers inside the system work tegether.
+
+	3) Level 3 - Component diagram
+		-> zooms in a container and provides a view of how different components constitute a container.
+
+	4) Level 4 - Code disagram
+		-> microscopic view of a component for engineers to understand the design patterns used, and how source code is represented in an abstract view in relation to other source files.
+	
+
