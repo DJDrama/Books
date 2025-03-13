@@ -1,0 +1,265 @@
+[2 Principles of Software Architecture]
+
+(Perspectives, dimensions, and qualities)
+	- A "View Model" is a collection of Views wherein each View has a dedicated focus, purpose, and language for visualization.
+
+	<Logical View>
+		- focuses on the business functionality of the system and how it is implemented.
+		- abstract view of how a business feature works without involving technical terms, using the language that both technical and non-techincal stakeholders understand.
+		* Suitable for communication with non-techincal stakeholders.
+
+	<Physical View>
+		- focuses on the deployable software components and the interconnections between them.
+		- also called the "deployment view".
+		* Suitable for communication with system engineers, platform engineers, and infrastructure engineers.
+
+	<Process View>
+		- focuses on the real-time behaviors of the system.
+		- useful in showing issues involving concurrency, performance, and scability.
+		- facilitates communication among techincal stakeholders.
+
+	<Development View>
+		- concentrates on software management.
+		- target audience is programmers who are coding hands-on in the system.
+
+
+	(System quality attributes)
+		- System quality attrbutes exist independently of the business functions that the system provides.
+
+		- "Non-Functional Requirements" (NFRs) or "Cross-Fucntional Requirements" (CFRs)
+			-> define how the requirements are fulfilled.
+			-> define its qualities, behaviors, and performance characteristics.
+
+		- Functional requirements
+			-> defne what the system does
+			-> specify the features of a system
+
+		[Dimensions for system quality attributes]
+			1) Correctness
+				-> measures whether the system behaves as described in the specifications
+				-> referred to as "Application Programming Interface" (API) documentation, operation manuals, or simply function contracts.
+
+			2) Availability
+				-> measures the uptime of the system or the time when it can operate and serve its purpose.
+
+			3) Robustness
+				-> refers to the level of service the system can provide when the system has faulty parts and / or is under heavy traffic.
+
+			4) Resilience
+				-> refers to how quickly the system can recover from faults, continue to operate, and bounce back from unexpected disruption to a fully functional state.
+
+			5) Performance
+				-> measures how quickly the system can respond to requests and how many requests the system can process at a time.
+
+			6) Scalability
+				-> measures how quickly the system can respond to requests and how many requests the system can process at a time.
+				-> ability of the system to expand or shrink.
+
+			7) Observability
+				-> reers to how well the external view of the system helps us determine its internal state.
+				-> represented by log messages, charts, alerts, files, or the payload of a system remote call.
+
+			8) Manageability
+				-> measures how easy it is to manage and control a system in terms of operations, monitoring, configuration, and administration.
+
+			9) Maintainability
+				-> measures how easy it is to maintain a working system
+				-> include source code, updating infrastructure, modifying build pipelines, and tweaking environments.
+
+			10) Extensibility
+				-> measures the ease of extending the current capability of the system to include new functions as the business grows.
+				-> includes the time, complexity, and effort required to modify and enhance the current system.
+
+			11) Testability
+				-> measures the extent to which tests can cover the functionality of the system.
+				-> not limited to the business functions to be tested but also includes the assessment of other system quality attributes.
+
+			12) Reusability
+				-> refers to the extent to which the individual components of the system can be reused for other purposes.
+				-> includes not only the software modules and source code but also the business functions and processes.
+
+			13) Usability
+				-> translates to how good the user experience is while working with the system.
+				-> not limited to end users who treat the system as a black box but also includes other stakeholders such as internal users, system operators, administrators, and programmers.
+
+
+(Seperation of concerns, cohesiveness, and coupling)
+	
+	<Separation of Concerns>
+		- segregating the system into independent components and having each component address a specific concern.
+
+		- aims at creating a system that is easier to maintain, reason, and update, and which can adapt to changes in requirements over time.
+
+	<Cohesiveness>
+		- "Horizontal cohesiveness"
+		 	-> components are grouped together to provide features related to a certain implementation.
+		 		ex) components related to integration with a particular external system are grouped together to separate the concerns of vendor-specific implementation from the functional behaviors that the system provides.
+		 			+ engineers can replace this group of components with another group that targets a different vendor system.
+
+		 	-> supports a plug-and-play structure that is easy to maintain and understand.
+
+		- "Vertical cohesiveness"
+		 	-> components are grouped together based on the functional behaviors that they collectively provide.
+
+		 	-> invovles "encapsulation" of data and behaviors shared among components in the group.
+		 		ex) components responsible for providing CRUD operations for managing households can be grouped together.
+
+		 	-> when the behaviors must be modified, engineers can focus on a small area and lower the risk of change.
+
+		- "Linear cohesiveness"
+			-> components are grouped together due to the sequence of their execution or the flow of control.
+
+			-> this grouping provides clarity and visibility for how smaller tasks or processes emerge into a larger window.
+
+		- "Interactive cohesiveness"
+			-> components are grouped based on the frequency of communication and interaction patterns among them.
+				ex) the HTTP service and the client library of a certain function are grouped under a project of different modules.
+					+ when there is a change in communication protocol, engineers can find most of the necessary changes in one project.
+					+ reduces the cost and effort of making a change.
+
+		* High cohesiveness
+			-> concnetrates related components in one place.
+			-> makes the behavior easier to understand.
+			-> promotes better testability.
+			-> fewer moving parts when making a change, which lowers risk.
+			-> overall behavior can be treated as one unit that other parts of the system can reuse.
+
+		* Low cohesiveness
+			-> results in related components being scattered around, making difficult to understand, modify, and maintain.
+
+
+	<Coupling>
+		- bad idea in the context of cohesiveness, but the measurement of coupling is not bad at all.
+
+		- coupling is inevitable, but can be minimized in a way that promotes better maintainability, reusability, and understanding.
+
+		(Functional Coupling)
+			- based on the contracts or interfaces among software components.
+			- where two or more functions or modules are designed to work together to achieve a specific task, often by one calling the other or sharing data in a structured way.
+
+		(Data Coupling)
+			- data that it shares with another to function properly.
+
+		(Temporal Coupling)
+			- when two software components coupled if they both need to available for the whole operation to run through.
+
+			- "pull-based" approach
+				-> each time a synchronous call is made, it blocks the thread until there is an answer returned or until it times out
+
+			- "push-based" approach
+				-> an asynchronous approach.
+				-> can be loosely coupled by being reactive and asynchronous using events.
+
+
+(SOLID Principles)
+	<SRP (Single Responsibility Principle)>
+		- a class should have one responsibility or concern, and only one.
+		- there is only one reason to change.
+		- easier to understand, test, and maintain
+
+	<OCP (Open-Closed Principle)>
+		- components such as classes, modules, and functions should be open for extension but closed for modification.
+
+		- "open"
+			-> if its behaviors can be extended without modifying the existing code.
+			-> extension of the behavior only needs to use what is already provided and does not need to modify the code inside.
+
+			ex)
+				+ interface is "open" for extension.
+
+		- "closed"
+			-> if it can be used by other components.
+			-> should be able to modify the implementation without changing the behaviors.
+
+			ex)
+				+ interface is "closed" for modification.
+
+	<LSP (Liskov-Substitution Principle)>
+		- objects of a superclass can be replaced by objects of its subclasses with no change in the correction of the system.
+
+		- all subclasses should behave functionally identically to their superclasses.
+
+	<ISP (Interface Segregation Principle)>
+		- clients should not forced to depend upon interfaces that they do not use.
+
+		- promotes that interfaces should be designed to be specific to the needs of the clients that use them.
+			1) Small and numerous interfaces
+				-> since each interface is smaller, there are likely to be more interfaces to cover the same scope of functionalities.
+
+			2) Relevance
+				-> there may be a few specific interfaces for different clients.
+				-> there may be an overlap of functionalities and some clients may want unique behaviors that are only relevant to them for different clients.
+
+			3) Higher cohesiveness
+				-> each interface shall contain only related functions and ideally focus on one responsibility.
+
+			4) Looser coupling
+				-> interfaces are smaller, the coupling with other components is also looser.
+
+	<DIP (Dependency Inversion Principle)>
+		1) High-level components should not depend on low-level components directly. Both should depend on abstractions.
+
+		2) Abstractions should not depend on details; details should depend on abstractions.
+
+		- rationale : user of a component should only care about the behaviors of the component, not its implementation.
+
+		- interface can be mocked or replaced by a "test double" easily during unit testing.
+			ex) DummyLogger, FakeRepository, and etc.
+
+
+(The Law of Demeter)
+	- software component should have limited knowledge about the inner details of other components.
+		-> a component should not know about the internal details of another component.
+
+		ex) Violation of the "Law of Demeter"
+			========================================================================
+			class Person(val name: String, val address: Address) {
+				fun getAddressCity(): String {
+					return address.city
+				} // should be provided inside the Address class.
+			}
+
+			class Address(val city: String)
+			========================================================================
+			+ The "Person" class should not directly access the "city" property inside the Address class. (violating the "Law of Demeter")
+
+			* This creates a coupling between Person and Address.
+				-> if the data type of "city" changes, then both classes will need to change.
+
+
+(YAGNI and future-proof architecture)
+	- "You Ain't Gonna Need it" (YAGNI)
+		-> functionalities should not be implemented until they are needed.
+
+	- related to the idea of minimalism in software-development
+		-> we should avoid unnecessary code and complexity in exchange for clean, easy-to-understand, and extensible software.
+
+	- principles
+		1) Simple and lean code base
+			-> by implementing only what is necessary now, a lot of complexity can be avoided.
+			-> the code base is simple, clean, and maintainable.
+
+		2) Prevention of over-engineering
+			-> Over-engineering happens when an engineer anticipates future requirements and includes unused features in the system. (wasted time and work)
+
+		3) Adaptive and flexible implementation
+			-> by delaying the implementation of a feature until it is needed, engineers have more options to adapt to changes when the feature is finally needed.
+			-> engineers respond more effectively to changing requirements.
+
+		4) Productivity
+			-> by focusing on the absolute must-have requirements, engineers can deliver changes more quickly and efficiently.
+			-> any unnecessary features can be postponed, saving time and resources.
+
+	- "future-proof architecture" (Opposite of YAGNI)
+		-> aims at creating systems that are unlikely to be obsolete or to fail in the future.
+
+	- "Capacity planning"
+		-> operational concern related to deployment and physical resources.
+		-> determining the resources a system needs to meet current and future demands effectively.
+		-> critical practice where performance and availability are key.
+
+
+
+
+
+
