@@ -118,7 +118,7 @@
 					+ reduces the cost and effort of making a change.
 
 		* High cohesiveness
-			-> concnetrates related components in one place.
+			-> concentrates related components in one place.
 			-> makes the behavior easier to understand.
 			-> promotes better testability.
 			-> fewer moving parts when making a change, which lowers risk.

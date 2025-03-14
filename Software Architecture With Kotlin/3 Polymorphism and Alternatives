@@ -1,0 +1,116 @@
+[3 Polymorphism and Alternatives]
+
+(Sealed class solution)
+	- "sealed class"
+		-> restricts the class hierarchy and requires that all subclasses be defined at compile time.
+		-> all subclasses need to be in the same package and module where the sealed class is defined.
+		-> no third-party classes can be inherited from sealed classes.
+
+		* power lies in what the compiler does with the restriction
+			-> if we use the "when" construct together with sealed classes, we can reduce our program.
+
+		- "this" instance is automatically cast (smart cast) to the specific subclass in each branch, so we can directly access the fields defined in the subclass.
+
+		* But does not support the extension of functionality outside the package.
+
+(Delegate Solution)
+	- often considered an alternative to the polymorphic solution.
+
+	- extension of a function is implemented by delegating part of the responsibility to other classes and then extending its behaviors.
+		-> No mandatory requirement to create a subclass.
+			<reasons>
+				1) Loose coupling and high cohesion
+				2) Separation of concerns
+				3) Easy substitution
+				4) Refactoring to the delegate solution
+
+	<Loose coupling and high cohesion>
+		- Using delegation, code can be reused and composed only for the parts that are needed.
+		- More flexible than inheriting a class that is likely to give the subclasses more than it needs.
+			-> looser coupling but high cohesion.
+
+	<Separation of concerns>
+		- classes can be broken into small classes (sub-classes) that only have a single responsibility. (classes are only delegated on demand)
+
+	<Easy Substitution>
+		- easier to swap the delegate object than to swap an inherited superclass.
+
+	<Refactoring to the delegate solution>
+		- reuse code using delegation without the need to implement the same logic again.
+		- reduces duplicated code and testing.
+		- promotes each class to be more specific and focused on its responsibility.
+
+(Functional Solution)
+	- fundamental elements
+		1) Immutable Data Structures
+		2) Pure Functions
+
+	<Immutable Data Structures>
+		- cannot be changed once it has been created.
+			-> makes data reliable and thread-safe.
+
+		- Kotlin provides the "data class" construct
+			-> with standard functions such as "toString", "hashCode", "equals" for free.
+
+(Comparing all the solutions)
+	<Extensibility>
+		1) Polymorphic
+			- Extensible outside package and module
+
+		2) Sealed classes
+			- Not Extensible outside package and module
+
+		3) Delegation
+			- Extensible outside package and module
+
+		4) Functional
+			- Extensible outside package and module
+
+	<Readability and code cleanness>
+		1) Polymorphic
+			- Subclasses may inherit unnecessary features from superclasses
+			- creating noise while reading code; classes can be big
+
+		2) Sealed classes
+			- All subclasses are known at compile time
+			- no missing branches
+			- not suitable for too many subclasses
+
+		3) Delegation
+			- Small interfaces
+			- multiple behavioral delegations can be complicated
+			- promotes single responsibility per interface
+			- only delegates behaviors on demand
+			
+		4) Functional
+			- Small classes and functions
+			- easy to reason about immutable data and pure functions
+			- not so easy readable when it uses recursion, monads, and higher-level abstractions
+
+	<Testability>
+		1) Polymorphic
+			- Each subclass would require testing of all behaviors to ensure it behaves like its superclass, that is, that it conforms to the LSP.
+			- each subclass would require testing on subclass-specific logic.
+
+		2) Sealed classes
+			- Behaviors implemented in superclass only need to be tested once.
+			- any when clause and subclass-specific logic need to be tested.
+
+		3) Delegation
+			- Each small behavioral unit can be tested individually and need not repeat in its delegation.
+			
+		4) Functional
+			- All small classes and functions can be tested individually without the need for repetition; each test would only need to verify the output given the input.
+
+	<Thread Safety>
+		1) Polymorphic
+			- Not thread-safe by nature
+
+		2) Sealed classes
+			- Not thread-safe by nature
+
+		3) Delegation
+			- Not thread-safe by nature
+
+		4) Functional
+			- Thread-safe due to immutable data classes and pure functions.
