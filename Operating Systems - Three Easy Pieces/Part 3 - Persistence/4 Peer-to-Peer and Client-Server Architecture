@@ -1,0 +1,254 @@
+[4 Peer-to-Peer and Client-Server Architecture]
+
+(Client-Server Architecture)
+	- model for organizing distributed systems and computer networks.
+
+	1) Clients
+		- devices or components that request resources or services
+		- usually, everyday user-facing devices such as laptops, phones, and televisions.
+		- lightweight devices with limited computation power
+		- usually only need to be available during communication with servers.
+
+	2) Servers
+		- the devices or components that serve requests or provide services.
+		- dedicated to serving requests and are usually hosted in the cloud or data centers.
+		- more computational power, more storage, more network bandwith, and are highly available to serve requests from clients.
+
+	<Interactions between clients and servers>
+		- "request-response" model
+			1) Clients send to servers a request that identifies a resource or specifies the details of the service needed.
+
+			2) Servers receive the request, validate it, process it, and send back a corresponding response containing the requested resources or the outcome of the service.
+
+		* much higher and broader non-functional requirements for servers compared to clients.
+
+		(Availability)
+			- servers need to be available as much as possible.
+			- there are redundant instances of the servers running at the same time.
+			- might be a failover mechanism to route requests to an available server, a backup system to recover the last known state of the server, and monitoring tools to proactively ensure servers are up.
+
+		(Performance)
+			- servers are centralized to serve numerous clients at the same time.
+			- being fast and efficient is paramount to sustaining servers to be operational.
+			- latency and throughput are two major system quality attributes.
+				1) "Latency"
+					-> the total time that has elapsed between a request being sent from a client and the corresponding response being received by a client.
+
+				2) "Throughput"
+					-> number of requests that arrive in servers per time unit.
+
+		(Scalability)
+			- servers need to cope with a growing and shrinking number of client requests.
+			- "Load balancer" can be deployed to distribute the requests from clients to a pool of servers.
+				-> keeps track of the health and traffic of each server instance so it can aim to route requests to the less busy server and archive an equal workload among servers.
+
+			- can be "horizontally" scaled by running more instances to distribute the load
+			- can be "vertically" scaled by upgrading the hardware capabilities of servers.
+
+			- should also be a configuration of a minimum or desired number of running server instances, so the number of servers can drop when the load is not heavy.
+
+		(Security)
+			1) servers should only process incoming requests that come from identifiable clients.
+				-> Clients need to be authenticated, such as passwords or multi-factor verifications.
+
+			2) Servers should have control over which requests can be accepted by which client.
+				-> a normal client cannot access system settings while an administrator client can.
+				-> Clients are usually authorized by internal processes not visible outside servers, so clients are not able to bypass the checks.
+
+			3) the data in the request and response payload may contain personal or sensitive information that requires protection.
+				-> encryption in an agreed-upon protocol.
+
+			4) servers need to have a basic defense against common malicious attacks.
+				-> "denail of service" (DOS)
+				-> "cross-site scripting" (XSS)
+				-> "main in the middle" (MitM)
+
+		(Server discovery)
+			- clients need to locate an available server to send their requests.
+
+			- discovery mechanisms
+				1) Static and hardcoded addresses as client configurations
+				
+				2) Domain Name System (DNS)
+					-> translates server IP addresses into human-readable domain names
+
+				3) Dynamic DNS services that dynamically change the server address
+
+				4) Service registry services that allow clients to query the appropriate server to connect to
+
+				5) Load balances that distribute requests from clients to a pool of available servers
+
+				6) Service mesh, which abstracts service discovery, load balancing, and other network concerns with a dedicated infrastructure layer
+
+		(Common client-server architectures)
+			- variations of architecture styles that handle the communication between clients and servers
+				1) "Representational state transfer" (REST)
+					-> popular client-server architecture focuses on the exchange of resources using standard HTTP methods such as "GET", "POST", "PATCH", and "DELETE".
+
+				2) "Remote Procedure Calls" (RPC)
+					-> RPC sees a request from a client as an action to perform, the URLs usually end with a verb (e.g. /place or /update) while using mostly only the "GET" and "POST" HTTP methods.
+
+				3) "Asynchronous messages"
+					-> clients and servers do not directly contact each other.
+					-> instead, they communicate through messaging infrastructure as queues and topics.
+
+				4) "Two-way dedicated connections"
+					-> Clients and servers open a dedicated channel over a "Transmission Control Protocol" (TCP) connection to communicate.
+					-> usually seen in systems that require lower latency and frequent messaging.
+
+		(The client-server solution)
+			- for security, use "Json Web Token" (JWT) issued by a trusted "Identity and Access Management" (IAM) system and the decoded token contains cliams that would reveal some information.
+
+		(What systems use client-server architecture?)
+			1) B2C systems (Business to Customer)
+				-> client is either a web or a mobile application.
+				-> client holds very little data, only data about the user.
+				-> meanwhile, servers hold most of the data of all clients.
+
+			2) B2B systems (Business to Business)
+				-> part of the business system of a firm acts as a client to servers of another business system of another firm.
+
+			3) Online gaming
+				-> maintain a shared state of the game among multiple players.
+
+			4) Financial service systems
+				-> servers keep sensitive data and complying with regulatory and audit controls.
+
+			5) Instant messaging, chat, and email systems
+				-> clients connect to the servers to send and receive messages to other clients, broadcast messages to a group of clients, share files, and participate in real-time chat.
+
+(P2P architecutre)
+	- formed of numerous nodes ("peers") that have equal roles in communicating with one another.
+
+	- each node can request resources or services from other nodes, while also providing resources or services to other nodes.
+
+	- enables efficient resource sharing and collaboration among participants.
+
+	<Consistency>
+		* there is no central authority or server that controls the data in a P2P system.
+			-> each node stores and manages its own data, and the nodes communicate directly with each other to share and synchronize information.
+
+		- distributed nature of P2P systems brings several consistency challenges:
+			1) "Data replication and concurrency control"
+				-> a node often replicates its data across multiple nodes to improve availability and fault tolerance.
+				-> this replication can lead to inconsistencies if the data is modified at different nodes at the same time.
+				-> can have a conflict about which update should take place, when multiple nodes update the same data at the same time.
+
+				* implementing effective concurrency control mechanisms, such as locking, versioning, or conflict resolution strategies, is necessary to maintain data consistency.
+
+			2) "Eventual consistency"
+				-> nodes are spread out in a distributed network, delays and partitions can occur, making difficult to acheive strong and immediate consistency.
+
+				* P2P systems focus on eventual consistency
+					-> consistent state will eventually be reached after some time, even in the presence of network disruptions or node failures.
+
+			3) "Casual consistency"
+				-> related events are received by all nodes in the same order
+				-> unrelated events are received in any order.
+
+			4) "Consenus and Quorum"
+				-> all nodes must reach a specific state or be updated before changes are accepted. (Consensus approach)
+				-> requires agreement only a majority of nodes. (Quorum)
+
+				* Both methods help maintain a certain level of consistency but introduce extra coordination and communication overhead.
+
+			5) "Merkle trees and hasing"
+				-> detect and resolve inconsistencies in the distributed data, allowing nodes to quickly identify and synchronize their data.
+				-> used widely in blockchain networks. (decentralized systems)
+
+		(Bootstrapping and node discovery)
+			- "Bootstrapping": P2P network starts with the first node available, and then other nodes join.
+
+			- several node discovery mechanisms:
+				1) "Static"
+					-> the most basic way to discover a node.
+					-> each node has the addresses of all other nodes in static configurations.
+					-> limitation of IP addresses can be overcome by techniques such as "relay servers", "network address translation"(NAT), "hole-puncing". (this is about storage and memory limitations to hold the addresses of all nodes in each node.)
+
+				2) "Centralized directory"
+					-> maintains a list of active nodes in the network.
+					-> means that the network starts with the centralized directory being available.
+					-> when a node joins the network, it lists itself as available in the directory.
+					-> each node can get a list of available nodes from the centralized directory.
+
+				3) "Multicast or Broadcast"
+					-> in a private or "local area network" (LAN), a P2P network can be established by having each node send broadcast or multicast messages to all other nodes.
+
+					-> Multicast networks usually use "User Datagram Protocol" (DP) as the transport protocol.
+						+ usually configured in a designated subnet to avoid broadcast floods and limit security risks.
+
+				4) "Kademlia"
+					-> a specification of the network structure and message protocol that is used in P2P networks.
+					-> "distributed hash table" (DHT) emerges across multiple nodes in the network.
+					-> the network usually uses multicast UDP as the transport protocol.
+
+					-> each node has a node ID (unsigned big random integer number)
+					-> node ID prefix is used to calculate a hash value using a universal hash function.
+					-> hash value translates to a bucket in the hash table -> each node maintains the IDs of other nodes in its local hash table and uses it as a routing table.
+
+					-> when a node joins the network, it broadcasts its node ID to all nodes in the network, then other nodes find a bucket to keep the ID of the new node in their routing tables.
+
+					-> the "distance" between two node IDs calculated by the "exclusive OR" (XOR) fnction is used for node discovery.
+
+					* when a node wants to discover another node in the network, it starts from the bucket that is closest to its node ID and iteratively finds a responsive node by traversing buckets, from the closest to the farthest away.
+
+				5) "Exchanging information with other nodees"
+					-> scales well from small to big networks.
+					-> "fault-tolerant"
+						+ if a neighbor node fails, other neighbor nodes would still be able to provide alternative information.
+
+		(Communication among nodes)
+			1) Direct communication with IP addresses
+				- the most basic form of communication between two nodes is to have one node directly contact another node using an IP address.
+
+				* often used in small networks or LANs.
+
+				- nodes in the network use transport protocols such as "TCP" for more reliable and ordered messages, or use "UDP" for faster and unordered messages.
+
+			2) Hole-punching
+				- "internet service provider" (ISP)
+
+				- "NAT" (Network Address Translation)
+					-> mechanism that translates local network addresses to public and global IP addresses.
+
+				* if the firewalls are "stateless", they do not track connections and do not remember the translations of addresses
+					-> hole-punching behind stateless firewalls would not work.
+
+			3) Publish-Subscribe
+				- node discovery is not necessary.
+				- nodes publish messages to specific topics of interest, and other nodes subscribed to those topics would receive the messages.
+
+				- publishers do not know the subscribers.
+					-> they know the address of the broker and the topic where a message should be published.
+					-> subscribers register their interests in certain topics with the broker and receive messages associated with the topics.
+
+				- the "broker" is a type of infrastructure middleware that receives messages from publishers.
+					-> it stores the messages and manages subscriptions by subscribers.
+					-> it routes messages to the appropriate subscribers based on their registered interests.
+
+(What systems use P2P architecture?)
+	1) Napster
+		-> share files on the internet
+		-> used a centralized directory server to maintain an index of available files and their locations.
+
+	2) BitTorrent
+		-> breaks down large files into smaller pieces and allows each piece to be shared independently.
+
+	3) Decentralized finance (DeFi)
+		-> Bitcoin and Ethereum operate on P2P networks.
+		-> Nodes in the network communicate and validate transactions without relying on a central authority, using a consensus algorithm.
+
+(Comparison between client-server and P2P architectures)
+	- Client-Server architectures
+		-> need for central control and management
+		-> mission-critical processes that require systems to be highly available, resilient, and consistent
+		-> lot of data to be collected and correlated, and the data needs to be consistent, replicated, secure, and accessed in a secure manner.
+
+	- P2P architectures
+		-> avoid the high cost of hosting servers and to make use of the existing resources of the peer nodes
+		-> share resources freely without central control or censorship
+		-> avoid relying on a subset of processing that could result in total system failure
+
+
+
+
