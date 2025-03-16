@@ -1,0 +1,106 @@
+[5 Exploring MVC, MVP, and MVVM]
+
+(MVC)
+	- originated in the 1970s
+	- structure code and separate concerns in the "graphical user interface" (GUI) of desktop applications.
+
+	- in the late 1990s and early 2000s, MVC was adopted as part of web development frameworks
+		ex) JavaServer Pages(JSP), Ruby on Rails, ASP.NET, and so on.
+
+	- Model, View, Controller
+
+	<The Model>
+		- application's internal data, independent of the "user interface" (UI).
+		- data is validated, manipulated, and transformed to other formats within the Model.
+		- encapsulates the core behavior and business logic and can be shared across different views.
+
+	<The View>
+		- presenting the UI to the end suer.
+		- displays the data from the Model and provides a mechanism to interact with users.
+		- View is passive and reactive to user's actions.
+			-> only contains simple logic that is related to rendering data and responding to user input.
+
+	<The Controller>
+		- intermediary coordinator between the Model, the View, and the user.
+		- receives a request from the user and requests an update of the data in the Model.
+			-> once the Model accepts the request, the Controller updates the presentation in the View.
+
+		- orchestrates the flow of data and the sequence of changes between the Model and the View. (In other words, the Controller determines the application's behavior.)
+
+	<The collaboration>
+		1) The user sees the View and makes requests to the Controller.
+		2) The Controller updates the data in the Model and then the presentation in the View.
+		3) The user sees a visual response to its previous request to the Controller.
+		4) The View can also be updated when the Model changes, with the use of callback functions.
+
+	<The benefits of MVC>
+		- promotes modularity, code reusability, and testability.
+
+		* Controller is usually tightly coupled with the View, making very little room for reuse.
+
+
+(MVP)
+	- originated in the 1990s as a response to the limitations and challenges faced when applying VC to desktop and web application development.
+
+	- promotes decoupled relationship between the View and the Model by introducing the Presenter.
+
+	<Differences from MVC>
+		- Model and the View do not interact.
+			-> All messages come through the Presenter, and the Presenter depends on both the View and the Model.
+			-> The View is self-contained and does not depend on either the Model or the Presenter.
+
+		- View is only responsible for rendering the UI as a response to the Presenter's request to update the View.
+
+		- MVP enforces explicit communication with the View and the Model.
+			-> View informs the Presenter of user actions, and the Presenter then interprets and acts upon them.
+
+	<The benefits of MVP>
+		- View under MVP can be independently tested, without the involvement of the Presenter.
+
+(MVVM)
+	- first introduced by John Gossman at Microsoft in 2005.
+	- was created for UI development using the Windows Presentation Foundation (WPF) framework.
+
+	- uses the View Model as an intermediary between the View and the Model.
+
+	<The View Model>
+		- updates from the View Model are reflected in the View automatically, and the View Model can react to user actions in the View.
+
+	<The benefits of MVVM>
+		- separates the concerns of business logic.
+		- The View Model encapsulates presentation logic without needing to be concerned about how it is rendered visually.
+			-> it can be tested in isolation, independent of specific details of the UI.
+
+		- properties and commands in the View Model can be shared while keeping the user experience consistent among multiple Views.
+
+		- Views can be changed without updating the View Model.
+		- UI designers can better collaborate with frontend engineers.
+			-> UI designers can focus on styling, layout, and visual components without the need to interfere with the business logic. (can work in parallel and improves productivity.)
+
+(Beyond MVC, MPV, and MVVM)
+	- "Model-View-Intent" (MVI)
+		-> emerged around the 2010s in the Android community.
+		-> focus on a unidirectional data flow to streamline state management.
+		-> also adopts reactive programming paradigms to asynchronously manage the unidirectional data flow.
+
+	- "Atomic design"
+		-> introduced by Brad Frost
+		-> breaks down the UI to five levels.
+			1) Atoms : Elemental building blocks such as text fields
+			2) Molecules : Functional organization of atoms such as search bars
+			3) Organisms : Sectional organization of molecules such as navigation panels
+			4) Templates : Visual layout and organization of organisms that form a page
+			5) Pages : Business-aware and specific instances of pages with real content
+
+	- "Component-based"
+		-> focus on separating functionalities into self-contained and reusable components.
+		-> each component encapsulates the behaviors, hides its lower-level details, and only exposes higher-level functions via interfaces.
+		-> each component is developed, tested, and deployed independently.(easier to update applications)
+
+	- "Server-side rendering" (SSR)
+		-> used in web development but can be extended to mobile and desktop applications.
+		-> content of a page is generated on the server instead of in the browser or on clients' devices.
+		-> aims at improving performance and response time by reducing loads in the browser or on clients' devices.
+		* however, increases the server load for processing.
+
+
