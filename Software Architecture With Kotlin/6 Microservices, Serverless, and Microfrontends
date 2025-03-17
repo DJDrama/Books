@@ -1,0 +1,251 @@
+[6 Microservices, Serverless, and Microfrontends]
+
+(Monoliths)
+	- meaning: "made of one stone"
+	- large system desgined and developed as a single unit.
+	- In a monolithic architecture,
+		-> single code base
+		-> unified database
+		-> one deployable artifact
+
+	- Unified database
+		-> major schema that contains all the entities from all functionalities.
+		-> spiderweb of foreign key constraints among tables.
+
+	- it's big and takes a long time to release.
+
+	<Benefits>
+		1) Simplicity
+			-> one code base
+			-> one database
+			-> one deployable artifact
+
+		2) Short time to market
+			-> go well with experimental applications where sophisticated architecture may not be necessary.
+
+		3) Build first, optimize later
+			-> better to understand the business ecosystem before trying to break it down by reasonable boundaries and which features naturally go together.
+
+	* Monolith-first
+		-> making a conscious choice toward monolithic architecture.
+
+	<Challenges>
+		- tight coupling between components
+			-> difficult to update specific parts of the application independently.
+
+		1) Slow development
+			-> if change is bigger, the probability of having code conflicts among engineers is significantly higher.
+			-> more time reviewing code and resolving code conflicts.
+
+		2) Difficult to scale and tune performance
+			-> scaling resources in a monolith can be inefficient(entire application needs to be replicated)
+			-> harder to tune performance precisely since there could be other processes contending with the same resource, which affect the performance to be tuned intentionally.
+
+		3) Time-consuming test suite
+			-> different components and modules are tightly coupled.
+			-> changes in one part of application can have unintended consequences in other parts.
+			-> inter-dependencies make difficult to isolate and run tests independently, limiting the potential for parallel execution and shorter test execution times.
+			-> even a minor ochange in monolithic application would need regression testing.
+
+		4) Risky, long, and big releases
+			-> takes a long time because the entire system is deployed as a unit.
+			-> even a minor change would result in the entire monolith having to be redeployed. (harder to continuously deliver the system)
+			-> engineers could be spending a long night aiming to release a monolith application, and these long and late hours may introduce more human errors due to fatigue.
+
+			* small application 
+				-> possible to use modern strategies such as rolling releases, blue-green releases, or canary releases.
+				-> these release strategies can be performed during business hours where most help is available, and thus reduce the risk of human errors.
+
+		5) Technology lock-in
+			-> monolithic applicatino has a long lifespan. (may have chosen a technology stack a long time ago)
+			-> upgrading the technology results in a substantial change in the code base or adopting a different technology in some parts of the codebase, which results in multiple tools doing the same job.
+			-> space for experimenting with technology is severly limited.
+
+		6) Total system failure
+			-> a failure in a monolithic application easily results in total system failure.
+			-> harder to isolate and contain failures because there's no clear separation between components.
+
+		7) Team dependencies
+			-> multiple teams sharing one deployable artifact and probably one code base create a lot of dependencies.
+			-> one team may have completed a feature that needs to be released asap, and the other team may still be working on a feature that isn't ready yet.
+
+		8) Slow time to market
+			-> the first team may not be able to have their feature land on the market in time until other teams have completed theirs.
+			-> hurts the business if the system is constantly catching up with competitors.
+
+(Microservices)
+	- "service-oriented architecture" (SOA) became popular in the 2000s as an early response to the challenges posed by monolithic architecture.
+
+	- In 2011, the term microservices was brought up in software architecture workshops as the participants increasingly became aware of the emergence of a new architecture.
+
+	<Key principles>
+		- microservice should conform to the "single responsibility principle" (SRP).
+
+		- "Conway's law"
+			-> recommended to re-organize the teams so that each team has well-defined responsibilities and those responsibilities don't overlap with other teams.
+
+		- "Inverse Conway Maneuver"
+			-> approach of re-organizing teams to aim for a better architecture
+				ex) Align with Business Needs
+					+ teams aligned with business domains (e.g., "payments" or "user accounts") rather than tech stacks often build systems that better reflect real-world priorities.
+
+
+	<Communication and integration>
+		- Microservices communicate with each other through well-defined interfaces, namely "application programming interface" (API)
+
+		- "webhooks"
+			-> alternative and popular way to communicate among microservices asynchronously without the need for messaging systems.
+
+	<Scability and resilience>
+		- each microservice can be scaled independently based on its specific resource requirements.
+
+	<Maintainability and technology choices>
+		- each microservice should have a code repository.
+
+	<Deployment infrastructure>
+		- one microservice should have its own deployable artifact.
+			-> allows us to implement the practice of "continuous integration and continuous deployment" (CI/CD), reduce or even eliminate downtime during release.
+
+	<Team organization>
+		- a microservice should be owned by one - and only one - team.
+			-> the team is responsible and accountable for the full development cycle of the designated microservice.
+
+	<The drawbacks of microservices>
+		1) Increased complexity
+		2) Network latency and overhead
+			-> overhead of network communication, including protocols, serialization, and deserialization, can impact the system's overall performance.
+
+		3) Distributed data management
+			-> data is often distributed across multiple microservices, which brings the challenges of keeping data manageable and constistent.
+
+		4) Monitoring and observability
+			-> tracing a business journey that travels through multiple microservices can be more challenging compared to monolithic applications.
+
+		5) Fine-grained, infrequent, on-demand, or small tasks.
+			-> overhead of microservices architecture could outweigh the benefits if you're running specific processes.
+				ex) long-running microservice that's only used once per month.
+
+(Nanoservices)
+	- decomposing the system into extremely fine-grained single-purpose components.
+	- designed to handle highly specific, autonomous, independent, and atomic functionalities.
+	- responsible for a single task or a tiny piece of logic within the overall system.
+	- each nanoservice has a deployable artifact and can be deployed independently.
+
+	<Benefits>
+		- much smaller code bases, fewer dependencies, and less resource utilization (CPU, memory, and disk) compared to microservices.
+
+	<Drawbacks>
+		- high number of nanoservices may bring significant network communication and collaboration challenges.
+			-> the small resource footprint of one nanoservice may not translate well regarding overall resource consumption (CPU, memory, and disks)
+
+		- maintaining data consistency and coherence across a large number of highly autonomous nanoservices can be a significant challenge that requires careful design and coordination mechanisms.
+
+	<Serverless>
+		- a computing style in which engineers are no longer concerned with capacity planning, configuration, management, maintenance, resilience, scalability, phsycial servers, or virtual servers.
+
+		1) Infrastructure-as-a-Service (Iaas)
+			- renting an empty space where tenants must configure everything in it.
+
+			- Virtual servers
+				-> need to specify basic requirements such as CPU, RAM, disk spaces, and network addresses to reach the servers.
+			- Secrets management
+			- Distributed file storage
+			- Databases
+			- Messaging
+
+				ex) Aws Ec2
+
+		2) Platform-as-a-Service (Paas)
+			- provides engineers with a cloud platform so that they can develop, run, and manage applications without setting up the infrastructure themselves.
+				
+				ex) Aws Beanstalk
+
+		3) Software-as-a-Service (Saas)
+			- offers software that's ready to be used by end users or integrated with applications.
+
+				ex) Google Docs
+
+		4) Function-as-a-Service (Faas)
+			- allows engineers to write code and deploy it as a function, typically when reacting to events or triggers.
+
+				ex) Aws Lambda, Google cloud functions
+
+	<Benefits>
+		1) Scalability
+			-> can automatically scale resources based on demand.
+
+		2) Cost efficiency
+			-> tenants are billed by their actual usage.
+
+		3) Time to market
+			-> engineers can focus their time on developing business functions and specific functions.
+
+		4) Adaptability and migration
+			-> range of available services allows engineers to host from big applications to small functions.
+
+		5) Diverse support for business domains
+			-> suitable for event-driven and highly scalable systems.
+
+	<Cautions>
+		1) Cold start latency
+			-> Faas functions are initiated on-demand, when a function is triggered for the first time or after a period of being idle, it might take a while to start up.
+			-> this delay is known as a "cold start" and occurs while the cloud provider provisions the necessary resources on the fly.
+			-> latency may increase for normal requests.
+
+		2) Vendor lock-in
+			-> creates barriers to migrating to another cloud provider or switching back to bare-metal infrastructure.
+			-> it's easy to rely too heavily on a specific cloud provider. (vendor lock-in)
+			-> challenging to migrate to another provider.
+
+		3) Function granularity
+			-> breaking down functionality into excessively fine-grained Faas functions can result in increased overhead due to the invocation and coordination of numerous functions, leading to release dependency, higher costs, higher latency, and more complex systems.
+
+		4) State management
+			-> Faas functions are typically designed to be stateless, meaning they don't retain their memory of previous executions.
+			-> poses a challenge to how the state is shared across multiple function invocations.
+
+		5) Monitoring and debugging
+			-> troubleshooting and monitoring serverless applications can be more complex than traditional architectures.
+			-> challenging to diagnose, reproduce, and resolve issues.
+			-> should invest in observability tools such as log aggregation, monitoring, dashboards, and alerting.
+
+		6) Cost management
+			-> pay-per-use model, it's essential to monitor and optimize resource consumption.
+			-> granular billing based on usage can lead to unexpected costs if the applications are designed inefficiently or experience unexpected spikes in traffic.
+
+		7) Long-running processes
+			-> Faas functions are typpically execution time limits that are imposed by cloud providers. (meant to be small and executed quickly)
+			-> if an operation requires significant processing time or must run continuously, it's better to look for Paas or Iaas alternatives, such as virtual servers.
+
+		8) Security and compliance
+			-> compliance with regulations and industry standards should be thoroughly evaluated to ensure proper security measures are in place.
+
+		9) Non-functional requirements (NFRs)
+			-> sometimes, it's ahre to be in control of meeting requirements since engineers can only configure the desired resources, and in the end, it's the platform that provisions the resrouces to meet the desired resources as configuration.
+			-> in an extreme case, it might be justified to go back to bare-metal servers to have full control of the hardware and network that could fulfill the high-end NFRs.
+(Microfrontends)
+	- aims to enhance modularity, scalability, and autonomy by breaking down the UI into smaller, self-contained frontend modules.
+
+	- first appeared in 2016 under Thoughtworks Technology Radar with the recommendation of Assess.
+
+	<Same symptoms from the days of monolithic applications>
+		- traditional monolithic frontend application has a single code base that handles the entire UI.
+			-> code conflicts, release dependency, slow build time, limited autonomy for each team, and challenges in scaling and maintaining large applications.
+
+	<Benefits>
+		- promotes faster development cycles, easier maintenance, and the ability to adopt new technologies and frameworks without affecting the entire application.
+
+		- advocates code reusability by reusing UI components brought from design systems that can be shared across multiple applications.
+			-> improved consistency, reduced duplication, reduced user learning, and increased productivity in frontend development.
+
+	<Challenges>
+		- challenges as module communication, versioning, and orchestration when integrating all frontend modules into one application.
+
+	* "First make the change easy, then make the easy change" by Kent Beck, a pioneer of Extreme Programming (XP) and Agile methodologies.
+
+
+
+
+
+
+
