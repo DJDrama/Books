@@ -1,0 +1,224 @@
+[7 Modular and Layered Architectures]
+
+(Clean Architecture)
+	- introduced by Robert Martin (a.k.a Uncle Bob) in 2017.
+	- Outer layers always depend on the inner layers.
+		-> any change in the outer layer does not affect the inner layer.
+		-> any change in the inner layer may affect the outer layer.
+
+	<Entities>
+		- "Entities Layer"
+		- the innermost layer (which depends on no other layer)
+		- encapsulate business rules shared among applications.
+		- contains mostly data structures and functions only.
+		- least likely to change.
+
+	<Use Cases>
+		- "Use Cases layer"
+		- one layer above the Entities layer.
+		- encapsulate business rules within an application.
+		- any change in this layer should not affect the entities layer.
+		- should remain neutral to choices of frameworks and technologies, such as databases and messaging.
+
+	<Interface Adapters>
+		- "Interface Adapters layer"
+		- serves as the translation between the internal and the external models.
+			ex) external models: relational database tables, message payloads, HTTP request and response payloads, file formats, and visual representation in the "graphical user interface"(GUI).
+		- external models and their corresponding conversion should not leak into other layers.
+		- should not contain business logic.
+
+	<Frameworks and Drivers>
+		- one layer outside of the Interface Adapters layer.
+		- where external frameworks are added to make it an application.
+			ex) HTTP endpoint routing configurations, database connection details, Kubernetes configurations, and dependency management.
+
+		- quite often, this layer contains configuration files more than source code.
+		- should never contain business use cases.
+		- it does not know any internal models and therefore no conversion from external models.
+		- focuses on supporting configurations that turn code into an application executable in a runtime.
+		- should address only non-functional requirements, such as startup time, or redundancy.
+
+	<Benefits of Clean Architecture>
+		- concerns are separated in each layer.
+		- each layer is dedicated to address specific concerns that no other layers do:
+			1) Entities layer: Functional requirements shared among applications.
+			2) Use Cases layer: Functional requirements within an application
+			3) Interface Adapters layer: Conversion between internal external models
+			4) Frameworks and Drivers layer: Non-functional requirements
+
+		- layers are testable without "user interfaces" (UIs), databases, messaging, files, or any external representation.
+		- enables a smooth transition of technology change.
+			-> a new technology can be introduced and coexist with the old one.
+
+(Hexagonal Architecture)
+	- known as the "ports and adapters architecture"
+		-> aims to address the problem of coupling between the core business logic and external dependencies, such as databases, UIs, and external systems.
+
+	- ports and adapters
+		-> "ports": define the interactions between the internal and the external worlds
+		-> "adapters": provide the implementation details of these interactions.
+
+	<The core>
+		- The core of the hexagonal architecture encapsulates the business logic of the application in a pure way, without involving any technology and framework.
+			-> often called "the Domain".
+		- the core does not depend on any adapter implementation.
+		- contains data structures and functions that represent pure business logic.
+
+	<Ports>
+		- interfaces describing what the application can do.
+		- two types of ports
+			1) Primary port
+				-> known as the "driving port"
+				-> determines inputs required by the core to perform an operation.
+
+			2) Secondary port
+				-> known as the "driven port"
+				-> determines what outputs are produced by the core for the external world's consumption.
+
+		- should be defined by the needs of the core and not the external world.
+
+	<Adapters>
+		- responsible for translating external models to the internal models, which are defined in the core.
+		- use the primary port as an entrance to the core and run business operations.
+		- tied to at least one framework, and it has an external representation of the entities involved.
+			ex) adapter can be a "Representational State Transfer" (REST) controller
+
+	<Benefits of hexagonal architecture>
+		- makes the code base more complicated. but brings a few benefits by separating the source code between the core and the adapter.
+			1) core encpasulates pure business rules and the adapter contains all technology details.
+
+			2) contains a comprehensive test suite that ensures the business rules are enforced as intended, without involving any technology.
+
+			3) adapter contains test cases that verify the configuration of the chosen technology and frameworks work as inteded, without mixing business rules.
+
+			4) adapter is desgined to be pulled and replaced by another adapter at any time.
+
+			5) enables engineers to conform to the "single responsibility principle" (SRP).
+				-> the core has only one reason to change, and each adapter has only one reason to change.
+
+(Functional core, imperative shell)
+	- "FCIS"
+	- emerged as an architectural pattern over time in the functional programming community.
+	- advocates separating the immutable core business logic from the mutable aspects, such as persistent storage or external system integration.
+	- aligns and encourages functional programming principles with the use of stateless functions and immutable data structures.
+
+	- stateless functions = pure functions.
+		-> no side effects
+		-> immutable data structures never change their content.
+
+	1) Functional core
+		-> contains stateless functions and immutable data structures that represent business logic and entities.
+
+	2) Imperative shell
+		-> layer outside of the functional core that interacts with the external world, such as database operations, messaging, or UIs.
+		-> responsible for executing the imperative and mutable operations required by the system.
+
+	<Functional core>
+		- focues on the business logic, consisting of stateless functions and immutable data structures only.
+		- elements:
+			1) Data structures
+			2) Functions
+
+	<Imperative Shell>
+		- handles the necessary interactions with the outside world, providing the necessary integration points and adaptors.
+
+	<Benefits>
+		- the functional core contains pure functions and immutable data structures.
+			-> can be easily tested and reasoned about.
+			-> no state management and side effects.
+
+		- the functional core is also free of technology choice.
+			-> can focus on only business concerns.
+			-> no need to change the code if we decide to use other technologies to receive requests and produce responses.
+			-> makes the core logic reliable, adaptable, and maintainable.
+
+(The Connect pattern)
+	- first introduced by David Denton in his technical article in 2011.
+
+	<Action>
+		- responsible for transforming requests from internal to external format and transforming responses from external to internal format.
+
+	<Adapter>
+		- the adapter class provides a way to abstract away the connectivity details and mechanism to an external system.
+
+	<Test cases>
+		- strength of the Connect pattern is better testability.
+			-> each action can be tested individually.
+
+		- when there are more actions, more test cases, but each test case is isolated.
+
+	<Benefits>
+		- extensibility and testability.
+		- each API call is represented by an Action and breaks down the big interface into smaller pieces.
+		- conforms to the SRP as an Action represents only one API call.
+		- Action classes can focus on the message formats and interactions.
+
+(Comparisons of architectural styles)
+	<Dependency on frameworks and technologies>
+		1) Clean Architecture
+			-> proposes the Entities layer for enterprise business rules and the Use Cases layer for application-specific business rules.
+			-> Both are neutral to choices of frameworks and technologies.
+
+		2) Hexagonal architecture
+			-> proposes the core as the centerpiece for business logic, also free of the choices of frameworks and technologies.
+
+		3) FCIS
+			-> proposes the functional core for business logic, but with the use of stateless functions and immutable data structures.
+
+		4) Connect pattern
+			-> uses Action for the integration point of a single action and an adapter for the transport details of the interaction with the remote system.
+
+	<Testability>
+		1) Clean Architecture
+			-> offers dedicated layers for business logic only(the Entities and Use Cases layers), which can be tested in isolation without involving any choice of technology.
+			-> The interface adapters layer focuses on internal and external model translation, can be also tested independently.
+			-> configurations of the Frameworks and Driver layers can be tested without involving business rules.
+
+		2) Hexagonal architecture
+			-> advocates the core as a technology-neutral area where unit tests can be easily written without the need for complex setups or mocking extensive external components.
+			-> Each adapter can be tested individually and without involving any business logic.
+
+		3) FCIS
+			-> suggests putting only business logic as stateless functions and immutable data structures in the functional core.
+			-> reduces testing of the functional core using a simple verification of the output result given by input.
+			-> The imperative shell can also be tested easily by swapping the lower-order functions in the functional core.
+			-> The immutable and the mutable parts of the systems can be tested separately.
+
+		4) Connect pattern
+			-> breaks down the large remote interface of a monolithic application into one Action per API call.
+			-> reduces a lot of overhead, excessive mocking, test double, or stubbing of the interface.
+			-> The ability to test an API call in isolation improves testability and enables easy extension of the usage of a remote API.
+
+	<Maintainability>
+		- Clean Architecture, Hexagonal Architecture, FCIS provide a clear separation between the core business logic and the surrouding infrastructure.
+			-> makes it easier to modify or extend the application without affecting the core business rules.
+
+		- Connect pattern is very lightweight and there is no overlapping among Actions.
+			-> connectivity and message interaction concerns are separated into adapter and Action classes, the maintenance of these classes is simple, and code changes are small.
+
+	<Flexibility and adaptability>
+		1) Clean Architecture
+			-> promotes the Interface Adapters and Frameworks and Drivers layers to contain external dependencies.
+			-> allows more flexibility and adaptability, as the business rules remain decoupled from specific technologies or protocols.
+
+		2) Hexagonal architecture
+			-> promotes the use of ports and adapters, which act as interfaces and adapters between the core logic and the external systems.
+			-> different choice of framework results in a separate implementation of adapters but the port interfaces remain the same.
+			-> changing technology or a protocol is easy by swapping an implementation of the same interface.
+
+		3) FCIS
+			-> uses the imperative shell layer to handle all the interactions with the external world.
+			-> any change in technology or protocol requires a change only in the imperative shell layer.
+			-> with the high-level reuse of small fucntions, only a minor change is required to adapt to a new technology.
+
+		4) Connect pattern
+			-> allows engineers to implement a new adapter if it needs to integrate with a new remote system.
+			-> if it needs to adapt to a new communication protocol, it is required to implement a new adapter and new Action, but there is no need to update the current code.
+	
+	<In relation to the anemic domain model>
+		- "anemic domain model" (ADM)
+			-> controversial architectural style that some people classify as an anti-pattern.
+
+		- desgined to have business behaviors kept in the core or Use Cases layer; in other words, they are designed to work with the "rich domain model" (RDM) only.
+		
+
