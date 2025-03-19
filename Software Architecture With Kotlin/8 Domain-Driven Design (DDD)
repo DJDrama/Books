@@ -1,0 +1,191 @@
+[8 Domain-Driven Design (DDD)]
+	- aims to help engineers identify business behaviors that belong to the coresponding domain and the boundaries around it so that they can be implemented in the Core, Domain, or Use Case layer of an application.
+
+(Fundamentals of DDD)
+	- DDD highlights the distinction between the problem space and the solution space.
+		1) Problem space
+			-> reality of the business - that is, the current circumstances of the business operations.
+
+		2) Solution space
+			-> the software system we have or will build to solve specific business cases in the problem space.
+
+	- dominant part of the "Problem space" is the "domain".
+		-> "domain" represents specific business use cases and operations.
+
+	- solution space provides a way to model the domain to solve the given business cases, hence the name "domain model".
+
+		ex)
+			[Problem Space (Reality)]		|		[Solution Space(Software Ssytem)]
+
+				[Domain]	------------------------------> 	[Domain Model]
+
+	- A domain model abstracts and selects certain elements in the domain so that a software system can be built upon it.
+		* the abstraction and selection result in the domain model is never 100% correct and complete.
+
+	- In DDD, domain models don't aim to be complete and accurate; instead, they aim to be useful in specific business contexts.
+
+	- DDD encourages engineers to gain a deep understanding of the domain for which they're building software.
+
+	- two design methodologies
+		1) Strategic Design
+			-> focuses on the overall structure and organization among multiple cohesive areas, named bounded contexts, with a larger business domain.
+			-> works toward a flexible and loose coupling system amoung bounded contexts by defining their collaborations.
+
+		2) Tactical Design
+			-> refers to patterns, tools, and practices that make it simpler to build helpful domain models.
+			-> use tactical design when we have complex business logic to model or when complexity may be introduced in the future.
+
+(DDD - strategic design)
+	- start DDD with "strategic design" to establish the big picture before drilling down into the more granular tactical design.
+
+	<Ubiquitous language>
+		- "Ubiquitous Language" was introduced by Eric Evans in 2004.
+		- serves as a common understanding and mental model of the domain that's shared between engineers and domain experts.
+
+		- aims for a consistent, well-defined, and precise language to eliminate misunderstandings and ambiquities.
+		- It's a continuous, collaborative effort to build a common ground for effective and meaningful communication.
+		- common tongue between the domain and the domain model.
+
+		- Once established, new team members can understand the domain and the existing code base quickly.
+		- Also facilitates knowledge transfer among teams and stakeholders, promoting better collaboration and reducing the risk of information loss.
+
+		- Benefits of ubiquitous language manifest
+			1) Glossary
+				-> a gloosary of terms and concepts and their definitions, available for everyone to read and learn about the business domain.
+					ex) GitHub
+
+			2) Documentation
+				-> all documents related to the business domain should use the same terms and concepts that are defined in the glossary.
+					ex) User manuals, operation instructions, project plans, architectural design documents, diagrams, user stories, screen mockups, presentations, API documentation, and more.
+				* Any new term and concept should be added to the glossary.
+
+			3) Private large language models (LLMs)
+				-> business domain knowledge, including terms, concepts, rules, and processes, can be used to train an LLM so that it can answer questions, complete text, generate dialog, and even become a part of the customer service bot.
+
+				-> "Prompt Engineering" (require carefully crafting the input that's given to the model to generate the desired outputs or responses.)
+
+			4) Source code
+				-> names of source files, functions, interfaces, classes, and even variables should use the same terms that have been defined in the glossary.
+					ex) Message payloads, database tables and fields, log messages, and error messages should also use these terms and concepts whenver applicable.
+
+	<Subdomains>
+		- a distinct area of the business domain that has its own set of concepts and business rules.
+
+		- the language that's used in a subdomain is part of ubiquitous language, and the corresponding concepts within the subdomain naturally form their own group.
+
+		- "Subdomains" help break down the complexity of large domains into smaller, more manageable parts, allowing team to focus on udnerstanding the addressing the unique requirements and challenges of each subdomain.
+
+		- Subdomains can be categorized into three groups:
+			1) Core domains
+				-> the heart of business operations.
+				-> the most critical part of an organization to differentiate them from competitors.
+				-> have the most complex business cases.
+
+			2) Supporting subdomains
+				-> provide peripheral tools and functionalities that complement and accelerate the core subdomains, but they aren't the primary area of expertise for the business.
+				-> don't provide significant competitive advantages
+
+			3) Generic subdomains
+				-> refer to common problems that aren't specific to the business.
+				-> corresponding solutions are off-the-shlef commercial products.
+				-> essential for running business operations, but don't directly contribute to the core value proposition of the business.
+
+		* DDD enables the development of cohesive, modular, and loosely coupled software systems.
+
+	<Bounded contexts>
+		- is a concept in the solution space.
+		- has own scope, responsibilities, and rules that don't overlap with other bounded contexts.
+		- should have a clear purpose and a clear boundary.
+		- each building block has a specific semantic and purpose.
+
+		* should represent one subdomain only, but a subdomain model might need a small portion of another subdomain model to function properly.
+
+		* should have it's own source code repository.
+			-> has its own data schema and data that are only shared with other bounded contexts via external representations defined in API documentation.
+			-> should also have dedicated deployable artifacts.
+			-> they can be released independently without dependency on or affecting other bounded contexts.
+			-> should have their own release cadence.
+
+		* A bounded context should be owned by one team only.
+
+	<Context mapping>
+		- a technique that can be used to identify the relationships and interactions among bounded contexts.
+
+		- common patterns in this relationship
+			1) Partnership
+				-> two or more bounded contexts establish a collaborative relationship.
+				-> involves establishing close collaboration, shared understanding, and joint decision-making to address a specific business need.
+				- bounded contexts have their own goals, but their goals are connected to help solve a particular problem. (they succeed and fail together)
+
+			2) Shared kernel
+				- two bounded contexts share a subset of their model or code.
+				- they might share the same data schema, a source code module, or compiled code as an artifact.
+
+			3) Customer-supplier
+				- the upstream bounded context supplies data, while the downstream bounded context consumes that data.
+				- the customer and the supplier collaborate and agree on the protocol of the data.
+
+			4) Conformist
+				- the upstream bounded context can be an external system or use an industry-standard protocol, making it unable to accomodate the downstream bounded context.
+
+			5) Anti-corruption layer
+				- the downstream bounded context builds an anti-corruption layer to consume the data and translate it into the structure that it desires.
+
+				- scenarios where the downstream bounded context decides not to conform.
+					(1) the upstream bounded context uses an inconvenient data protocol, making it difficult to integrate and consume the data
+
+					(2) the upstream bounded context is unreliable, changes often, or occasionally brings breaking changes that the downstream bounded context intends to minimize so that the impact of any issue brought by the upstream bounded context is diminished
+
+					(3) the data protocl used in the upstream bounded context brings conflicting or irrelevant data to the downstream bounded context
+
+					(4) the downstream bounded context reflects the core domain, which warrants reasons not to depend on a foreign data protocol
+
+			6) Separate ways
+				- no interactions between bounded contexts
+					-> can be due to integration being too expensive, unsustainable, or impossible.
+
+			7) Open-host service
+				- A bounded context defines and exposes a public API that other bounded contexts can use to extend its functionality.
+
+			8) Published language
+				- focuses on establishing a shared language and glossary among bounded contexts.
+				- doesn't intend to conform to its ubiquitous language
+				- intends to expose a protocol that's convenient for consuming bounded contexts.
+				- ensures a consistent understanding of domain concepts and facilitates communication among bounded contexts.
+
+					ex) can be defined in many well-known formats, such as OpenAPI, Avro, Protobuf, fixed-length values, and comma-separated values.
+
+(DDD - tactical design)
+	- consists of several building blocks that provide a foundation for designing and building a bounded context within complex business domains:
+		1) Value objects
+			- represents concepts without an identity.
+			- immutable and defined by their attributes rather than their identity.
+			- used to model concepts considered as a unit.
+
+		2) Entities
+			- objects that can be uniquely identified.
+			- have a life cycle and can change oer time.
+			- represent concepts that are individually identifiable and meaningful within the domain.
+			- maintain their state with their attributes and enforce business rules with corresponding behaviors.
+
+		3) Aggregates
+			- in a bounded context, aggregates are clusters of related entities that are operated as a single unit to maintain transactional consistency and enforce business rules.
+
+			- "Aggregate root"
+				-> entry point to read and modify the state of an aggregate.
+
+			- Aggregates take part in maintaining the integrity of the domain model and ensuring all related entities are linked together sensibly.
+
+		4) Domain services
+			- encapsulate domain behaviors that aren't tied to a specific entity or value object.
+			- enforce collaboration among multiple objects.
+			- help maintain the cohesion and integrity of the domain model.
+
+		5) Repositories
+			- stores and retrieves domain objects.
+			- can be persistent, similar to database or files.
+			- can be transient, similar to an in-memory cache.
+
+		6) Domain events
+			- represent things that have happened within a bounded context.
+			- all anemd in the past tense and are immutable.
