@@ -1,0 +1,176 @@
+[9 Event Sourcing and CQRS]
+
+(Event Sourcing)
+	- a data management pattern.
+	- has its roots in the principles of "Domain-Driven Design" (DDD)
+
+	<The classic CRUD approach and its limitations>
+		1) History, auditability, and traceability
+			-> ability to keep audit trails of all changes made to the Aggregate over time is limited.
+			-> custom data persistence code to keep historical records, or with the aassistance of database update trigggers make it challenging to track the history of changes, understand how the system reached a particular state, and comply with regulatory requirements.
+
+		2) Modeling complex domains
+			-> can struggle to effectively represent and manage the evolution of complex domain models over time.
+
+		3) Event-driven capabilities
+			-> CRUD approach has no support for event-driven architectures, where the system needs to react to and propagate changes in a decoupled, scalable manner.
+
+		4) Concurrency and consistency
+			-> CRUD-based systems often rely on traditional locking mechanisms to ensure data consistency, which often leads to performance bottlenecks in distributed, concurrent, and high-load environments.
+
+			* Maintaining strong consistency in the face of concurrent updates can be a significant challenge in CRUD systems.
+
+		5) Versioning and evolution
+			-> Updating and evolving CRUD-based systems can be problematic, as changes to the data model or business logic may require complex migrations and data transformations.
+
+		6) Analytics and reporting
+			-> CRUD systems focus on the current snapshot of Aggregates, which can make it challenging to analyze, generate reports, or derive insights from the historical data of Aggregates.
+
+	<Event as first-class citizens>
+		- event sourcing aims to solve above challenges by making events first-class citizens.
+		- "event" captures the change in an aggregate, making it a key element.
+
+		- Event Sourcing persists all the events of aggregates in an event store.
+		- There are no update or delete operations to an event because an event represents a change that has already happened to an aggregate.
+			-> Events are immutable and are stored as a journal in chronological order.
+
+		- In contrast to CRUD, in which the latest snapshot of an aggregate is a first-class citizen, Event sourcing derives the latest snapshot of an aggregate by replaying the events from the aggregate from the first to the last event.
+			-> full history of an aggregate is preserved and no custom code is required to provide an audit trail of the aggregate.
+
+		- history of an aggregate is captured as a linear timeline and naturally eliminates the challenge of keeping strong consistency with concurrent updates.
+			-> to prevent the "Lost Update" problem, where concurrent updates of the same aggregate overwrite each other unknowingly.
+
+	<Functional representations of Event Sourcing>
+		- Aggregates and events are immutable.
+		- when updates, receives an Aggregate and create a new Aggregate to return.
+
+	<Benefits of Event Sourcing>
+		1) Full audit trails with intents
+			-> intent of each change is captured.
+			-> name of each event of the aggregate ideally should come from the ubiquitous language so it becomes a business-aware and user-friendly history.
+
+		2) Time travel
+			-> it is possible to travel back in time to construct a historical representation of the aggregate.
+			-> helps engineers to reproduce a scenario that happened in the past for investigation and troubleshooting purposes.
+			-> enables users to see the historical aggregate as a feature.
+
+		3) Creation of read models
+			-> opens the door to multiple read models.
+			-> each read model consumes the same event but transforms it to meet its specific requirements.
+
+	<Deciding whether Event Sourcing should be used>
+		- An aggregate that requires multiple read models can benefit from Event Sourcing.
+			-> each read model can consume the same event of the aggregate, but it transforms the data to its unique representation of the aggregate as a materialized view.
+
+	<Event Sourcing best practices>
+		- only works if we design and architect our system with the mindset of events being first-class citizens.
+
+		1) Randomization and idempotence
+			- replaying the same sequence of events for an aggregate generates the same snapshot of the aggregate every time.
+				-> processing of events must be idempotent.
+
+			* two major factors that could violate above behavior (Time and Randomization)
+				-> use of the time, it will generate different results depending on the time of processing.
+				-> randomization at the time of event processing will also generate different outcomes for each iteration.
+
+		2) Event design
+			- An event should have one and only one aggregate.
+				-> mixing multiple aggregates results in unnecessary coupling between aggregates.
+				-> coupling created by mixed aggregates in one event makes it difficult to scale events and their topics.
+
+		3) Event topologies
+			- events are published for subscribers to receive and can be logically grouped as "topics".
+			- events are meant to be kept permanently as an append-only and sequential log of events.
+
+			* All events of one aggregate should only go to one topic only.
+				-> to simplify creating and reading the linear history of an aggregate.
+
+		4) Event schema compatibility
+			- it is important that all events are backward compatible.
+				-> old events can still be read and processed when the event schema evolves.
+
+			(Keep)
+				+ Adding an optional field
+				+ Adding more enum values to a type
+				+ Reducing the constraints of a field
+
+			(Break)
+				+ Adding a mandatory field
+				+ Renaming a field
+				+ Changing the data type of a field
+				+ Removing a field
+				+ Increasing the constraints of a field
+
+			* Backward-compatible event schema ensures that the system can always read the full history of an aggregate to re-create the latest snapshot of the aggregate.
+
+			- "Forward and Full Compatibility"
+				-> "Forward": an old consumer can read and process events of a new schema.
+				-> "Fully": both backward and forward compatible
+
+	<Performance and Memento>
+		- "Memento": persist the latest version of the aggregate as a derived record.
+
+
+(Command-Query Responsibility Segregation (CQRS))
+	- coined by Greg Young in 2010.
+
+	- four basic elements in CQRS: aggregate, query, command, and event
+
+	<Aggregate>
+		- aggregated entity that represents the current state of the domain model.
+		- aggregate contains a basket of other entities and value objects to represent a domain concept as defined in ubiquitous language.
+
+	<Query>
+		- request from clients to retrieve a representation of the state of the domain model.
+		- handling queries ia read-only operation and does not change the state of any aggregate.
+
+	<Command>
+		- requests from clients intending to change the state of an aggregate in the domain model.
+		- intention is handled to determine whether the stte should be changed and how.
+		- A command only contain the necessary information for the change, and not the whole aggregate in the request.
+
+	<Event>
+		- confirmed and immutable change of the state of an aggregate.
+		- can be created because of a command, or because of the handling of another event.
+
+	<How CQRS breaks down CRUD>
+		- breaks down CRUD into many small queries, commands, and events.
+
+	<When should CQRS be considered?>
+		- when a couple of prerequisites are met and there are legitimate problems that can be solved by CQRS.
+		- CQRS is an architectural pattern built upon DDD.
+			-> if the current system has no concept of DDD, bounded contexts, or aggregates, then it is a non-starter.
+
+		- most likely beneficial only for core domains, where the domain itself is complex enough to warrant its use.
+
+		- few signs that CQRS can be considered in the domain
+			1) Multiple actors working on the same aggregate.
+				-> some actors may work on a part of an aggregate but not all of it.
+
+			2) Multipel use cases of updating the aggregate.
+				-> there are specific use cases in which only a part of the aggregate should be updated.
+
+			3) Multiple views of the same aggregate.
+				-> sometimes there may even be a view combining multiple entities that deviate from the aggregate.
+
+			4) Imbalanced read-write ratio.
+				-> if either read or write operations are significantly more frequent than the other, read and write would need to be scaled differently as their needs are different.
+
+	<Benefits and costs of CQRS>
+		- CQRS separates the concerns of read (query) and write (command) operations so their requirements can be met in isolation.
+			-> leads to smaller code fottprints per furnction or per class, but there will be more functions or classes due to the separation.
+
+			-> drives the code toward the "Single Responsibility Principle" (SRP).
+
+		- Queries and commands are broken down into their own functions or classes.
+			-> extending functionality is unlikely to need to change existing queries and commands, and therefore it is easier than in CRUD, where there is a big repository class that contains all the CRUD operations.
+
+		- in line with the "Interface Segregation Principle" (ISP), where a client is not forced to depend on fields and functions it does not use.
+
+
+	<Outbox pattern>
+		- to manage the delivery of events in a reliable and fault-tolerant mannger, by having an outbox of messages in persistent storage, such as a relational ddatabase table.
+
+		- similar pattern to the Outbox pattern is the "Change Data Capture" (CDC) pattern.
+			-> detects changes to records by database triggers, transaction logs, or change trackers and creates an event.
+			
