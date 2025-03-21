@@ -1,0 +1,207 @@
+[10 Idempotency, Replication, and Recovery Models]
+
+	- Idempotency
+		-> ensures operations can be executed safely and repeatedly without causing uninteded side effects.
+		-> essential for maintaining data integrity and consistency.
+		-> engineers can build more resilient and fault-tolerant systems that can recover from partial failures without compromising the overall system state.
+
+	- Replication
+		-> to improve the availability and durability of data in distributed systems.
+		-> by maintaining multiple copies of data across different nodes, replication provides redundancy and helps ensure that the system can continue to operate even if one or more nodes fail.
+		-> (challenges) ensuring consistency between replicas and efficiently managing the replication process.
+
+	- Recovery models
+		-> define the strategies and mechanisms that are used to restore the state of a distributed system after a failure or disruption.
+		-> can range from simple backup-and-restore approaches to more sophisticated techniques.
+
+(Idempotency)
+	- can be safely repeated without side effects.
+
+	<A use case where idempotency is required>
+		- If the "Transfer Funds" operation isn't idempotent, then the user could accidentally click the "Transfer" button multiple times, and the system would execute the transfer operation multiple times, resulting in an unintended debit from the source account and a corresponding credit to the destination account.
+			-> solve by blocking the button once it's pushed until a response is received.
+
+			* "Transfer Funds" operation should be designed to be idempotent.
+				-> no matter how many times the user clicks, the system will only execute the transfer once, ensuring that the final state of the accounts is correct and matches the user's intent.
+
+	<Key aspects of idempotency>
+		1) Constant outcomes
+			-> always produce the same result, regardless of how many times it's executed.
+
+		2) Error handling and retries
+			-> if an operation fails, the system can safely retry the operation without causing unintended side effects.
+
+		3) Data consistency
+			-> ensure data consistency by preventing accidental data modifications or duplications, which can occur when retrying non-idempotent operations.
+
+		4) Scalability and reliability
+			-> idempotent operations allow the system to scale and handle failures without compromising data integrity.
+
+(Replication)
+	- serves as a safeguard against potential failures, allowing the system to maintain continuity of service even when individual components malfunction or become unavailable.
+
+	- some replication techniques can prevent system downtime, which requires recovery.
+	- also enable and enahnce recovery process.
+	- it can improve system performance by distributing load to multiple nodes, as well as by allowing the system to scale based on traffic.
+
+	- "replica" : the copy of data or running instances
+
+	<Data redundancy>
+		- multiple replicas are distributed across different nodes or servers.
+			-> if one node fails, the data can still be accessed from the replicated copies on other nodes.
+			-> prevents data loss if some nodes become permanently unavailable.
+			-> ensures that the overall system can continue to function, even if some nodes or components are unavailable.
+
+	<Service redundancy>
+		- beneifts:
+			1) requests can be routed to the most available and responsive replica, reducing the risk of overloading a single node and improving overall system performance.
+				-> load balancing helps maintain availability by preventing bottlenecks and ensuring that the system can handle increased traffic or workloads.
+
+			2) enables the system to scale out by adding more replicas or instances as demand increases. (Horizontal scalability)
+				-> allows the system to handle higher loads and maintain availability as the number of requests or resources required grows.
+
+			3) if a primary node becomes unavailable, the system can automatically failover to a secondary or backup replica, ensuring a "seamless transition".
+
+			4) facilitates faster recovery as the system can restore serices by promoting a healthy replica to become the new primary.
+
+	<CAP theorem>
+		- a.k.a "Brewer's theorem"
+		- it's impossible for a distributed system to provide all three of the following non-functional properties simultaneously: 
+			1) Consistency (C)
+				-> all nodes in the system have the same data at the same time.
+				-> ensures that the data is always in a valid state.
+			
+			2) Availability (A)
+				-> every request receives a non-error response, but there's no guarantee that it contains the most recent data.
+			
+			3) Partition tolerance (P)
+				-> the system continues to operate despite arbitrary message loss or failure of part of the system.
+
+		- "CAP trade-off" : when communication between nodes fails, a distributed system can only satisfy two of the above three properties (C, A, or P).
+
+		- The three possible choices are as follows:
+			1) Consistency and partition tolerance (CP)
+				-> system sacrifices availability to uphold strong consistency in the face of a network partition. (common in relational databases)
+
+			2) Availability and partition tolerance (AP)
+				-> system remains available but forgoes maintaining consistency during network failure. (common in NoSQL databases)
+
+			3) Consistency and availability (CA)
+				-> system offers both consistency and availability, but this is only possible in a fully connected system with no network partitions. (in practice, rearely happens, and the system must choose between consistency and availability.)
+
+		* The CAP theorem is a concept that helps developers understand the trade-offs they need to make when designing a distributed system.
+
+	<Model 1 - primary-secondary>
+		- a.k.a. single-leader
+		- replication has a "Primary" node (the "leader") that handles all write operations and replicates data changes to the "Secondary" nodes (the "followers").
+
+		(Read and write operations)
+			- the "Primary" node is responsbile for all write operations.
+			- If the "Primary" node serves all read operations, then the "Secondary" nodes can be either cold backup or hot standby.
+				-> "Cold backup" implies the "Secondary" nodes aren't running but the data files are being replicated.
+				-> "Hot standby" implies the "Secondary" nodes are up but not serving any request.
+
+			- pros & cons
+				1) provides strong consistency, but serving both read and write operations.
+					-> the "Primary" node takes all the load.
+
+				2) increases resource consumption and makes it more challenging to acheive high performance.
+
+				3) if the "Primary" node fails, it may take some time for the cold backup to start up and cause an outage.
+					-> "blip" caused until one of the "Secondary" nodes becomes the "Primary" node.
+
+				4) if "Secondary" node serve read requests, the throughput of read operations is increased.
+					-> if some of the "Secondary" nodes fail, others can continue to operate.
+					-> but trade-off of potential inconsistency issues.
+					-> the "Secondary" nodes failed to connect to the "Primary node"; this "Secondary" node would have outdated data but still performas a read operation and provides outdated data, something that's inconsistent with other nodes.
+
+		(Replication)
+			- when you're replicating data changes from the "Primary" node to "Secondary" nodes, you have two options:
+				1) synchronous
+					-> blocking
+					-> strong data consistency
+					-> (BUT) higher latency due to synchronous communication between the primary and secondary nodes.
+
+				2) asynchronous
+					-> scheduled background process or as an event that's published to the secondary nodes.
+					-> reduces latency as replication isn't required to return a response.
+					-> (BUT) data could be inconsistent.
+
+		(Failover)
+			- If the primary node fails, one of the secondary nodes needs to become the primary node.
+
+			* if data is replicated asynchronously, losing a primary node may result in losing the latest data.
+				-> the primary node has updated its local storage and returned the result, but then fails before it can notify secondary nodes.
+
+			* if the failed primary node gets backed up but loses the connection to some of the secondary nodes, there are two primary nodes, and secondary nodes are fragmented.
+				-> usually requires manual intervention to shut down one of the primary nodes and reconnect all secondary nodes to the one primary node.
+
+	<Model 2 - partitioned and distributed>
+		- a.k.a "multi-leader"
+		- distributes data management into partitions.
+			-> allows multiple nodes to serve requests at the same time.
+			-> these nodes replicate the changes to the other nodes, enabling higher write throughput and availability.
+
+		* typically used when data and services are replicated across multiple geographical locations, often in different data centers or cloud regions.
+			-> this provides availability and resilience against regional failures or disasters.
+
+		- difficult to uphold strong consistency if the same data across multiple regions can't be updated at the same time.
+
+		(Resolving write conflicts and avoiding lost updates)
+			- "lost update" problem
+				-> if Client A requests an update earlier than Client B does, then the process of updating something would be lost.
+					+ this is because Client B almost immediately overwrote the value without knowing Clint A had also requested an update.
+
+				-> (Solve) can be solved by having a version number or timestamp on the data.
+					+ if an incoming request update is identified as older than the one in the system record, then it's safe to skip the update.
+
+					* having a monotonic increasing version number is a preferred method compared to timestamps due to risk that the system clock on each machine can be different.
+
+	<Model 3 - quorum-based replication>
+		- known as "leaderless"
+		- requires nodes to agree on the state of the data before committing a write operation.
+			-> ensures consistency and availability, even if some nodes have failed.
+
+		* lack of a primary node, a leader, or a central coordinator.
+			-> instead the data is decentralized and distributed among the nodes in the cluster.
+
+		- write operation is only considered successfully if it's acknowledged by the majority (quorum) of the participating nodes in the system.
+			-> ensures that a write is only committed if it's been replicated to enough nodes, making the system resilient to individual node failures.
+
+		- size is typically set to at least more than half of the total nodes, ensuring that even if some fail, the system can still make progress and maintain a consistent state.
+
+		- the data that's synchronized among the nodes is versioned for a couple of reasons:
+			1) the data synchronization process needs to identify an older version of the data, as well as increment the version to indicate an update.
+
+			2) Clients can read the version to understand whether the data that's received is outdated.
+
+		- commonly used in distributed databases, key-value stores, P2P networks, blockchains, and coordination services, where maintaining strong consistency and availability in the face of node failures is of utmost importance.
+
+(Recovery)
+	- heavily relies on accessible data replicas, except stateless systems.
+		-> the recovery approach heavily relies on the replication approach.
+
+	<Snapshots and checkpoints>
+		- the most common approach for recovery is to have a snapshot of the last known system state.
+			-> periodically saving the state of the distributed system is known as "checkpointing".
+
+		- in the event of failure, the system can be rolled back to the last known good checkpoint to restore the system to a consistent state.
+			-> the amount of data loss would depend on how often the snapshots are taken.
+
+	<Change logs>
+		- A system state can also be restored by replaying the change logs of all operations and transactions within the distributed system.
+
+		- common to recover distributed systems using a combination of checkpoints and change logs.
+
+		- helps recover from failures by replaying the missed or lost operations.
+
+	<Re-route and re-balance>
+		- After a node is brought up, it needs to create or join a network of nodes.
+			-> Requests may need to be re-routed and partitions may need to be re-balanced.
+			
+
+
+
+
+
+
