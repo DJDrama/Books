@@ -1,0 +1,374 @@
+[11 Auditing and Monitoring Models]
+
+(The importance of auditing and monitoring)
+	<Auditing>
+		- systematic approach of reviewing, examining, and verifying the various aspects of a system to ensure its compliance, security, and overall integrity.
+
+		- Auditing covers the following key areas:
+			1) Compliance
+				-> insepcting the system's conformity to relevant laws, regulations from authority, industry standards, and company policies
+
+			2) Security
+				-> accessing the system's security infrastructure, policies, and procedures.
+				-> includes vulnerability assessments, penetration testing, data protection mechanisms, and access controls.
+
+			3) Change Management
+				-> reviewing the processes and documentation associated with system changes and updates.
+
+			4) Incident Management
+				-> examining the effectiveness of responses to the system incident and disaster recovery procedures.
+
+			5) Performance
+				-> evaluating the efficiency of the system's operations, resource utilization, and overall performance.
+
+		- typically involves collecting and analyzing various system logs, configuration files, user activities, documentation, and other relevant data to identify potential issues, vulnerabilities, and areas for improvement.
+
+	<Monitoring>
+		- involves continuously observing and tracking a system's operational state, performance, and behaviors.
+
+		- following are some monitoring activities:
+			1) Real-time monitoring
+				-> continuously collecting and analyzing system metrics, such as system availability, resource utilization, network traffic, and error rates, to detect and respond to issues promptly
+
+			2) Anomaly detection
+				-> identifying unusual or unexpected system behavior that may indicate potential problems or security threats
+
+			3) Trend analysis
+				-> examining historical data to identify patterns, trends, and changes in the system's performance and usage over time
+
+			4) Alerting and notifications
+				-> triggering alerts and notifications when predefined thresholds or conditions are met, enabling proactive issue resolution
+
+			5) Dashboards and reporting
+				-> providing visual representations of system health, performance, and key metrics to support data-driven decision-making
+
+		- typically invovles deploying various monitoring middleware components, agents, and frameworks that collect, aggregate, and analyze data from different components of the system.
+
+	<Why are auditing and monitoring important?>
+		- critical for the effective management and operation of any system.
+
+			1) Ensuring reliability and availability
+				-> proactive monitoring helps identify and address issues before they escalate into system failures or downtime.
+
+			2) Maintaining security and compliance
+				-> audit logs and data monitoring can be used to detect and investigate security breaches, unauthorized access attempts, and other malicious activities.
+
+			3) Optimizing performance and efficiency
+				-> monitoring system metrics and resource utilization can help with identifying bottlenecks, optimizing resource allocation, and improving overall system performance.
+
+			4) Enabling data-driven decision-making
+				-> can be leveraged to identify patterns and generate valuable business intelligence, supporting strategic planning and decision-making.
+
+				-> Historical data and trend analysis can help with predicting future resource requirements, planning for capacity expansions, and identifying opportunities for process improvements.
+
+			5) Facilitating troubleshooting and root cause analysis
+				-> can help engineers and support teams quickly identify the root causes of problems, reducing the time required for issue resolution.
+
+	<Auditing, monitoring, and measuring systems>
+		* You can't improve what you don't measure. (Peter Drucker)
+
+		- without measurement, the organization could fall into the following scenarios:
+			1) Opinion-based decision making
+				-> without quantitive evidence, peopel can only express opinions they have little ground to base on.
+				-> leads to ineffective communication among stakeholders and engineers and a fragmented understanding of the problem.
+
+			2) Hit-and-miss improvement
+				-> any attempt to improve the system features or quality attributes becomes hit and miss. (some of them work, and some of them may not, due to the lack of understanding of the problem)
+				-> the organization would then carry on the opnion-based decision-making in a vicious cycle.
+
+		- On the contrary, measuring the system via monitoring benefits in the following ways:
+			1) Establishing baselines
+				-> provides the necessary baseline against which future improvements can be assesd and compared.
+
+			2) Identifying opportunities
+				-> can uncover problems, bottlenecks, or inefficiencies within a system that may not be apparent without quantifiable evidence.
+
+			3) Tracking progress
+				-> allow organizations to track the impact and effectiveness of those changes, ensuring that they make a positive impact and that desired outcomes are being achieved.
+
+			4) Informed decision-making
+				-> Reliable data and metrics enable data-driven decision-making, allowing organizations to prioritize and allocate resources more effectively toward the areas that will yield the greatest improvements.
+
+				* Quantitative evidence is one of the best ways to align people's understanding and to effectively drive consensus on the improvement required.
+
+			5) Continuous optimization
+				-> can continuously identify new opportunities for improvement, creating a cycle of ongoing optimization and refinement.
+
+	<When are auditing and monitoring not necessary?>
+		- If the system is extremely simple, with very few components and minimal dependencies, the need for comprehensive audit and monitoring may be reduced.
+
+	<The challenges of distributed system auditing and monitoring>
+		- Distributed systems pose several unique challenges that make their auditing and monitoring more complex than traditional monolithic architectures:
+			1) Distributed data sources
+				-> data and logs are scattered across multiple nodes, services, and communication channels.
+				-> Collecting, aggregating, and correlating this info is a crucial but challenging task.
+
+			2) Dynamic infrastructure
+				-> keeping track of the constantly evolving topology and resource utilization is essential for effective monitoring.
+
+			3) Interdependencies and cascading failures
+				-> a failure in one part of the system triggers issues in other areas (cascading failures)
+				-> identifying and tracing these complex relationships is crucial for root cause analysis and recovery.
+
+			4) A mixture of various technologies
+				-> distributed systems often incorporate a diverse set of technologies, including various programming languages, data stores, and middleware components.
+
+				-> developing a unified approach to auditing and monitoring that can handle this heterogeneity is a challenge.
+
+			5) Real-time responsiveness	
+				-> Distributed systems require auditing and monitoring solutions to process and analyze data at high speeds without introducing significant latency or performance overhead.
+
+			6) Compliance and regulatory requirements
+				-> many industries and organizations have strict compliance regulations that mandate comprehensive audit trails and monitoring capabilities.
+				-> ensuring that the distributed system meets these requirements is a critical responsibility.
+
+(Capturing the appropriate data)
+	<Audit trails>
+		- following are essential fields that are typically captured in audit trails:
+			1) Timestamp
+				* Coordinated Universal Time (UTC)
+					-> doesn't tie to any time zone.
+					-> can easily be converted into any local time zone
+					-> global standard for timekeeping
+
+			2) User IDs
+				-> user's identity must be tokenized and not contain any PII(Personally Identifiable Information).
+				* accessing user information by user ID is restricted to only authorized individuals and local authorities.
+
+			3) Event or action type
+				-> type of event or action that's been performed
+					ex) login, logout, data access, or data modification
+
+			4) Details of the action performed
+				-> specific details of the action, usually the input parameters for the action.
+				-> details may contain sensitive info that needs to be protected.
+
+			5) Resource accessed
+				-> resource involved in the action that's been performed.
+				-> typically linked to an aggregate, an entity, or a value object.
+
+			6) Outcome
+				-> result or consequence of the action.
+				-> for success, essential to capture what will happen next.
+				-> for failure, any error message or invocation stack trace should be included.
+				-> also, important to capture any side effects so that further investigation can be performed on them.
+
+			7) Session ID
+				-> identifier of the session during which the event occurred.
+				-> helps any correlation investigation figure out what other actions may have been performed in the same session.
+
+			8) Application ID
+				-> identifier of the application where the event occurred.
+				-> helps engineers pinpoint where an issue may have occurred so that the situation can be improved.
+
+	<Monitoring data>
+		- monitoring has a unique focus on metrics, availability, and the non-functional properties of a system.
+			1) Timestamp
+				-> date and time of the event.
+
+			2) System metrics
+				-> CPU usage, memory usage, disk I/O, network traffic, messaging infrastructure, databases, and caches.
+
+			3) Application metrics
+				-> number of API calls, background job executions, response times, request rates, and error rates.
+
+			4) Service health
+				-> Status of services (up, down, or degraded)
+
+			5) Performance metrics
+				-> latency and throughput of operations
+
+			6) Logs
+				-> Application logs and system logs
+
+			7) Alerts
+				-> Notifications under predefined criteria
+
+			8) User activities or business metrics
+				-> general user activity patterns, not specific actions.
+					ex) "how many new users have signed up in the last 2 hours"
+					ex) "how many transactions were created in the last 30 minutes"
+
+	<Application log messages>
+		[Logging levels]
+			1) TRACE
+				-> most detailed and fine-grained level of information
+				-> very verbose and full of technical data that can be referenced to the source code.
+				-> only turned on in local development environments and exceptionally for troubleshooting critical problems in higher environments.
+
+			2) DEBUG
+				-> provides information that may be needed for diagnosing and troubleshooting issues.
+				-> usually switched off in production environments but switched on in lower environments for testing purposes.
+
+			3) INFO
+				-> announces the change in application state or that something has happened.
+				-> intend to capture only the result of successful cases, and require no corrective action.
+				-> the lowest level of log messages to be shown in a production environment.
+
+			4) WARN
+				-> unexpected situation has happened in the application.
+				-> may require investigation by engineers, but not as an emergency.
+
+			5) ERROR
+				-> one or more functionalities can't be completed.
+				-> consistent failure of a part of the system.
+
+			6) FATAL
+				-> fundamental error in the crucial functionality no longer works.
+					ex) losing connection to a database so that none of the persistence functions can be completed.
+				-> an urgent corrective action or even manual intervention is required to recover the situation.
+
+		[Log message formats]
+			* A good log message should contain a timestamp, the name of the logger the log level, the thread name, the class name where the message was logged, and the message itself.
+
+			- characteristics:
+				1) Concise
+					-> message should be short and ideally in one sentence.
+
+				2) Mindful use of tenses
+					-> two major tenses should be used.
+						ex) past tense: describe what happened
+						ex) continuous tense: logging processes that are still running and should be concluded with a log message announcing the process has been completed.
+
+				3) Key information
+					-> should contain the essential IDs so that engineers who read the message can troubleshoot the related issue.
+
+				4) Incite an action
+					-> engineers can act on the log message, either as an investigation or confirmation of the outcome of a process as this would be valuable.
+
+				5) Consistent style
+					-> promotes easier understanding and faster response to a log message.
+
+		[Logging frameworks]
+			* the same logging framework should be used whenever possible.
+				-> reduces the inconsistencies of log message in the system.
+
+			1) "Unstructured log"
+				- a plain string with some formatting
+					ex) 09:50:22.261 [main] INFO o.e.household.HouseholdRepository - Created a new household 'Whittington'
+
+				* hard to extract the exact information accurately and consistently.
+
+			2) "Structured log"
+				- promotes well-defined fields and structures so that data can easily be extracted.
+					ex) log message expressed as a JSON object
+
+				- "Kotlin Logging" (https://github.com/oshai/kotlin-logging)
+
+			3) "Contextual logging, or Mapped Diagnostic Context(MDC)"
+				- aims to group or correlate log messages with the use of IDs(ex) user ID, request ID, session ID, and so on).
+
+				- helps engineers identify and diagnose issues by going through a small set of log messages under the same context.
+
+				- cut through layers of abstraction in the log message.
+					-> might be logging in the service layer, and the repository layer can be grouped by the contextual data.
+
+				- compatible with structured logging.
+					-> contextual data is added as custom fields to the log messages within the scope so that these log messages can be grouped and analyzed.
+
+(Centralizing and aggregating data)
+	<Audit data structure unification>
+		- downside: Audit service must know the schema of all auditable events of all services.
+			-> lot of dependencies to manage in Audit service.
+
+	<Linking related audit trails using IDs>
+		- "correlation ID"
+			-> useful for troubleshooting and understanding the relationships between different components in a distributed system within a business journey.
+
+	<Discoverability of event topics>
+		- several ways to discover and dynamically consume event topics:
+			1) Use service discovery mechanisms (service registries or service meshes to discover the available event topics or event streams)
+
+			2) Use a centralized event catalog
+				-> which can be in the form of a standalone service, or just a resource such as a last-value queue that can be accessed by Audit Service.
+
+			3) Use messaging brokers (RabbitMQ and Kafka)
+
+			4) Use configuration management tools such as Spring Cloud Config or Kubernetes as they provide APIs that can be used to look up event topics.
+
+	<Metrics, visualization, and dashboards>
+		- metrics that are measured and visualized on dashboards can be grouped into two categories
+			1) Service-level metrics (service-level indicators (SLIs))
+				-> measure the reliability, availability, latency, and performance of a system at the service level.
+				-> focuses on the Quality of Service (QoS) provided to users and external systems.
+
+				- service-level objective (SLO) and service-level agreement (SLA)
+					-> should be highlighted in the dashboard.
+					-> sensitive metrics that could affect customer satisfaction, relationships with external entities, and the reputation of the organization.
+
+			2) Business-level metrics
+				-> focus on patterns and usage that should bring awareness to the business.
+					ex) how many new users have signed up in the system.
+
+				* are often compared against the defined "key performance indicators" (KPIs), which are used to demonstrate how effectively an organization achieves its "objectives and key results" (OKRs).
+					-> "objective" part of OKR is a qualitative and visionary goal that may not be measurable.
+					-> "key results" part of OKR are measurable and usually set up regularly.
+
+
+		- DORA (DevOps Research and Assessment)
+			-> metrics are a set of KPIs to ensure the effectiveness and efficiency of software development and delivery processes.
+
+			[Four primary metrics]
+				1) Deployment frequency
+					-> how often a production release has succeeded
+					-> higher frequency indicates a higher velocity and responsive development process.
+
+				2) Lead time for changes
+					-> time taken between committing code to production
+					-> Shorter lead times represent a more efficient development pipeline.
+
+				3) Change failure rate
+					-> percentage of deployments that cause a failure in production
+					-> lower rates indicate more stable and reliable releases
+
+				4) Mean time to recovery
+					-> average time taken to recover from a failure in production.
+					-> faster recovery times indicate better incident response and resilience
+
+			[SPACE metrics]
+				- provide a holistic perspective of engineering productivity in addition to software delivery efficiency.
+
+				1) Satisfaction
+					-> quantitative and qualitative measurement of how satisfied engineers are with their work, work-life balance, and tools
+
+				2) Performance
+					-> specifies the quality, effectiveness, and impact of the software that's been delivered
+
+				3) Activity
+					-> volume of activities that have contributed to the completion of work - ex) number of commits and pull requests
+
+				4) Communcation and collaboration
+					-> involves evaluating the effectiveness of team meetings, cross-team cooperation, and collaborative tools
+
+				5) Efficiency
+					-> measures how time, effort, and tools are effectively utilized for desired outcomes, delivery, and waste reduction
+
+	<Automated alerting and incident management>
+		- Monitoring tools allow the organization to trigger alerts under various conditions:
+			1) Resource utilization is too high (more than 90% CPU usage over 10 minutes)
+			2) The given metric has exceeded the threshold (more than 20 HTTP responses with status code 400 in last 5 minutes)
+			3) When security threats or anomalies are detected, such as unauthorized access attempts
+			4) A bespoke error log pattern is detected (Unable to authorize payment has been detected)
+
+		* There are no golden incident management proceures, but there are principles of incident management that should be considered.
+			1) Establish and document the incident management workflow
+				-> people involved in incident management have a process to follow
+
+			2) Implement communication channels
+				-> recommended to have a dedicated instant messaging channel for each incident so that you have relevant and focused collaboration among people.
+
+			3) Document the journey for each incident
+				-> capture the findings of the problem, the troubleshooting journey, the resolution of the problem, and the communication during the incident.
+				-> useful for internal improvement, audit, and regulatory requirements.
+
+			4) Conduct follow-up meetings
+				- three types of meetings
+					(1) after-action review (AAR)
+					(2) post-mortem
+					(3) autopsy meeting
+
+				- purpose: to review and replay the incident, identify what was learned from this incident, and discuss preventative measures and any potential improvements.
+
+
+
+
