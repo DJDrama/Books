@@ -1,0 +1,250 @@
+[12 Performance and Scalability]
+	- performance: how quickly a system can process and respond to requests
+
+	- scalability: a system's capacity to handle a higher volume of traffic and usage over time.
+
+(Dimensions of performance and scalability)
+	- Performance, measured by various metrics:
+		1) Latency
+			-> time taken for the system to respond to a request.
+		
+		2) Throughput
+			-> the number of requests processed in a given time frame.
+
+		3) Resource utilization
+			-> percentage of resources used during operations (CPU, memory, network, files, and etc)
+
+		4) Concurrent users
+			-> number of users effectively served by the system simultaneously without degradation in performance.
+
+		5) Page load time
+			-> total time taken for a screen to fully load, including all assets (images, videos, scripts, and etc)
+
+		6) Queue size
+			-> number of requests waiting to be processed by the server
+
+		7) Time to first byte (TTFB)
+			-> time that elapsed from when the client initiated a request to the client receiving the first byte from the server
+
+		8) Cache hit ratio
+			-> percentage of requests served from the cache versus those from the slower secondary data source. A higher ratio indicates more efficient caching.
+
+		9) Error rate
+			-> percentage of requests resulting in errors (HTTP error statuses).
+			-> High error rates indicate problems with the application or infrastructure.
+
+	- Scalability, categorized into two types:
+		1) Vertical scaling (Scale Up)
+			-> Adding more resources (CPU, RAM) to a single node to increase its capacity.
+
+		2) Horizontal scaling (Scale Out)
+			-> Adding more nodes to distribute the load and improve capacity in a distributed system.
+
+	- Scalability, measured by the following metrics:
+		1) Scalability ratio
+			-> the ratio of the increase in performance to the increase in resources such as the number of servers
+
+		2) Time to scale
+			-> time taken between adding resources to extra resources becoming operational in the system
+
+		* Useful in measuring how a change in the system may affect performance and scalability.
+
+(Optimize performance now or later?)
+	- spending too much time on performance improvements before understanding user behaviors and requirements can lead to wasted effort.
+
+	- moreover, creates an unnecessarily complex architecture that hinders the team's productivity.
+		-> team may have to simplify the over-engineered system, which also requires effort.
+
+	<Considerations for optimizing performance and scalability>
+		- several factors to consider
+			1) Core features completeness
+				-> when features are still being developed, focus on delivering them and functionality initially. ("Make it work!" and "Make it right!")
+
+			2) Performance metrics
+				-> paramount to have current performance metrics as a baseline.
+				-> performance baseline provides insights into the current system bottlenecks that help the team prioritize which area should be improved first.
+
+			3) Non-functional requirements
+				-> useful source of guidance on whether the system needs to be optimized now.
+				-> Non-functional requirements for performance can be driven by regulatory constraints, external system integration conformance, or principles of user experiences.
+
+			4) Critical use cases, user experiences, and competitors
+				-> if need to handle high traffic from the beginning, eraly optimization is essential.
+				-> if application's performance directly impacts user satisfaction, it's important to address performance concerns early to avoid negative feedbacks.
+				-> current performance metrics of competitors also indicate how much the application's performance should be optimized.
+
+			5) Scalability needs
+				-> if rapid growth or scaling needs are anticipated for an application, implementing good performance practices from the beginning will save time and effort later.
+
+	<Best practices for performance>
+		1) Measure first
+			-> meausre the current performance metrics, ideally all operations, but as a bottom line, measure the core features and most frequent operations.
+
+		2) Implement basic optimization
+			-> such as efficient database queries in the early stage of development.
+
+		3) Plan for scalability
+			-> plan and have scalability in mind when designing system architecture to allow for easier optimization later without major refactoring.
+
+(Performance Tests)
+	- a category of test that evaluates the speed, responsiveness, and stability of a system under a given workload.
+
+	<Load testing>
+		- aim to assess the behaviors of a system under expected load conditions, such as a configured number of concurrent requests.
+
+		- goal is to identify bottlenecks in application or infrastructure where performance may degrade under load.
+
+		- ensures the system can handle anticipated traffic without performance degradation.
+
+	<Stress testing>
+		- aim to evaluate the system's performance under extreme load conditions beyond its normal operational capacity.
+
+		- help us determine the breaking point of the system and how it fails under stress, so proactive monitoring and alerts can be deployed for precautions.
+
+	<Endurance testing (soak testing)>
+		- focus on the stability and performance of a system over an extended period.
+		- "extended period" is used to identify issues that accumulate or emerge over time, such as memory leaks, resource exhaustion, or performance degradation.
+
+	<Spike testing>
+		- "spike" (a sudden increase in load)
+		- observe how the system reacts in the "spike" situation.
+		- illustrates how the system can handle abrupt changes in traffic without failure.
+
+	<Volume and latency testing>
+		- volume tests evaluate the system's performance with a large volume of data.
+		- latency tests measure the time delay between a request and the corresponding response.
+		- usually measure metrics such as throughput and latency to ensure the application can meet "service-level agreement"(SLAs) or "service-level objectives"(SLOs)
+
+	<Scalability testing>
+		- aim to determine how weel the system can scale up or down in response to increasing or decreasing loads.
+		- measures the performance of the system as resources are added or removed.
+
+	<Configuration testing>
+		- aim to identify the optimal configuration for performance.
+		- involve running performance tests under different configurations, including hardware, software, and the network.
+
+(Planning a performance test)
+	<Planning>
+		1) first, the objectives of the test should be defined.
+			-> we must define the information we want to get out of the tests
+				ex) 
+					+ can a household record be created within 50 milliseconds?
+					+ can the system handle 5,000 concurrent requests without degradation?
+
+		2) business scenarios for performance tests should be defined.
+		3) specify the load levels to run, including the number of users and the duration of the test.
+
+		* Performance tests are meant to run iteratively!
+
+	<Preparation of development>
+		* the test environment should be an isolated sandbox that does nothing but the performance tests.
+
+	<Execution and iteration>
+		- performance testing is meant to be a recurring exercise.
+		- A successful and satisfactory performance test only supports the assumption that the system is capable of handling requests within the configuration and parameters in the test scripts.
+
+		* The system usage pattern is constantly changing due to business growth and new features being introduced over time.
+
+	<Benefits of performance testing>
+		- provides insights into how the system performs under pre-configured loads.
+
+		- indicates how we can optimize the system to provide a fast & reliable user experience even under heavy load.
+
+		- helps stakeholders understand system limits and make informed decisions about scaling and infrastructure.
+
+		- identifies potential issues before they impact users, reducing the risk of downtime or service degradation.
+
+		* essential for ensuring that applications meet user expectations and maintain stability under varying conditions.
+			-> organizations can identify and address potential issues, optimize performance, and enhance overall user satisfaction.
+
+(Microbenching)
+	- performance testing focuses on system-level performance
+	- micro-benchmarking is a performance measurement of a small and isolated piece of code at the function level.
+		-> usually applicable to the follwing areas:
+			1) the algorithm that sits in the core of the whole system
+				ex) search algorithm for an internet search engine
+
+			2) function that's used most frequently by end users
+
+			3) function that's exposed as an API to external systems
+
+			4) code path that's mission-critical and performance-sensitive
+
+			5) when comparing the implementations of a function, an algorithm, or a code change
+
+	- "Kotlin benchmarking"(https://github.com/Kotlin/kotlinx-benchmark)
+		-> the most popular too for running benchmarks for Kotlin code.
+
+	- Micro-benchmarking is a valuable subset of performance testing that focuses on code implementation.
+		-> by understanding the performance characteristics of isolated functions, engineers can make targeted optimizations.
+
+(Application profiling)
+	- profiling works by monitoring and analyzing the performance of an application at runtime.
+	- profilers instrument code and intercept calls to collect performance measurements
+		ex) 
+			+ elapsed time and the number of invocations.
+			+ can generate the stack trace of the application to visualize relationships between functions.
+
+	- monitors memory allocation and deallocation, analyzes the heap dump, and identifies potential memory leaks.
+
+	- at the same time, the profiler tool measures CPU cycles that have been consumed by various parts of the code and identifies computing-intensive functions.
+
+	- also monitors the usage of other resources, such as file operations, network activities, and interactions, among threads to provide a comprehensive view of resource utilization.
+
+	* running an application with the profiler slows down performance due to invasive instrumentation and measurement.
+
+	* should be used to analyze performance-critical operations.
+		-> they don't usually run in production environments due to instrumentation being slowed down significiantly.
+		-> common to run profilers in a lower environment with inputs simulating the production environment.
+
+(Strategies for performance improvement)
+	- no silver bullet magically boosts performance!
+
+	<Testing, testing, testing>
+		- performance tests should be conducted continuously and repetitively.
+		- performance tests should be treated as both troubleshooting and discovery tools.
+
+	<Avoiding expensive operations>
+		ex) use "asSequence()" if there are multiple "higher order functions" or "collection functions".
+
+	<Best practices of performance in Kotlin>
+		[In-line functions]
+			- functions are simply copied to the caller to reduce the need to invoke the function itself.
+				-> useful if there's a deep stack of functions or if there's a higher-order function.
+
+		[The use of immutable and mutable data structures]
+			- immutable data eliminates the need for locking in multi-thread environments.
+				ex) List, Set, Map collections work with immutable data.
+
+			* however, when building a bigger object, such as a string, it's advisable to use mutable collections or the "StringBuilder" class to avoid unnecessary object creation that could trigger garbage collection in Kotlin/JVM.
+
+		[The use of coroutines for asynchronous operations]
+			- coroutine library enables the program to invoke asynchronous operations so that the thread isn't blocked and can perform other operations while waiting for the asynchronous result to come back.
+				-> enables better resource management and quicker response in applications.
+
+(Ultra-low latency systems)
+	- Ultra-low systems operate in the microsecond or nanaosecond magnitude.
+		-> they run in an environment where low response time is critical and even essential.
+			ex) financial trading, telecommunications, gaming, and industrial automation.
+
+	- aim to achieve the lowest possible latency, highest efficiency, high predictability, and high concurrency regarding processing.
+		-> involve all aspects of a system to reduce response time, such as network optimization, hardware acceleration, load balancing, and efficient algorithms.
+
+		-> usually written in system-level programming languages such as C++ and Rust.
+
+	- "mechanical sympathy"
+		-> write code or design systems that are aware of and optimized for the underlying hardware and network infrastructure they run on.
+
+	- "Disruptor pattern"
+		-> it provides a large ring buffer for inter-thread lock-free communication and memory barriers for data visibility in a thread.
+
+	* Ultra-low latency systems have the justification that they can break a few design principles in exchange for higher performance.
+		-> they are exceptional cases due to the demanding need for low latency, high throughput, and quick response time.
+
+	* performance tests are critical and should be part of the normal development activities.
+
+
+
+
+
+
