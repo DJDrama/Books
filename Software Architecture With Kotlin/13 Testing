@@ -1,0 +1,266 @@
+[13 Testing]
+    - Certification from "Quality Assurance(QA)" is often used as the indicator of whether the software product is ready to go live.
+
+(The role of QA and software testers)
+    - goals of software testing
+        1) To identify and rectify defects before a product reaches the end user
+        2) To ensure the software product behaviors meet the functional specifications or business expectations
+
+    - QAs focus on overall testing strategies, test script creation, test processes and tools, "User Acceptance Test" (UAT) planning, and exploratory testing.
+
+    <To code or not to code?>
+        - writing code is a necessary part of QA's role.
+            -> "QA engineers" : the organization expects the QA person to write code.
+
+    <Software quality is everyone's responsibility>
+        - QA is the role that ensures software quality is taken care of every step of the way, so the outcome is a high-quality and well-tested software product.
+
+        - by adopting a systematic approach to testing, organizations can mitigate risks, reduce costs associated with post-release defects, and foster user trust.
+            -> organizations can not only improve product outcomes but also enhance team collaboration and communication.
+
+(QA's involvement in the software development life cycle)
+    - "The conveition of acceptance criteria"
+        + follow a popular structure of "given-when-then"
+            1) "Given"
+                -> provides the initial context of the state of the system before the action is performed.
+
+            2) "When"
+                -> is the action performed given the context.
+
+            3) "Then"
+                -> is the expected outcome because of the action performed.
+
+            ex)
+                "Given that a household does not exist in the system, when the household creates an account in the system, then the corresponding household record is created."
+
+    - QAs perform exploratory testing, which emphasizes the testers' autonomy and creativity.
+
+    - There will also be a document on the findings, bugs discovered, unusual behaviors, and areas that require further investigation
+        -> these documents are hosted in an "Issue tracking system"
+            ex) JIRA, Asana, Trello, GitHub Issues, and etc.
+
+(Testing pyramid)
+    <Unit Testing>
+        - the bottom level of the pyramid.
+        - foundation of the testing pyramid.
+        - focus on the smallest building blocks that can be tested in isolation.
+            -> often test the behaviors of functions, and they are executed as a part of the local project build.
+
+        - comparatively easy to write and execute due to their small size and scope.
+
+        * can be run inside the "Integrated Development Environment" (IDE), which provides the quickest feedback loop.
+            -> Bugs can be found and reported by unit tests within minutes - if not seconds.
+
+        - A system has more unit tests than any other type of test, as unit tests target the smallest components, resulting in a larger quantity compared to larger tests.
+
+        * "Unit tests should be meaningful"
+            -> a private function usually does not require a unit test, but a function that's called by other packages should have a unit test.
+
+            -> Functions extracted merely to avoid duplicated code are unlikely to form a meaning that requires testing.
+
+    <Parameterized Testing>
+        - "blackbox testing" : focus is solely on the input and output without any concern for how the system processes it.
+            -> evaluates the functionality being tested without any knowledge of the internal code or structure.
+            -> Testers focus merely on the inputs, expected outputs, and alleged functionality provided (known as the "contract")
+
+        - "whitebox testing"
+            -> has full visibility into the internal structure, code, and logic of the system.
+            -> can test specific mechanisms.
+            -> allows for more through testing of the system's components and pathways.
+            -> design test cases based on the implementation details.
+
+        * "Human factors"
+            -> once a tester has seen the internal implementation, it is difficult to pretend not to have seen it before and to write bias-free blackbox tests.
+
+        * First start writing blackbox tests without knowing the implementation first and to focus on testing the external behaviors.
+
+        * Afterward, check the implementation to write whitebox test cases and focus on code branches and non-functional requirements.
+
+    <Component Testing>
+        - known as "module testing".
+        - one level above unit testing in the pyramid.
+        - focuses on testing the higher-order behaviors of self-contained modules.
+        - Component focuses on the behaviors emerging from the interactions of several units of code.
+
+        - tests are bigger and require more effort to write.
+            -> each test usually involves setting a combination of states before the test.
+            -> if there is a problem found, it is not immediately obvious where the problem is, and it would require some time to troubleshoot and debug.
+
+        * the cost of testing and fixing bugs is higher than unit testing.
+
+        - Component testing the core layer of the Core domain with blackbox testing first would become the "Behavior-Driven Development" (BDD) approach.
+
+        (Mocking external resources)
+            - it is inevitable to encounter situations when the code tries to integrate with external resources such as queues, files, databases, or other applications.
+
+            * Mocking enables testers to isolate the component being tested from external dependencies.
+
+            * "The 3A test pattern"
+                1) Arrange
+                    -> initialization of preconditions and input data for the test.
+
+                2) Act
+                    -> execution of the behaviors being tested.
+
+                3) Assert
+                    -> verification of the actual outcome against the expected result.
+
+            * Five types of "Test doubles" used in software testing.
+                1) "Mocks"
+                    -> pre-programmed with expectations of how they should be used.
+                    -> used to verify whether the specific functions are invoked with the expected parameters.
+
+                2) "Stubs"
+                    -> pre-defined responses to functions but do not verify interactions.
+
+                3) "Spies"
+                    -> spies log the parameters used and count the function calls.
+                    -> the actual function is still invoked.
+
+                4) "Fakes"
+                    -> allow for a simplified implementation of the external dependencies for testing purposes.
+
+                5) "Dummies"
+                    -> simple object used to satifsy parameter requirements without needing to implement any behavior.
+
+    <Contract testing>
+        - focuses on the interaction between API producers and consumers.
+        - only aims at the communication protocol and the message content.
+        * should not be used for business case testing
+            -> we already have component testing covering it in the lower level of the testing pyramid.
+
+        - two types of contract testing:
+            1) Consumer testing
+                -> focuses on the service that makes requests to another service.
+                -> defines the expectations of the interactions it will have with the producer, through a contract.
+                -> verifies that the consumer service can handle all documented responses to the requests made.
+
+                * uses stubs or fakes to set up the target service to communicate with.
+
+            2) Producer testing
+                -> focuses on the service that provides the functionality or data requested by another service.
+                -> aims to assert that the producer has fulfillfed the API contract and met the expectations of its consumers.
+                -> involve running the actual service, which makes it seem as though it should be higher up in the testing pyramid.
+
+                * often used to ensure that updates and changes to contracts are backward compatible.
+
+        * important to have contract tests focus on the communication and message content only.
+
+    <Integration testing>
+        * integration tests do not use stubs or fakes.
+        - identify issues when integrating various parts of the system and verify the parts work tegether as inteded.
+        - also a part of the local project build
+
+        * usually involves databases, file systems, external services, or APIs
+
+        - common types of integration testing:
+            1) API integration testing
+                -> use to exposed APIs to interact with the application for the given use case and to verify the result from the response.
+
+            2) Database integration testing
+                -> confirm that the data is correctly processed in the database.
+                * related to Create, Read, Update, Delete (CRUD) operations
+
+            3) File system integration testing
+                -> verify that the application can read from or writes to files correctly, and verify the file reflects the result of the opreations in the test.
+
+            4) Middleware or external service integration testing.
+                -> verify that the integration of middleware or external service connectivity is correctly configured, as well that the application and middleware or external service can communicate as intended.
+
+        - Bigger than component and unit tests due to required configuration and preparation.
+        - Also more complex to write and reason about.
+            -> might involve various combinations of configurations
+                ex) multiple pluggable databases or message providers, while the business functionality remains the same.
+
+    <End-to-end and automated GUI testing>
+        - includes graphical user interface (GUI) testing and contract testing.
+        - more transparent to business stakeholders.
+
+        - focuses on a user journey that covers multiple services or components in the system.
+        - uses APIs for communication with various parts of the system, while automated GUI testing simulates human interaction with the system.
+
+        * some systems have a suite of public APIs for integration with external "Software-as-a-Service" (Saas) platforms.
+            -> in this case, end-to-end testing should ensure that the user journey can be fulfilled by calling the exposed public APIs.
+            -> the testing of this public API integration, known as headless integration, is as important as visual GUI testing.
+
+    <Manual and exploratory testing>
+        - highest level in the pyramid, and not automated.
+            -> manually run through the cases. (Most time-consuming and laborious)
+
+        - few cases where manual testing is necessary:
+            1) Usability testing
+                -> evaluating user experience requires subjective analysis, involving elements such as visual layout, design, and overall satisfaction.
+
+            2) Short-lived features
+                -> investment in automating tests may not be justified for short-lived features.
+
+            3) Context-heavy testing
+                -> automating tests to be reliable could outweigh the effort of testing them manually.
+
+            4) Security testing
+                -> some tests require a quick pivot of the next step decided by security experts; difficult to automate.
+
+(TDD)
+    - Test Driven Development
+
+    1) write a list of test scenarios
+    2) write a test case
+    3) make tests pass
+    4) write a new test case
+    5) make all tests pass
+    6) refactor code    
+
+    * KISS(keep it simple, stupid), YAGNI(You aren't gonna need it)
+
+(BDD)
+    - Behavior Driven Development
+
+    - evolved from TDD with the goal of addressing some of the limitations of TDD, such as test case classes filled with technical syntax that non-technical stakeholders would find difficult to read.
+
+    - Gherkin uses a simple structured syntax to define test scenarios
+        + Feature (a feature of the application)
+        + Scenario (a specific situation or example)
+        + Given (conditions before the test starts)
+        + When (action or event that triggers behavior)
+        + Then (expected outcome)
+        + And/But (additional steps, conditions, or expected outcome)
+
+    <Specification by Example(SBE)>
+        - advocates using concrete examples in real-world scenarios to clarify specifications and to communicate with non-technical stakeholders.
+            ex) "As a [user], I want to [feature], so that [business values]".
+                -> ensures clear and testable specifications based on real examples.
+
+(Live testing, A/B testing, and segmentation)
+    <Post-release testing>
+        - some systems integrate with external systems that do not provide a lower environment for testing.
+            -> engineers would normally mitigate this risk by having a simulator running in lower environments.
+            -> simulator is a fake component that runs simplified logic just to act like the target external system.
+
+        - several risks:
+            + simulator logic needs to closely follow the steps of external system changes.
+            + external system may release its changes without informing the team, resulting in malfunctioning of the system and requiring hotfixes.
+            + engineers must ensure that the simulator never runs in production environments to create false data.
+            + having all safety measures in place, the external system may simply be unavailable after release.
+
+    <A/B testing and segmentation>
+        - discover needs and opportunities in the market
+        - segmentation can be done in the following ways:
+            + A stateless algorithm
+            + User data, such as demographics or preferences
+            + Signed up voluntarily by users
+            + Random and sticky assignments
+            + Manually assigned to small groups
+
+        - each group has a different user experiences, and metrics are in place to measure business metrics such as page landing counts, purchase statistics, and customer satisfaction.
+            + "Control group" : The original experience, the baseline for comparisons
+            + "Variant group": The modified experiences
+
+        - By conducting A/B testing, the organization can gather useful information about users and the market.
+            -> data provides a quantitative perspective on which user experiences lead to a better outcome.
+
+        - Some A/B tests could run only for a limited time just to collect enough data for analysis, while some could run for a very long time for continuous improvements.
+        
+
+
+
+
