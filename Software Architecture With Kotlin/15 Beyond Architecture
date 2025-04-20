@@ -1,0 +1,261 @@
+[15 Beyond Architecture]
+
+(Powered by Kotlin)
+	<Extension functions>
+		- allow adding extra functionalities to an existing class without modifying its source code.
+
+		- useful and mandatory for the following use cases:
+			1) add more functions to a class from an external library, or a final class.
+			2) enhance a class to fit in certain Kotlin language features, such as operator override(+, -, in, etc.)
+			3) Add null safety functions to handle situations such as trying to concatenate a nullable list of strings.
+
+		- can be used to separate concerns of a class by isolating its functions in a different package with non-public visibility.
+
+			ex)
+				1) As a member function
+					======================================================
+					data class Name(val value: String){
+						fun toJson(): String = "{\"name\":\"$value\"}"
+					}
+					======================================================
+
+				2) As a vanilla function (public to all projects that have access to the Name class)
+					==================================================================
+					fun toJson(name: Name): String = "{\"name\":\"${name.value}\"}"
+
+					// non-local extension function
+					fun Name.toJson(): String = "{\"name\":\"$value\"}"
+
+					// local extension function
+					private fun Name.toJson(): String = "{\"name\":\"$value\"}"
+					==================================================================
+					* vanilla function creates noise when an engineer searches for functions whose names start with "to", especially in an IDE and if all data classes have separate "toJson" functions. -> "Scope Pollution" (exposing functions more than necessary)
+
+	<Infix modifier>
+		- another way to create more readable and expressive code.
+			ex)
+				======================================================================
+				object When
+				typealias PreCondition = ()->Int
+				typealias Action = (Int)->Int
+
+				infix fun When.number(n: Int) : PreCondition = { n }
+				infix fun PreCondition.then(action: Action): Int = action(this())
+
+				object Square: Action {
+					override fun invoke(p1: Int): Int = p1*p1
+				}
+
+				infix fun Int.shouldBe(expected: Int) {
+					require(this == expected) {
+						"Expected: $expected but was $this"
+					}
+				}
+
+				// usage
+				((When.number(2)).then(Square)).shouldBe(5) // Expected: 5 but was 4
+				// or
+				when number 2 then Square shouldBe 5
+				======================================================================
+
+		- ground rules:
+			1) It is either a member function of a class or an extension function with a receiver.
+			2) There can only be one parameter.
+
+		* usually used in building intuitive and readable "domain-specific languages" (DSLs).
+
+	<Operator override>
+		- allows engineers to define custom behaviors for operators such as +, -, and so on.
+			ex)
+				======================================================================
+				data class Name(val value: String)
+				operator fun Name.plus(other: Name): Name =
+					Name("$value ${other.value}")
+
+				fun main() {
+					println(Name("Sam") + Name("Payne")) // Name(value=Sam Payne)
+				}
+				======================================================================
+
+		- list of overridable operators
+			+ 	plus 		a + b
+			+ 	unaryPlus	+a
+			- 	minus 		a - b
+			- 	unaryMinus 	-a
+			*	times 		a * b
+			/ 	div 		a / b
+			% 	rem 		a % b
+			== 	equals 		a == b
+			!= 	notEquals 	a != b
+			> 	compareTo 	a > b
+			[] 	get 		val value = a[key]
+			[] 	set 		a[key] = value
+			() 	invoke 		a()
+
+	<Scoping functions>
+		- (Built-in scoping functions): let, apply, run, with, also
+
+(Continuous integration and delivery)
+	- practice of CI includes the following:
+		1) Frequent commits
+		2) Automated project builds
+		3) Automated testing and feedback
+		4) Version control
+		5) Integration with deployment
+
+	<Feature-based development>
+		- isolates branches and keeps them focused on their purposes.
+		* However, numerous long-lived branches bring the overhead of branch management.
+			-> introduces a high complexity of conflicts when merging or rebasing branches.
+
+	<Trunk-based development>
+		- Trunk (also known as "main" branch)
+
+		- advocates small, frequent, and incremental changes to be committed to Trunk fequently.
+			-> frequent rebase or merge operations for each branch to get latest changes from Trunk(main).
+		
+		* fits well with the practice of CD, where software is frequently delivered to customers, vastly reducing the time to market.
+
+		* fits well with rapid development and short iterations that are advocated in Agile development methodologies.
+			-> quick turnarounds and short feedback loop enable the team to evolve the software product faster.
+
+		* frequent commits and rebasing also reduce the complexity of merge conflict resolution.
+			-> any integration issue can be identified and fixed early, so the feedback loop for engineers is shorter.
+
+		* changes need to be split into multiple branches, and therefore, multiple commits to the Trunk branch.
+
+		- choices:
+			1) Roll back
+			2) Cherry-picking
+			3) Roll forward
+				-> create a new branch from the latest Trunk and continue to work on the change with a focus on making Trunk ready for release again. Merge this branch back to Trunk.
+
+	<Release versus deployment versus launch>
+		1) Deployment
+			-> implies that the executable software artifact built from source code and configuration has been loaded to the target environment.
+			-> an operational and technical task that is often automated by scripts - optionally, with an approval process that involves human intervention.
+
+		2) Release
+			-> application is now available to the users in the target environment.
+
+		3) Launching
+			-> the least technically involved out of all three concepts.
+			-> implies the software product is marketed, advertised, and, optionally, has a launch event such as a press conference or an exhibition.
+
+	<Blue-green release>
+		- keeps the current version (blue) of an application in the production environment and has a new version (green) deployed to a replica of the production environment.
+			-> allows the new version of the application to be deployed while keeping the current version available to users.
+
+		* once the new versions are verified and ready to be used by users, the traffic can be switched in the DNS, so web requests are routed to Zone 2.
+			-> Zone 2 is now the new "Blue" zone in effect.
+			-> No more "Green" zone.
+
+	<Dark release/feature flagging>
+		- "feature flagging" (a.k.a "dark release")
+			-> techniques used to test and deploy new features with minimal risk.
+			-> deploy a new feature or code to production but keeping it hidden from users.
+				ex) a new recommendation algorithm might run in the background, processing data but not yet displaying results to users.
+
+				ex) new algorithm runs in the background, generating reel recommendations for users without displaying them (Instagram)
+
+		* Can be toggled (turned on or off) via a configuration setting, often without redeploying the application.
+
+		- feature toggle can be managed in a few ways:
+			1) Central
+				-> central service or resource that dictates whether a feature is available to the given user
+
+			2) Individual
+				-> each component or service manages its own feature flags
+
+			3) Per request
+				-> A non-publicly known request parameter is used to enable the feature to serve this request.
+
+		- works well with the practice of "trunk-based development".
+
+	<Canary release>
+		- a staged release strategy that makes the newly deployed software available to a small subset of users before rolling it out to all target users.
+
+		- operates at the application level, not a feature in an application.
+
+		* aims for incremental availability to users.
+
+		- factors that would affect this strategy:
+			1) gather feedback that might shape the product before the public uses it.
+
+			2) initially release the software product to users in a selected geographic region. (legal restrictions, or related marketing events.)
+
+			3) intially release the application to certain types of devices or operating systems of devices.
+
+		* is not a "beta testing".
+			-> testing by external users before public release is called "beta testing"
+			-> "beta testing" version is usually not the final version. (testing for a limited period.)
+
+		* is not an "alpha testing"
+			-> testing internally, typically with "white-box testing" techniques, is called "alpha testing".
+
+(Developer experience)
+	- is what engineers experience while developing software.
+
+	<Why does DX matter?>
+		- a great DX brings a lot of benefits to not only the engineers but also to the software product and to the organization:
+			1) Productivity and efficiency
+				-> Efficient tools, automated workflows, concise documentation, and smooth development processes remove the burden from engineers.
+				-> can focus on coding and problem-solving.
+
+			2) Product quality
+				-> stable environments and intuitive tools reduce friction in the everyday work of engineers, so they can focus on delivering high-quality code with attention to detail.
+
+			3) Operation cost
+				-> automated tools and processes reduce the labor cost for engineers to support the system.
+				-> better tools lead to a fewer mistakes and thus reduce the time and resources spent on fixing issues.
+
+			4) Learning curve
+				-> streamlined onboarding process, good documentation, and intuitive processes make it quicker for a new engineer to get up to speed and become productive.
+
+			5) Collaboration
+				-> Good DX encourages communication and collaboration within the team and improves team morale.
+
+			6) Innovation
+				-> a safe and supportive environment fosters a culture of innovation and experimentation.
+				-> engineers can be creative in their solutions without the fear of failure.
+
+			7) Job satisfaction and retention
+				-> a satisfactory working environment keeps engineers more engaged and motivated.
+				-> employee turnover can be lowered.
+				-> saves time and resources on recruitment and training.
+
+			8) Talent acquisition
+				-> attracts top talent to join the team and improves the branding of the organization.
+
+		* leads to more healthy organizations and better business outcomes.
+
+	<Onboarding>
+		- there should be comprehensive documentation for engineering topcis:
+			1) Development processes (Kanban, Scrum, etc)
+			2) Tech stacks used in the organization
+			3) In-house libraries and frameworks
+			4) Architecture decision records (ADRs)
+			5) Engineering practices and conventions
+			6) Specialized engineering environments set up
+
+	<Tools>
+		* investing in good engineering tools brings not only great DX but also tangible productivity to the engineering teams.
+			1) "Single sign-on" (SSO)
+				-> portal to access all other third-party tools.
+				-> instead of having everyone remember passwords for each third-party tool.
+
+			2) Streamlined method to log in to any environment or infrastructure without compromising security and auditing.
+				ex) Teleport, JumpCloud, CyberArk, etc.
+
+			3) Recommended to have a source repository to host all these scripts(such as some scripts for certain tasks) and small toolkits accessible to all engineers.
+
+			4) Recommended that the organization has a shared collection of operational endpoints to reduce the time for engineers to craft these steps themselves.
+				ex) Postman Collections
+
+			5) Use automation tools such as "Dependabot" to automatically create pull requests that update dependencies.
+
+			6) Use "artifical intelligence"(AI) applications in multiple areas of software development.
+
+	<Communication and collaboration>
+		
+
