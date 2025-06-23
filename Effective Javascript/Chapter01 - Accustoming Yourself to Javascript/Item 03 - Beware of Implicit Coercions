@@ -1,0 +1,86 @@
+Item 03 - Beware of Implicit Coercions
+	
+	- JavaScript coerces a value to the expected type by following various automatic conversion protocols.
+		-> the arithmetic operators -, *, /, and % all attemp to convert their arguments to numbers before doing their calculation.
+		-> + is subtler, because it is overloaded to perform either numeric addition or string concatenation, depending on the types of its arguments.
+
+			ex)
+				======================================================
+				2 + 3 // 5
+				"hello" + " world" // "hello world"
+
+				"2" + 3 // "23"
+				2 + "3" // "23"
+
+				1 + 2 + "3" // "33"
+				1 + "2" + 3 // "123"
+
+				(1 + "2") + 3 // "123"
+				======================================================
+
+	- the bitwise operations not only convert to numbers but to the subset of numbers that can be represented as 32-bit integers.
+		-> include the bitwise arithmetic operators (~, &, ^, and |) and the shift operators(<<, >>, and >>>).
+
+		ex)
+			======================================================
+			"17" * 3 // 51
+			"8" | "1" // 9
+			======================================================
+
+	* coercions can also hide errors. (not throwing Exception)
+		-> "null" silently converted to 0
+		-> "undefined" variable will convert to the special floating-point value NaN
+
+	* testing whether a value is equal to NaN doesn't work at all
+
+		ex)
+			======================================================
+			let x = NaN
+			x === NaN // false
+			======================================================
+
+		-> test with "isNaN"
+
+			ex)
+				======================================================
+				isNaN(NaN)	// true
+
+				// BUT! other values that are definitely not NaN,
+				// yet are coercible to NaN
+				isNaN("foo")				// true
+				isNaN(undefined)			// true
+				isNaN({})					// true
+				isNaN({ valueOf: "foo "})	// true
+				======================================================
+				-> all true because, each value when converted to a number via JavaScript's type coercion, produces NaN.
+
+	- "truthiness"
+		- Most JavaScript values are "truthy"
+			-> implicitly coerced to "true".
+
+		* seven falsy values
+			1) false
+			2) 0
+			3) -0
+			4) ""
+			5) NaN
+			6) null
+			7) undefined
+
+			-> All other values are "truthy".
+
+		ex) precise way to check for undefined is to use typeof, or compare to undefined.
+			===================================================================================
+			function point(x, y) {
+				if(typeof x === "undefined"){
+					x = 320
+				}
+				if(typeof y === "undefined"){
+					y = 240
+				}
+				return { x: x, y: y}
+			}
+
+			// or
+			if (x === undefined) { ... }
+			===================================================================================
