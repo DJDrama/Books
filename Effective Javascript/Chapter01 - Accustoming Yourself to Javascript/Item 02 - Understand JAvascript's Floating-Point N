@@ -1,0 +1,76 @@
+Item 02 - Understand JAvascript's Floating-Point Numbers
+	
+	- integers, floating-point numbers all numbers
+		
+		ex)
+			========================================================
+			console.log(typeof 17)		// number
+			console.log(typeof 98.6)	// number
+			console.log(typeof -2.1)	// number
+			========================================================
+
+	- All numbers in Javascript are double-precision floating-point numbers
+		-> the 64-bit encoding of numbers specified by the IEEE 754 standard - known as "doubles".
+
+		* All of the integers from -2^53 to 2^53 are valid doubles. (lack of a distinct integer type)
+
+	- Most arithmetic operators work with integers, real numbers, or a combination of two.
+
+		ex)
+			========================================================
+			console.log(0.1 * 1.9)	// 0.19
+			console.log(-99 + 100)	// 1
+			console.log(21 - 12.3)	// 8.7
+			console.log(2.5 / 5)	// 0.5
+			console.log(21 % 8)		// 5
+			========================================================
+
+	- Bitwise
+		-> convert numbers to 32-bit integers.
+
+			ex)
+				============================================
+				console.log(8 | 1)	// 9
+
+				(8).toString(2) // 1000 (2: binary)
+				(8).toString(3) // 22 (3: temary)
+
+				parseInt("1001", 2) // 9
+				============================================
+
+	- floating-point numbers notoriously inaccurate.
+
+		ex) inaccurate results
+			============================================
+			0.1 + 0.2 // 0.30000000000000004
+			============================================
+			+ floating-point arithmetic can only produce approximate results (rounding to the nearest representable real number)
+
+	* real numbers are "associative"
+		-> that for any real numbers x, y, and z, it's always the case that (x + y) + z = x + (y + z)
+
+		ex) BUT not always true of floating-point numbers
+			===========================================================
+			console.log((0.1 + 0.2) + 0.3)	// 0.6000000000000001
+			console.log(0.1 + (0.2 + 0.3))	// 0.6
+			===========================================================
+			+ offer a trade-off between accuracy and performance.
+			+ 0.5 = 1/2 = 1*2^-1 (exact)
+			+ 0.1 = 1/10 (not exact)
+			+ 0.2 = 1/5 (not exact)
+			+ 0.3 = 3/10 (not exact)
+
+			+ 0.25 = 1/4 = 1*2^-2 (exact)
+
+	* work with integer values wherever possible
+		-> they can be presented without rounding.
+
+	(Workaround)
+		-> avoid floating-point precision issues by "scale-up"
+			ex)
+				===========================================================
+				const a = 0.1 * 100
+				const b = 0.2 * 100
+				const result = (a + b) / 100
+				console.log(result) // 0.3
+				===========================================================
