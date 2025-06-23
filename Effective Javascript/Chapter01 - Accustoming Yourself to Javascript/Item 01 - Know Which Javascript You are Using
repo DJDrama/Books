@@ -1,0 +1,89 @@
+Item 01: Know Which Javascript You are Using
+
+	- ES: ECMASCRIPT (Javascript Standard)
+
+	- ES6
+		-> Now, const is readonly variable
+
+		ex)
+			=====================================================================================
+			const PI = 3.141592
+			PI = "modified" // Compile Error("Attempt to assign to const or readonly variable"
+			PI;
+			=====================================================================================
+
+		ex)
+			=====================================================================================
+			// ES5
+			var button = document.getElementById("button1");
+
+			// ES6
+			const button = document.getElementById("button1")
+			=====================================================================================
+
+	- var : hoisting
+		-> "hoisting": pulled up to the top
+		
+		ex) 
+			=====================================================================================
+			console.log(x); // undefined
+			var x = 10;
+			console.log(x); // 10
+
+			// the engine interprets above as :
+			var x;
+			console.log(x); // undefined
+			x = 10;
+			console.log(x); // 10
+			=====================================================================================
+
+	- let or const
+		-> also hosited to the top of their scope
+		-> BUT! they remain in the Temporal Dead Zone until their declaration line is executed in the code.
+
+		ex) Accessing before the declaration results in a ReferenceError
+			=====================================================================================
+			console.log(u) // ReferenceError: Cannot access 'u' before initialization
+			let u = 20
+
+			console.log(y) // ReferenceError: Cannot access 'y' before initialization
+			const y = 30
+			=====================================================================================
+
+		* Temporal Dead Zone (TDZ)
+			-> ensures safer coding by preventing access to uninitialized variables, reducing bugs from accidental early use.
+			-> introduced in ES6 to address the issues with var's loose hoisting behavior.
+
+		* let and const are more predictable and safer than var.
+
+	- strict mode : "use strict"
+		-> disallows some of the more problematic or error-prone features of the full language.
+
+		ex) ES5
+			=====================================================================================
+			// without strict mode
+			x = 10
+			console.log(x)
+
+			// with strict
+			"use strict";
+			y = 20; // ReferenceError: y is not defined
+			=====================================================================================
+
+		* in ES6, strict by default
+
+			ex)
+				=================================================================================
+				x = 10; // ReferenceError: x is not defined (strict mode is automatic)
+				export default x;
+				=================================================================================
+				+ ES6 modules (using import and export) automatically run in strict mode, even without explicitly writing "use strict".
+
+			-> Since modules are strict by default, no need to write "use strict".
+
+	- ES5: Never concatenate strict files and nonstrict files. (easiest solution)
+
+
+
+
+
