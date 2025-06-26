@@ -1,0 +1,122 @@
+Item 06 - Learn the Limits of Semicolon Insertion
+	
+	- rules of semicolon insertion
+		1) Semicolons are only ever inserted before a } token, after one or more newlines, or at the end of the program input.
+
+			ex) Not allowed
+				============================================================
+				function area(r) { r = +r return Math.PI * r * r}
+
+				// should be
+				function area(r) {
+					r = +r
+					return Math.PI * r * r
+				}
+				============================================================
+
+		2) Semicolons are only ever inserted when the next input token cannot be parsed.
+
+			* Five problematic characters to watch out for : (, [, +, -, and /
+
+			* common scenario
+				ex)
+					============================================================
+					// file1.js
+					(function() {
+
+					})()
+
+					// file2.js
+					(function() {
+
+					})()
+
+					// when each file is loaded as a separate program,
+					// a semicolon is automatically inserted at the end,
+					// turning the function call into a statement.
+					// * But when the files are concatenated:
+
+					// -> result is treated as one single statement
+					(function(){
+
+					})()(function(){
+
+					})()
+					============================================================
+
+				- upshot: Omitting a semicolon from a statement requires being aware of not only the next token in the current file, but any token that might follow the statement after script concatenation.
+
+					-> protect it by defensively prefixing every file with an extra semicolon
+						ex)
+							============================================================
+							// file1.js
+							;(function() {
+
+							})()
+
+							// file2.js
+							;(function(){
+
+							})()
+
+							// above ensures that combined results will still be
+							// as separate statements:
+							;(function(){
+
+							})()
+							;(function(){
+
+							})()
+							============================================================
+
+			* "restricted productions"
+				-> where no newline is allowed to appear between two tokens. (return statement)
+
+					ex)
+						============================================================
+						return
+						{ };
+
+						// will become
+						return;
+						{ }
+						;
+						============================================================
+						-> the newline following the "return" keyword forces an automatic semicolon insertion, which parses as a return with no argument followed by an empty block and an empty statement.
+
+						(other restricted productions)
+							+ A throw statement
+							+ A break or continue statement with an explicit label
+							+ A postfix ++ or -- operator
+
+							ex)
+								========================================================
+								a
+								++
+								b
+
+								// becomes
+								a;
+								++b;
+								========================================================
+
+		3) Semicolons are never inserted as separators in the head of a for loop or as empty statements.
+			
+			ex)
+				================================================
+				for(var i=0, total = 1 // parse error
+					i < n
+					i++
+				) {
+					total *= i
+				}
+				================================================
+
+			ex)
+				========================================================================
+				function infiniteLoop() { while (true) } // parse Error
+
+				// semicolon is required
+				function infiniteLoop() { while (true); }
+				========================================================================
+
