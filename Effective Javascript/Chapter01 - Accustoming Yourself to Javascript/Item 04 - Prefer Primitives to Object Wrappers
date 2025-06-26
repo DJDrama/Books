@@ -1,0 +1,55 @@
+Item 04 - Prefer Primitives to Object Wrappers
+
+	- 5 primitive values
+		-> booleans, numbers, strings, null, and undefined
+
+	- can create a String object that wraps a string value:
+		ex)
+			==================================================
+			let s = new String("hello")
+			==================================================
+
+	- concat, indexing
+		ex)
+			==================================================
+			let s = new String(" world")
+			let hw = "hello" + s
+			hw[4] // o
+			==================================================
+
+	* unlike primitive strings, a String object is a true object
+		ex)
+			==================================================
+			typeof "hello" // "string"
+			let s = new String("world")
+			typeof s // "object"
+			==================================================
+			-> you can't compare the contents of two distinct String objects using built-in operators:
+				ex)
+					==================================================
+					let s1 = new String("hello")
+					let s2 = new String("hello")
+					s1 === s2 // false
+					==================================================
+					-> since each String object is a separate object.
+
+	* there's no point to setting properties on primitive values.
+		ex)
+			==================================================
+			"hello".someProperty = 17
+
+			"hello".someProperty // undefined
+			==================================================
+			-> if you set properties on what you expect to be an object, but use a primitive value by mistake, your program will simply silently ignore the update and continue.
+
+	(summary)
+		1) Getting Properties/Methods
+			-> when you access a property or method(str.length or num.toFixed()), JavaScript wraps the primitive in its corresponding object type (String, Number, etc), performs the operation, and discards the wrapper.
+
+		2) Setting Properties
+			-> Setting a property on a primitive creates a temporary wrapper object, but the wrapper is discarded immediately, the property doesn't persist on the primitive.
+
+		3) Explicit Object Wrapper
+			-> if you create an object (new String("hello")), properties can be set and retained because you're working with an actual object, not a primitive.
+
+		* Primitives seem to have methods like (toUpperCase() or toFixed()) but can't persistently store properties.
