@@ -1,0 +1,15 @@
+Item 07 - Think of Strings As Sequences of 16-Bit Code Units
+
+	- "code point"
+		-> Every unit of text of all the world's writing systems is assigned a unique integer between 0 and 1,114,111
+
+	- ASCII maps each index to a unique binary representation, Unicode allows multiple different binary encodings of code points.
+
+	- Most popular are UTF-8, UTF-16, UTF-32
+
+	* designers of Unicode miscalculated their budget for code points
+		-> originally thought that Unicode would need no more than 2^16 code points.
+		-> made UCS-2, the original standard 16-bit encoding, a particularly attractive choice.
+
+	- "code unit"
+		-> Since every code point could fit in a 16-bit number, there was a simple, one-to-one mapping between code points and the elements of their encodings, known as "code units".
