@@ -1,0 +1,97 @@
+Item 11: Get Comfortable with Closures
+
+	1) JavaScript allows you to refer to variables that were defined outside of the current function:
+
+		ex)
+			======================================================
+			function makeSandwich() {
+				let magicIngredient = "peanut butter"
+				function make(filling) {
+					return magicIngredient + " and " + filling
+				}
+				return make("jelly")
+			}
+
+			makeSandwich() // "peanut butter and jelly"
+			======================================================
+
+	2) functions can refer to variables defined in outer functions even "after" those outer functions have returned!
+		-> you can return an inner function to be called sometime later on:
+
+			ex)
+				======================================================
+				function sandwichMaker() {
+					let magicIngredient = "peanut butter"
+					function make(filling) {
+						return magicIngredient + " and " + filling
+					}
+					return make // closure
+				}
+
+				let f = sandwichMaker()
+				f("jelly") // "peanut butter and jelly"
+				f("bananas") // "peanut butter and bananas"
+				f("marshmallows") // "peanut butter and marshmallows"
+				======================================================
+				-> sandwichMaker returns the "make" function itself.
+				* JavaScript function values contain more information than just the code required to execute when they're called.
+					+ They also internally store any variables they may refer to that are defined in their enclosing scopes.
+
+				* "Closures"
+					-> functions that keep track of variables from their containing scopes	
+
+					-> Whenever the "make" function is called, its code is able to refer to the two variables(magicIngredient, filling) because they are stored in the closure.
+
+		-> can make a more general-purpose sandwichMaker
+
+			ex)
+				======================================================
+				function sandwichMaker(magicIngredient) {
+					function make(filling) {
+						return magicIngredient + " and " + filling
+					}
+					return make
+				}
+
+				// can also be written as
+				function sandwichMaker(magicIngredient) {
+					return function(filling) { // anonymous
+						return magicIngredient + " and " + filling
+					}
+				}
+
+				let hamAnd = sandwichMaker("ham")
+				hamAnd("cheese") // "ham and cheese"
+				hamdAnd("mustard") // "ham and mustard"
+
+				let turkeyAnd = sandwichMaker("turkey")
+				turkeyAnd("Swiss") // turkey and Swiss
+				turkeyAnd("Provolone") // turkey and Provolone
+				======================================================
+
+	3) Closures can update the values of outer variables.
+		-> closures actually store references to their outer variables, rather than copying their values.
+
+			ex)
+				======================================================
+				function box() {
+					let val = undefined
+					return {
+						set: function(newVal) { val = newVal }
+						get: function() { return val }
+						type: function() { return typeof val }
+					}
+				}
+
+				let b = box()
+				b.type() // "undefined"
+				b.set(98.6) 
+				b.get() // 98.6
+				b.type() // "number"
+				======================================================
+
+	(Summary)
+		- functions can refer to variables defined in outer scopes
+		- closures can outlive the function that creates them
+		- closures internally store references to their outer variables, and can both read and update their stored variables.
+
