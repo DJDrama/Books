@@ -1,0 +1,43 @@
+Item 16: Avoid Creating Local Variables with eval
+	
+	ex)
+		============================================================
+		function test(x) {
+			eval("var y = x") // dynamic binding
+			return y
+		}
+
+		test("hello") // hello
+		============================================================
+
+	ex)
+		============================================================
+		let y = "global"
+		function test(x) {
+			if (x) {
+				eval("var y = 'local'") // dynamic binding
+			}
+			return y
+		}
+
+		test(true)	// local
+		test(false)	// global
+		============================================================
+
+
+	(Summary)
+		- Avoid creating variables with eval that pollute the caller's scope.
+		- If eval code might create global variables, wrap the call in a nested function to prevent scope pollution.
+
+			ex) 
+				============================================================
+				var y = "global"
+				function test(src) {
+					// nested function to prevent scope pollution
+					(function() { eval(src) })()
+					return y
+				}
+
+				test("var y = 'local'") // global
+				test("var z = 'local'") // global
+				============================================================
