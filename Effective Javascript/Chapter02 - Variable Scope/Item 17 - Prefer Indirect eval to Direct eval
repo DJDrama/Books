@@ -1,0 +1,6 @@
+Item 17: Prefer Indirect eval to Direct eval
+
+	* eval has access to the full scope at the point where it's called.
+
+	* Prefer indirect eval to direct eval whenever possible.
+		-> Direct eval is more vulnerable to code injection attacks.
