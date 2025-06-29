@@ -1,0 +1,14 @@
+Item 12: Understand Variable Hoisting
+
+	- JavaScript supports "lexical scoping"
+		-> With only a few exceptions, a reference to a variable foo is bound to the nearest scope in which foo was delcared.
+
+	- JavaScript does not support "block scoping"
+		-> Variable definitions are not scoped to their nearest enclosing statement or block, but rather to their containing function.
+
+	(Summary)
+		- Variable declarations within a block are implicitly hoisted to the top of their enclosing function.
+
+		- Redeclarations of a variable are treated as a single variable.
+
+		- Consider manually hoisting local variable declarations to avoid confusion.
