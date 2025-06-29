@@ -1,0 +1,24 @@
+Item 09 : Always Declare Local Variables
+	
+	- "unintentional" global variable.
+		-> JavaScript's variable assignment rules make it all too easy to create global variables accidentally.
+
+		-> forgetting to declare a local variable silently turns it into a global variable.
+
+			ex)
+				================================================
+				function swap(a, i, j){
+				    temp = a[i]
+				    a[i] = a[j]
+				    a[j] = temp
+				}
+				swap([1, 2, 3], 1, 2)
+				console.log(temp) // prints 2 (a[1] = 2)
+				================================================
+				-> executes without an error
+				(solution)
+					temp = a[i] --> let temp = a[i] (declare with var or let)
+
+	(Summary)
+		1) Always declare new local variables with var or let.
+		2) Consider using lint tools to help check for unbound variables.
