@@ -1,0 +1,39 @@
+Item 10: Avoid "with"
+
+	* "with"
+		-> variable lookup starts by searching for a property of the given variable name.
+		-> If the property is not found in the object, then the search continues in outer scopes.
+
+	* unsure that properties will or won't be found on the object we provided to "with".
+
+	- the best way is to bind an object to a short variable name:
+
+		ex) Before
+			===========================================================
+			function status(info) {
+				let widget = new Widget()
+				with(widget) {
+					setBackground("blue")
+					setForeground("white")
+					setText("Status: " + info) // ambiguous reference
+					show()
+				}
+			}
+			===========================================================
+
+			After (much more predictable)
+			===========================================================
+			function status(info) {
+				let widget = new Widget()
+				widget.setBackground("blue")
+				widget.setForeground("white")
+				widget.setText("Status: " + info)
+				widget.show()
+			}
+			===========================================================
+
+	(Summary)
+		1) Avoid using "with" statements.
+		2) Use short variable names for repeated access to an object.
+		3) Explicitly bind local variables to object properties instead of implicitly binding them with a "with" statement.
+		
