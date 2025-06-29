@@ -1,0 +1,12 @@
+Item 14: Beware of Unportable Scoping of Named Function Expressions
+
+	- "function delcration" or a "named function expression"
+		
+		ex)
+			=============================================
+			function double(x) { return x * 2 }
+			=============================================
+
+	- "named function expression" is useful for "debugging".
+
+	* named function expressions are just too problematic to be worth using.
