@@ -1,1 +1,4 @@
 Item 13: Use Immediately Invoked Function Expressions to Create Local Scopes
+	
+	- IIFE (Immediately Invoked Function Expression)
+		-> workaround for JavaScript's lack of block scoping.
