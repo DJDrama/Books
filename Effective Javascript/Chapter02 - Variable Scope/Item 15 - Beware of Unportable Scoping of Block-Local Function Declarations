@@ -1,0 +1,6 @@
+Item 15: Beware of Unportable Scoping of Block-Local Function Declarations
+
+	* JavaScript is not block scoped, inner should be in scope for the whole body.
+
+	* The best way to write portable functions is to avoid ever putting function declarations in local blocks or substatements.
+		-> If you want to write a nested function declaration, put it at the outer most level of its parent function.
