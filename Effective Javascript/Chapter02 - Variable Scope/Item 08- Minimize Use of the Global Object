@@ -1,0 +1,37 @@
+Item 8: Minimize Use of the Global Object
+	
+	- Javascript's global namespace is exposed as a "global object"
+		-> accessible at the top of a program as the initial value of the "this" keyword.
+
+	- In web browsers, the global object is also bound to the global "window" variable.
+		-> adding or modifying global variables automatically updates the global object.
+
+			ex)
+				===============================================================
+				this.foo // undefined
+				foo = "global foo"
+				this.foo // "global foo"
+				===============================================================
+
+			ex) updating the global object automatically updates the global namespace
+				===============================================================
+				let foo = "global foo"
+				this.foo = "changed"
+				this.foo // "changed"
+				===============================================================
+
+	* it's best to limit your use of the global object
+
+		1) one particularly indispensable use
+			- In JavaScript, the global object("window" in browsers, "global" in Node.js) holds properties and functions available globally.
+
+				ex) JSON, MATH, or console.
+					-> reflects the current runtime environment.
+
+	(Summary)
+		1) Avoid declaring global variables.
+		2) Delare variables as locally as possible.
+		3) Avoid adding properties to the global object.
+		4) Use the global object for platform feature detection.
+		
+
