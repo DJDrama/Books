@@ -1,0 +1,68 @@
+Item 18: Understand the Difference between Function, Method, and Constructor Calls
+
+    - function
+
+        ex)
+            ===================================================
+            function hello(username) {
+                return "hello, " + username
+            }
+            hello("DJ") // "hello, DJ" - function call
+            ===================================================
+
+    - method : nothing more than object properties that happen to be functions:
+
+        ex)
+            ===================================================
+            var obj = {
+                hello: function() {
+                    return "hello, " + this.username
+                },
+                username: "DJ"
+            }
+            obj.hello() // "hello, DJ" - method call
+
+            var obj2 = {
+                hello: obj.hello,
+                username: "Lee"
+            }
+            obj2.hello() // "hello, Lee"
+            ===================================================
+            -> the call expression itself determines the binding of "this", also known as the call's receiver.
+
+        -> methods are nothing more than functions called on a particular object, there is no reason why an ordinary function can't refer to this:
+
+            ex)
+                ===================================================
+                function hello() {
+                    return "hello, " + this.username
+                }
+                
+                var obj = {
+                    hello: hello,
+                    username: "DJ"
+                }
+                obj.hello() // "hello, DJ"
+
+                var obj2 = {
+                    hello: hello,
+                    username: "Lee"
+                }
+                obj2.hello() // "hello, Lee"
+                ===================================================
+
+    - functions as constructors
+        -> constructors are defined with function: 
+            ex)
+                ===================================================
+                function User(name, passwordHash) {
+                    this.name = name
+                    this.passwordHash = passwordHash
+                }
+
+                let u = new User("DJ", "03ds9felihasef0124")
+                u.name // "DJ"
+                ===================================================
+                -> a constructor call passes a brand-new object as the value of "this", and implicitly returns the new object as its result.
+                -> the constructor function's primary role is to initialize the object.
+                
