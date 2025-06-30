@@ -1,0 +1,56 @@
+Item 20: Use call to Call Methods with a Custom Receiver
+
+	- "call" is still part of the JavaScript language and fully supported, but its use has declined in modern JavaScript for several reasons.
+
+		1) Arrow Functions (=>)
+			-> Arrow functions don't have their own "this" binding.
+
+				ex)
+					============================================================
+					const greet = (greeting) =>
+						console.log(`${greeting}, ${this.name}`)
+
+					greet.call({ name: "DJ" }, "Hello") // Hello, undefined!
+					============================================================
+
+		2) Spread Syntax and "apply" Replacement
+			-> The "apply" method, which is similar to "call" but takes an array of arguments, has largely been replaced by the spread operator(...)
+
+			-> "call" doesn't take arrays
+
+				ex)
+					============================================================
+					function sum(a, b, c) {
+						return a + b + c
+					}
+
+					const args = [1, 2, 3]
+					console.log(sum(...args)) // Modern: Spread operator
+					console.log(sum.call(null, 1, 2, 3)) // Older: Using call
+
+					(output)
+					6
+					6
+					============================================================
+
+		3) Class Syntax and "bind"
+			-> the introduction of classes and the "bind" method provides cleaner ways to manage "this" in many cases
+
+				ex)
+					============================================================
+					class Person {
+						constructor(name) {
+							this.name = name
+
+							// Bind "this" explicitly
+							this.greet = this.greet.bind(this)
+						}
+
+						greet(greeting) {
+							console.log(`${greeting}, ${this.name}`)
+						}
+					}
+
+					const person = new Person("DJ")
+					person.greet("Hello") // Hello, DJ
+					============================================================
