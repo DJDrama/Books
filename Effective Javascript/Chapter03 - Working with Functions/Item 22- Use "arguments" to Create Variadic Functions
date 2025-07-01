@@ -1,0 +1,43 @@
+Item 22: Use "arguments" to Create Variadic Functions
+
+	ex) fixed-arity version, averageOfArray
+		===========================================================================
+		function averageOfArray(a) { // actual argument
+			for(var i=0, sum = 0, n = a.length; i<n; i++) {
+				sum += a[i]
+			}
+			return sum / n
+		}
+
+		averageOfArray([2, 7, 1, 8, 2, 8, 1, 8]) // 4.625
+		===========================================================================
+		-> "averageOfArray" defines a single "formal parameter"
+
+	ex) variadic version
+		===========================================================================
+		function average() {
+			for(var i=0, sum=0, n=arguments.length; i<n; i++) {
+				sum += arguments[i]
+			}
+			return sum / n
+		}
+
+		console.log(average(1, 2, 3)) // 2
+
+		// Modern alternative with Rest parameters
+		function average(... args) {
+			let sum = 0
+			for(let num of args) {
+				sum += num
+			}
+			return sum / args.length
+		}
+		===========================================================================
+		* if we use "let" instead of "var", it won't work
+			-> "let" is block-scoped and cannot be redeclared or reinitialized in the same scope.
+
+		* "let i=0, sum=0, n=arguments.length"
+			-> JavaScript interprets it as trying to declare multiple variables with a single "let". ("let" does not support comma-separated declarations in this context. - SyntaxError)
+
+			-> for(init; condition; update) allows only a single "let" declaration.
+
