@@ -1,0 +1,21 @@
+Item 23: Never Modify the "arguments" Object
+
+	* easy way to implementing a copy
+
+		ex)
+			================================================
+			// Old way
+			let args = [].slice.call(arguments) // verbose
+
+			// Modern JS
+			// ... expands the array-like arguments object
+			// into individual elements.
+			let args = [...arguments]
+
+			// Another way
+			let args = Array.from(arguments)
+			================================================
+
+	* Never modify the arguments object
+
+	* Copy the "arguments" object to real array using [...arguments] or Array.from(arguments) before modifying it.
