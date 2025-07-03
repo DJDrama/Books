@@ -1,0 +1,42 @@
+Item 25: Use "bind" to Extract Methods with a Fixed Receiver
+
+	* bind was used to explicitly set "this" context for a function
+
+		ex)
+			================================================================
+			function MyClass() {
+				this.value = 42
+				this.method = function() {
+					console.log(this.value)
+				}.bind(this) // Ensure "this" refers to the instance
+			}
+			================================================================
+
+	* But "bind" has become less common
+		-> Arrow functions
+
+			ex)
+				================================================================
+				class MyClass {
+					value = 42
+					method = () => {
+						console.log(this.value) // bound to the instance
+					}
+				}
+
+				const instance = MyClass()
+				setTimeout(instance.method, 1000); // works without .bind
+				================================================================
+
+		-> Class Fields and Methods
+
+			ex)
+				================================================================
+				class MyClass {
+					value = 42
+					method() {
+						// "this" is bound in instance methods
+						console.log(this.value) 
+					}
+				}
+				================================================================
