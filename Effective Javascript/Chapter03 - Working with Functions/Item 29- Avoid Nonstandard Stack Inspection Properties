@@ -1,0 +1,33 @@
+Item 29: Avoid Nonstandard Stack Inspection Properties
+
+	- call stack
+		-> the chain of active functions that are currently executing.
+
+		1) arguments.callee
+			-> refers to the function that was called with arguments
+
+		2) arguments.caller
+			-> refers to the function that called it
+
+	* in Modern JS(ES6 and beyond), the use of callee and caller is "deprecated" and discouraged.
+		-> Not supported in modern JS
+
+	* use "console.trace()" or "new Error().stack" to inspect the call stack for debugging:
+
+		ex)
+			===============================================================
+			function myFunction() {
+				console.trace()
+				soncole.log(new Error().stack)
+			}
+
+			function caller() {
+				myFunction()
+			}
+
+			caller()
+			===============================================================
+
+	* Avoid "callee" and "caller"
+		+ "callee" : deprecated
+		+ "caller" : unsupported, replaced by stack traces or debugging tools.
