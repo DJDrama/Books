@@ -1,1 +1,36 @@
 Item 05 - Avoid using == with Mixed Types
+	
+	- "==" performs type coercion
+		-> convert operands of different types to a common type before comparing them, which can lead to confusing or unexpected results.
+
+	- +variable -> converts to Number
+
+	- "===" : strict equality operator
+		-> clear to readers that there is no conversion involved.
+
+
+	* Making conversions explicit ensures that you don't mix up the coercion rules of ==, and even better relieves your readers from having to look up the coercion rules or memorize them.
+
+	* Then, when to use "=="?
+		-> in early web development when data types were often inconsistent, "==" was quite useful
+			ex) when form inputs returning strings.
+
+		-> Removing "==" would break a lot of legacy code, so it remains in the language for "backward compatibility".
+
+		1) when types are different and can be ignored.
+			ex)
+				====================
+				42 == "42" // true
+				====================
+
+		2) null == undefined
+			ex)
+				========================================
+				null == undefined // true
+
+				null === undefined // false
+				========================================
+
+		3) When you know the coercion rules and need loose comparison, or consider explicit type conversion for clarity. (if unsure, stick with === to avoid surprises.)
+
+	* In modern Javascript, "===" is the best practice for predictable comparisons.
