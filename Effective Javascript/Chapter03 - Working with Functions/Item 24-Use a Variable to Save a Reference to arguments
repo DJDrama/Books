@@ -1,0 +1,51 @@
+Item 23: Never Modify the "arguments" Object
+
+	* Bind an explicitly scoped reference to "arguments" in order to refer to it from nested functions.
+
+		ex) wrong arguments
+			================================================================
+			function values() {
+				var i=0, n = arguments.length
+				return {
+					hasNext: function() {
+						return i < n
+					},
+					next: function() {
+						if(i >= n){
+							throw new Error("end of iteration")
+						}
+						return arguments[i++] // wrong arguments
+					}
+				}
+			}
+			let it = values(1, 2, 3, 4)
+			it.next() // undefined
+			it.next() // undefined
+			it.next() // undefined
+			================================================================
+			-> a new "arguments" variable is implicitly bound in the body of each function.
+			-> the iterator's "next" method contains its own arguments variable.
+			-> when we return arguments[i++], we are accessing an argument of "it.next" instead of one of the arguments of values.
+
+		ex) Solution
+			================================================================
+			function values() {
+				var i = 0, n = arguments.length, a = arguments
+				return {
+					hasNext: function() {
+						return i < n
+					},
+					next: function() {
+						if(i >= n){
+							throw new Error("end of iteration")
+						}
+						return a[i++]
+					}
+				}
+			}
+
+			let it = values(1, 2, 3, 4)
+			it.next() // 1
+			it.next() // 2
+			it.next() // 3
+			================================================================
