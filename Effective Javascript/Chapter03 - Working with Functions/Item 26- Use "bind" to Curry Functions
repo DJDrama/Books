@@ -1,0 +1,35 @@
+Item 26: Use "bind" to Curry Functions
+
+	- "currying"
+		-> technique of binding a function to a subset of its arguments, named after the logician "Haskell Curry"
+
+	* In Modern JS, currying can be achieved without using "bind"
+
+		1) Explicit Currying with Arrow Functions:
+
+			ex)
+				=================================================================
+				const add = a => b => a + b
+				const add5 = add(5)
+				console.log(add5(10)) // 15
+				=================================================================
+				-> "add" returns a function that takes "b", with "a" captured in its closure.
+
+		2) Generic Currying FUnction
+
+			ex) create a higher-order function to curry any function(more flexible than bind)
+				=================================================================
+				const curry = fn => (...args) => { 
+					if(args.length >= fn.length) {
+						return fn(...args)
+					}
+					return (...moreArgs) => curry(fn)(...args, ...moreArgs)
+				}
+
+				const add = (a, b) => a + b
+				const curriedAdd = curry(add)
+				const add5 = curriedAdd(5)
+				console.log(add5(10)) // 15
+				=================================================================
+
+	* ".bind()" is rarely used for currying in modern JavaScript, due to the availability of arrow functions and more explicit currying utilities(more cleaner and more aligned with functional programming patterns.)
