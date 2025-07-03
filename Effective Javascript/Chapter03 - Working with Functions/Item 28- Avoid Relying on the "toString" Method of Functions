@@ -1,0 +1,9 @@
+Item 28: Avoid Relying on the "toString" Method of Functions
+
+	* JavaScript engines are not required to produce accurate reflections of function source code via toString.
+
+	* Never rely on precise details of function source, since different engines may produce different results from toString.
+
+	* The results of "toString" do not expose the values of local variables stored in a closure.
+
+	* In general, avoid using "toString" on functions.
