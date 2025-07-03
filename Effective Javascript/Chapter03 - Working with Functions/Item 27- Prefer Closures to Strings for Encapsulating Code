@@ -1,0 +1,9 @@
+Item 27: Prefer Closures to Strings for Encapsulating Code
+	
+	- Strings are less flexible representation of code for one very important reason:
+		-> they are not closures.
+
+	* "eval"
+		-> high-performance engines typically have a harder time optimizing code inside a string, since the source code may not be available to the compiler early enough to optimize in time.
+
+	* Prefer APIs that accept functions to call rather than strings to eval.
