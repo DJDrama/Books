@@ -1,0 +1,53 @@
+Item 30: Understand the Difference between prototype, getPrototypeOf, and __proto__
+
+	- ES5
+
+		ex) Old way
+			====================================================================
+			function User(name, password) {
+				this.name = name
+				this.passwordHash = passwordHsh
+			}
+
+			User.prototype.toString = function() {
+				return "[User " + this.name + "]";
+			}
+
+			User.prototype.checkPassword = function(password) {
+				return hash(password) === this.passwordHash
+			}
+
+			var u = new User("sfalken", "0ef33a9sa0fasdf923fewfasfasdf")
+			====================================================================
+
+
+	- EX6+ prefer "classes" for defining objects with methods and properties.
+
+		ex) Modern way
+			====================================================================
+			class User {
+				// Private fields
+				#name;
+				#passwordHash;
+
+				constructor(name, passwordHash) {
+					this.name = name
+					this.passwordHash = passwordHash
+				}
+
+				toString() {
+					return `[User ${this.name}]`
+				}
+
+				checkPassword(password) {
+					return hash(password) === this.passwordHash
+				}
+			}
+
+			const u = new User("sfalken", "0ef33a9sa0fasdf923fewfasfasdf")
+			====================================================================
+			-> More readable and avoids manual prototype manipulation
+
+	* Use "class" syntax for cleaner, more modern object creation.
+	* Use "#" to encapsulate sensitive data
+	
