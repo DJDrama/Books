@@ -1,0 +1,57 @@
+Item 31: Prefer Object.getPrototypeOf to __proto__
+	
+	- ES5 introduced "Object.getPrototypeOf" as the standard API for retrieving an object's prototype.
+		-> returns the prototype of a given object.
+			
+			ex)
+				========================================================================
+				const obj = {}
+				console.log(Object.getPrototypeOf(obj) === Object.prototype) // true
+
+				function Person(name) {
+					this.name = name
+				}
+
+				const person = new Person("Alice")
+				console.log(Object.getPrototypeOf(person) === Person.prototype) // true
+				========================================================================
+
+	- Moern alternatives and patterns:
+
+		1) Class Syntax (ES6)
+
+			ex) instanceof Operator
+				========================================================================
+				class Animal {
+					constructur(name) {
+						this.name = name
+					}
+				}
+
+				class Dog extends Animal {
+					bark() {
+						return "Woof!"
+					}
+				}
+
+				const dog = new Dog("Rex")
+				console.log(dog instanceof Animal) // true (no need for getPrototypeOf)
+				console.log(dog instanceof Dog) // true
+				========================================================================
+				-> More readable than "Object.getPrototypeOf"
+
+		2) Reflect API (ES6) : Moern and standardized API
+
+			ex)
+				========================================================================
+				const obj = {}
+				console.log(Reflect.getPrototypeOf(obj) === Object.prototype) // true
+				========================================================================
+				-> "Reflect.getPrototypeOf(obj)" method is a modern alternative to "Object.getPrototypeOf"
+
+				-> Part of "Reflect" API, which provides more functional and consistent way to perform meta-operations.
+
+	* __proto__ : deprecated and discouraged
+		-> inconsistent support and performance issues.
+
+
