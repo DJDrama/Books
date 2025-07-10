@@ -1,0 +1,21 @@
+Item 32: Never Modify __proto__
+	
+	- "__proto__" property provides an additional power that "Object.getPrototypeOf" does not.
+
+		-> ability to modify an object's prototype link.
+
+	* Avoid modifying __proto__ is
+		1) Portability
+			-> not all platforms support the ability to change an object's prototype you simply can't write portable code that does it.
+
+		2) Performance
+			-> All modern JavaScript engines heavily optimize the act of getting and setting object properties
+				+ Since these are some of the most common operations that JavaScript programs perform.
+
+		3) Unpredictable behavior
+			-> An object's prototype chain defines its behavior by determining its set of properties and property values.
+			-> it swaps the object's entire inheritance hierarchy.
+			-> inheritance hierarchy should remain stable.
+
+	- Modifying "__proto__" actually changes the inheritance structure itself.
+		-> the most destructive change possible.
