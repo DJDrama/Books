@@ -1,0 +1,30 @@
+Item 33: Make Your Constructors new-Agnostic
+
+	- don't ferget the "new" keyword
+
+		ex)
+			========================================================================
+			function User(name, passwordHash) {
+				this.name = name
+				this.passwordHash = passwordHash
+			}
+
+			let u = User("DJ", "lasidfhl13290fna0912fax")
+			console.log(u)					// undefined
+
+			console.log(this.name)			// undefined
+			console.log(this.passwordHash)	// undefined
+
+			let x = new User("DJ", "lasidfhl13290fna0912fax")
+			console.log(u)					// User { name: 'DJ', ... }
+			console.log(u.name)				// DJ
+			console.log(u.passwordHash)		// lasidfhl13290fna0912fax
+			========================================================================
+
+	- using "instanceof" to check
+
+		ex)
+			========================================================================
+			console.log(u instanceof User)	// false
+			console.log(x instanceof User)	// true
+			========================================================================
