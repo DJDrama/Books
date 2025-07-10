@@ -1,0 +1,59 @@
+Item 35: Use Closures to Store Private Data
+	
+	- JavaScript provides one very reliable mechanism for information hiding: the closure.
+
+	* In pre-ES6 JavaScript, there was no built-in support for private class fields or properties, so closures were a common way to emulate private data in objects created with constructor functions.
+
+		ex)
+			============================================================
+			function Counter(){
+				let count = 0
+				this.increment = function() {
+					return ++count
+				}
+
+				this.decrement = function(){
+					return --count
+				}
+
+				this.getCount = function() {
+					return count
+				}
+			}
+
+			const counter = Counter()
+			console.log(counter.getCount()) // 0
+			counter.increment()
+			console.log(counter.getCount()) // 1
+
+			console.log(counter.count) // undefined (count is private)
+			============================================================
+			-> BUT! memory inefficiency: each instance stores its own copy of the methods(increment, decrement, getCount), unlike prototype-based methods.
+
+	* In Modern JS, use private class fields
+
+		ex)
+			============================================================
+			class Counter {
+				#count = 0 					// private field
+				increment() {
+					return ++this.count
+				}
+				decrement(){
+					return --this.count
+				}
+				getCount(){
+					return this.count
+				}
+			}
+
+			const counter = Counter()
+			console.log(counter.getCount()) // 0
+			counter.increment()
+			console.log(counter.getCount()) // 1
+
+			console.log(counter.count) // SyntaxError
+			============================================================
+			-> Use "#" to delcare private fields.
+			-> Standardized
+			-> True Privacy
