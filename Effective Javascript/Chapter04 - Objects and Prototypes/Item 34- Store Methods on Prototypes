@@ -1,0 +1,43 @@
+Item 34: Store Methods on Prototypes
+
+	* Storing methods on instance objects creates multiple copies of the functions, one per instance object.
+
+	* Prefer storing methods on prototypes over storing them on instance objects.
+
+		ex) Storing Methods on Instance Objects
+			============================================================
+			function Person(name) {
+				this.name = name
+				this.sayHello = function() {
+					return `Hello, I'm ${this.name}`
+				}
+			}
+
+			const person1 = new Person("Alice")
+			const person2 = new Person("Bob")
+
+			// different function instance
+			console.log(person1.sayHello !== person2.sayHello) // true
+			============================================================
+
+		ex) Storing Methods on Prototypes
+			============================================================
+			function Person(name) {
+				this.name = name
+			}
+
+			Person.prototype.sayHello = function() {
+				return `Hello, I'm ${this.name}`
+			}
+
+			const person1 = new Person("Alice")
+			const person2 = new Person("Bob")
+
+			// same function reference
+			console.log(person1.sayHello === person2.sayHello) // true
+			============================================================
+			-> By defining methods on the constructor's "prototype", all instances share a single copy of the method (more memory-efficient)
+
+			-> faster than duplicating functions for each instance.
+
+			-> consistency(shared methods)
