@@ -1,0 +1,24 @@
+Item 36: Store Instance State Only on Instance Objects
+	
+	- In Modern JS, use class
+
+		ex)
+			=========================================================
+			class Tree {
+
+				constructor(x) {
+					this.value = x
+					this.children = []
+				}
+
+				fun addChild(){
+					this.children.push(x)
+				}
+			}
+			=========================================================
+			+ Readability -> easier to understand
+			+ Encapsulation -> cohesive
+			+ Consistency -> React, Node.js use "class" 
+			+ Extensibility -> easier for inheritance
+
+	* Store mutable per-instance state on instance objects.
