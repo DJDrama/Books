@@ -1,0 +1,47 @@
+Item 37: Recognize the Implicit Binding of this
+	
+	- CSV(Comman Separated Value)
+
+	- Old code
+		ex)
+			=========================================================
+			CSVReader.prototype.read = function(str) {
+				var lines = str.trim().split(/\n/)
+				var self = this
+				return lines.map(function(line) {
+					return line.split(self.regexp)
+				})
+			}
+
+			var reader = new CSVReader()
+			reader.read("a,b,c\nd,e,f\n")
+			// [["a", "b", "c"], ["d", "e", "f"]]
+			=========================================================
+
+	- Modern JavaScript
+		ex)
+			=========================================================
+			class CSVReader {
+				constructor(regexp = /,/) {
+					this.regexp = regexp
+				}
+
+				// Method shorthand (no "function" keyword)
+				read(str) {
+					const lines = str.trim().split(/\n/)
+					return lines.map(line => line.split(this.regexp))
+				}
+			}
+
+			const reader = new CSVReader()
+			console.log(reader.read("a,b,c\nd,e,f\n"))
+			// [["a", "b", "c"], ["d", "e", "f"]]
+			=========================================================
+
+	* The scope of "this" is always determined by its nearest enclosing function.
+
+	* "self" is Rarely used in Modern JavaScript
+		-> Use Arrow Functions
+		-> Use class Syntax
+		-> Avoid "self" or "that" (rarely a need to use "Self")
+		
