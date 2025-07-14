@@ -1,0 +1,40 @@
+Item 41: Treat Prototypes As an Implementation Detail
+
+	- Modern JS
+		1) "in" operator
+			-> checks if a property exists on an object or its prototype chain. (But less specific than "hasOwnProperty")
+
+			-> use "hasOwnProperty" when you need to exclude inherited properties.
+
+	- "Object.getPrototypeOf" (Use for Debugging)
+		-> Purpose: Returns the prototype of an object, allowing inspection of the prototype chain.
+
+			ex)
+				===========================================================================
+				class Actor {}
+				class SpaceShip extends Actor {}
+
+				const ship = new SpaceShip()
+				
+				// true
+				console.log(Object.getPrototypeOf(ship) === SpaceShip.prototype)
+
+				// true
+				console.log(Object.getPrototypeOf(SpaceShip.prototype) === Actor.prototype) 
+
+				===========================================================================
+
+		-> Alternative: "instanceof", "isPrototypeOf"
+
+			ex)
+				===========================================================================
+				console.log(ship instanceOf Actor) // true
+				console.log(Actor.prototype.isPrototypeOf(ship)) // true
+				===========================================================================
+
+
+	* Objects are interfaces; prototypes are implementations
+
+	* Avoid inspecting the prototype structure of objects you don't control
+
+	* Avoid inspecting properties that implement the internals of objects you don't control.
