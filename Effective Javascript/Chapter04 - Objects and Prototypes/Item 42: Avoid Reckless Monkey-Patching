@@ -1,0 +1,48 @@
+Item 42: Avoid Reckless Monkey-Patching
+	
+	- "monkey-patching"
+		-> since prototypes are shared as objects, anyone can add, remove, or modify their properties.
+
+		-> This controversial practice is commonly known as "monkey-patching"
+
+		-> Modifying or extending the behavior of existing objects, classes, or built-in prototypes at runtime by adding, modifying, or replacing methods or prototypes.
+
+		* Powerful, but controversial due to its potential to introduce bugs, conflicts, or unexpected behavior.
+
+			ex)
+				=======================================================================
+				Array.prototype.myCustomMap = function(callback) {
+					const result = []
+					for (let i=0; i<this.length; i++) {
+						result.push(callback(this[i], i, this))
+					}
+					return result
+				}
+
+				const arr = [1, 2, 3]
+				console.log(arr.myCustomMap(x => x * 2)) // [2, 4, 6]
+				=======================================================================
+
+		* Discouraged in Production.
+
+	- Use Cases
+		1) Polyfills
+			-> Adding missing standard methods to older environments.
+
+				ex)
+					=======================================================================
+					if (!Array.prototype.includes) {
+						Array.prototype.includes = function(value) {
+							return this.indexOf(value) !== -1
+						}
+					}
+					=======================================================================
+
+
+	* Avoid reckless monkey-patching
+
+	* Document any monkey-patching performed by a library
+
+	* Consider making monkey-patching optional by performing the modifications in an exported function.
+
+	* Use monkey-patching to provide polyfills for missing standard APIs.
