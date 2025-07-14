@@ -1,0 +1,72 @@
+Item 40: Avoid Inheriting from Standard Classes
+
+	- instead of inheriting from Array, Dir can contain an array of entries and elegate array-like operations to it.
+		-> avoids the pitfalls of Array subclassing while providing similar functionality.
+
+			ex)
+				===============================================================
+				class Dir {
+					constructor(path, entries = []) {
+						this.path = path
+						this.entries = [...entries]
+					}
+
+					get length() {
+						return this.entries.length
+					}
+
+					push(...items) {
+						this.entries.push(...items)
+						return this.entries.length
+					}
+
+					pop() {
+						return this.entries.pop()
+					}
+
+					map(callback) {
+						return this.entries.map(callback)
+					}
+
+					get(index) {
+						return this.entries[index]
+					}
+
+					set(index, value) {
+						this.entries[index] = value
+					}
+
+					// Iterator for array-like behavior
+					[Symbol.iterator]() {
+						return this.entries[Symbol.iterator]()
+					}
+				}
+
+				// Usage
+				const dir = new Dir("/tmp/mysite", ["file1.txt", "file2.txt"])
+				console.log(dir.length) // 2
+
+				dir.push("file3.txt")
+				console.log(dir.length) // 3
+
+				console.log(dir.get(0)) // "file1.txt"
+
+				for(const file of dir) {
+					console.log(file) // "file1.txt", "file2.txt", "file3.txt"
+				}
+
+				// ["FILE1.TXT", "FILE2.TXT", "FILE3.TXT"]
+				console.log(dir.map(file=>file.toUpperCase()))
+				===============================================================
+				-> Avoids Array Subclassing
+					+ uses composition to store entries in "this.entries", sidestepping "Array"'s complex internal behavior.
+
+				-> Clear "length" behavior.
+
+				-> Flexible
+
+				-> Array-Like
+					+ Supports push, pop, map, and iteration via "[Symbol.iterator]", mimicking "Array" behavior where needed.
+
+	* Prefer delegating to properties instead of inheriting from standard classes.
+	
