@@ -1,0 +1,108 @@
+Item 38: Call Superclass Constructors from Subclass Constructors
+	
+	- "scene graph"
+		-> a collection of objects describing a scene in a visual program such as a game or graphical simulation.
+
+		-> A simple scene contains 
+			1) a collection of all of the objects in the scene, known as "actors", 
+			2) a table of preloaded image data for the actors
+			3) and a reference to the underlying graphics display, often known as the "context"
+
+	* The "class" syntax, introduced in ECMAScript2015(ES6)
+		-> cleaner
+		-> more structured way to define blueprints for objects, making the code more readable and maintainable.
+		-> supports features like inheritance more elegantly.
+
+		ex)
+			======================================================================
+			class Scene {
+				constructor(context, width, height, images) {
+					this.context = context
+					this.width = width
+					this.height = height
+					this.images = images
+					this.actors = []
+				}
+
+				register(actor) {
+					this.actors.push(actor)
+				}
+
+				unregister(actor) {
+					const i = this.actors.indexOf(actor)
+					if (i >= 0) {
+						this.actors.splice(i, 1)
+					}
+				}
+
+				draw() {
+					this.context.clearRect(0, 0, this.width, this.height)
+					for (let i=0; i< this.actors.length; i++) {
+						this.actors[i].draw()
+					}
+				}
+			}
+
+			class Actor {
+				constructor(scene, x, y) {
+					this.scene = scene
+					this.x = x
+					this.y = y
+					scene.register(this)
+				}
+
+				moveTo(x, y) {
+					this.x = x
+					this.y = y
+					this.scene.draw()
+				}
+
+				exit() {
+					this.scene.unregister(this)
+					this.scene.draw()
+				}
+
+				draw() {
+					const image = this.scene.images[this.type]
+					this.scene.context.drawImage(image, this.x, this.y)
+				}
+
+				width() {
+					return this.scene.images[this.type].width
+				}
+
+				height() {
+					return this.scene.images[this.type].height
+				}
+			}
+
+			// Inheritance
+			class SpaceShip extends Actor {
+				constructor(scene, x, y) {
+					super(scene, x, y)
+					this.points = 0
+					this.type = 'spaceship'
+				}
+
+				scorePoint() {
+					this.points++
+				}
+
+				left() {
+					this.moveTo(Math.max(this.x - 10, 0), this.y)
+				}
+
+				right() {
+					const maxWidth = this.scene.width - this.width()
+					this.moveTo(Math.min(this.x + 10, maxWidth), this.y)
+				}
+			}
+
+			// Usage example
+			const scene = new Scene(canvas, 800, 600, images)
+			const spaceship = new SpaceShip(scene, 100, 100)
+			spaceship.right()
+			spaceship.scorePoint()
+			console.log(spaceship.points)
+			spaceship.exit()
+			======================================================================
