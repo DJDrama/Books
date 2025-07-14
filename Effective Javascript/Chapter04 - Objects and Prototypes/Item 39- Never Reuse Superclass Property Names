@@ -1,0 +1,62 @@
+Item 39: Never Reuse Superclass Property Names
+
+	* If two classes in an inheritance hierarchy refer to the same property name, they will refer to the same property.
+
+
+		ex)
+			======================================================================
+			class Actor {
+				constructor(scene, x, y) {
+					this.scene = scene
+					this.x = x
+					this.y = y
+					this.id = ++Actor.nextID
+					scene.register(this)
+				}
+			}
+
+			Actor.nextID = 0
+
+			class Alien {
+				constructor(scene, x, y, direction, speed, strength) {
+					super(scene, x, y)
+					this.direction = direction
+					this.speed = speed
+					this.strength = strength
+					this.damage = 0
+					this.id = ++Alien.nextID // conflicts with actor's id!
+				}
+			}
+
+			Alien.nextID = 0
+
+			// Correct version
+			class Actor {
+				constructor(scene, x, y) {
+					this.scene = scene
+					this.x = x
+					this.y = y
+					this.actorID = ++Actor.nextID // distinct from alienID
+					scene.register(this)
+				}
+			}
+
+			Actor.nextID = 0
+
+			class Alien {
+				constructor(scene, x, y, direction, speed, strength) {
+					super(scene, x, y)
+					this.direction = direction
+					this.speed = speed
+					this.strength = strength
+					this.damage = 0
+					this.alienID = ++Alien.nextID // distinct from actorID
+				}
+			}
+
+			Alien.nextID = 0
+			======================================================================
+
+	* Be aware of all property names used by your superclasses.
+
+	* Never reuse a superclass property name in a subclass
