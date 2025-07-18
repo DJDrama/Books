@@ -1,0 +1,37 @@
+Item 45: Use hasOwnProperty to Protect Against Prototype Pollution
+	
+	- JavaScript's object operations always work with inheritance.
+		-> Even an empty object literal inherits a number of properties from Object.prototype:
+
+			ex)
+				=====================================================================
+				const dict = {}
+
+				console.log("alice" in dict)		// false
+				console.log(1 in dict)				// false
+
+				console.log("toString" in dict)		// true
+				console.log("valueOf" in dict)		// true
+				console.log("hasOwnProperty" in dict)	// true
+				=====================================================================
+
+			ex) hasOwnProperty
+				=====================================================================
+				const dict = { "alice" : 34 }
+
+				console.log(dict.hasOwnProperty(34))		// false
+				console.log(dict.hasOwnProperty('alice'))	// true
+				=====================================================================
+
+	* Map Object
+		-> in ES6, key-value collection that doesn't use prototypes, making it immune to prototype pollution.
+			
+			ex)
+				=====================================================================
+				const map = new Map([
+					['userId', 5]
+					['role', 'ADMIN']
+				])
+
+				console.log(map.has('role'))		// true
+				=====================================================================
