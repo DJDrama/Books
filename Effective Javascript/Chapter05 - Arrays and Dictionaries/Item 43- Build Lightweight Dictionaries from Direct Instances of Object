@@ -1,0 +1,21 @@
+Item 43: Build Lightweight Dictionaries from Direct Instances of Object
+
+	- JavaScript object is a table mapping string property names to values
+		-> makes objects lightweight for implementing dictionaries: variable-sized collections mapping strings to values.
+
+		-> use "for...in" loop for enumeration.
+
+			ex)
+				=========================================================
+				const dict = { alice: 34, bob: 24, chris:62 }
+				const people = []
+				for(name in dict){
+				    console.log(dict[name]) // 34 24 62
+				    people.push(name)
+				}
+
+				console.log(people) // [ 'alice', 'bob', 'chris']
+				=========================================================
+
+	* don't add properties to "Object.prototype" that could pollute a "for...in" loop.
+	
