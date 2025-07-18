@@ -1,0 +1,31 @@
+Item 44: Use null Prototypes to Prevent Prototype Pollution
+
+	- Simply pass a "null" prototype argument and an empty descriptor map
+		
+		ex) prevents attackers from manipulating shared prototype properties to affect the object.
+			===================================================================================
+			const safeObject = Object.create(null) // build a truly empty object
+			safeObject.someProperty = 'value' // No prototype pollution risk
+
+			console.log(Object.getPrototypeOf(safeObject) === null) // true
+			===================================================================================
+			-> setting an object's prototype to "null" creates an object without a prototype chain
+			-> it doesn't inherit from Object.prototype.
+
+
+	* Modern Alternatives or Complementary Practices
+		1) Object.freeze(Object.prototype)
+			-> freezing the global Object.prototype to prevent modifications.
+
+		2) Safe JSON Parsing
+			-> validating and sanitizing JSON inputs to avoid malicious payloads.
+
+		3) ES Modules and Strict Mode
+			-> "use strict" to reduce the risk of unintended prototype access.
+
+		4) Security Libraries
+			-> "deep-freeze" or "immutable.js" for immutable data structures.
+
+	* "Prototype"
+		-> an object from which other objects inherit properties and methods.
+		-> Most objects inherit from "Object.prototype", which provides methods like "toString()" or "hasOwnProperty()".
