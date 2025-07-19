@@ -1,0 +1,93 @@
+Item 46: Prefer Arrays to Dictionaries for Ordered Collections
+	
+	- "for..in" loop has to pick some order to enumerate an object's properties.
+
+		ex)
+			========================================================================
+			function report(highScores) {
+			    let result = ""
+			    let i = 1
+			    for(let name in highScores) {
+			        result += i + ". " + name + ": " + highScores[name] + "\n"
+			        i++
+			    }
+			    return result
+			}
+
+			const dict = [
+			    { name: "Hank", points: 1110100 },
+			    { name: "Steve", points: 1065400 },
+			    { name: "Billy", points: 1050200 }
+			    ]
+
+			const result = report(dict)
+			console.log(result)
+
+			// prints
+			1. 0: [object Object]
+			2. 1: [object Object]
+			3. 2: [object Object]
+			========================================================================
+			-> unexpected result
+
+	(Solution)	
+		ex) accepting an array of objects
+			========================================================================
+			function report(highScores) {
+			    let result = ""
+			    for(let i=0; i<highScores.length; i++){
+			        const score = highScores[i]
+			        result += (i+1) +". " + score.name + ": " + score.points + "\n"
+			    }
+			    return result
+			}
+
+			const dict = [
+			    { name: "Hank", points: 1110100 },
+			    { name: "Steve", points: 1065400 },
+			    { name: "Billy", points: 1050200 }
+		    ]
+
+			const result = report(dict)
+			console.log(result)
+
+			// prints
+			1. Hank: 1110100
+			2. Steve: 1065400
+			3. Billy: 1050200
+			========================================================================
+
+		ex) using "of" (for...of loop)
+			========================================================================
+			function report(highScores) {
+			    let result = "";
+			    let i = 1;
+			    for (let entry of highScores) {
+			        result += i + ". " + entry.name + ": " + entry.points + "\n";
+			        i++;
+			    }
+			    return result;
+			}
+
+			const dict = [
+			    { name: "Hank", points: 1110100 },
+			    { name: "Steve", points: 1065400 },
+			    { name: "Billy", points: 1050200 }
+			];
+
+			const result = report(dict);
+			console.log(result);
+
+			// prints
+			1. Hank: 1110100
+			2. Steve: 1065400
+			3. Billy: 1050200
+			========================================================================
+
+	* Arrays maintain the order of elements based on their insertion of index.
+		-> predictable and preserved during iteration (e.g., with "for...of", "map", or "forEach")
+
+	* Objects historically did not guarantee property order.
+		-> less intuitive and not as reliable for collections where order is critical.
+
+	* For ordered collection, "Array"s are the better choice.
