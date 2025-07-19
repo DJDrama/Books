@@ -1,0 +1,14 @@
+Item 48: Avoid Modifying an Object during Enumeration
+	
+	* If new properties are added to the object being enumerated during enumeration, the newly added properties are not guaranteed to be visited in the active enumeration.
+
+		-> we can't rely on "for...in" loops to behave predictably if we modify the object being enumerated.
+
+	- "nondeterminism": an operation that is not guaranteed by the language semantics to produce a single, predictable result.
+
+	* Make sure not to modify an object while enumerating its properties with a "for...in" loop.
+
+	* Use a "while" loop or classic for loop instead of a "for...in" loop when iterating over an object whose contents might change during the loop.
+
+	* For predictable enumeration over a changing data structure, consider using a sequential data structure such as an array instead of a dictionary object.
+	
