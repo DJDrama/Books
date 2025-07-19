@@ -1,0 +1,79 @@
+Item 47: Never Add Enumerable Properties to Object.prototype
+
+	* Never add enumerable properties to the shared Object.prototype.
+
+		ex)
+			============================================================================
+			// Attaching the "allKeys" m ethod to the prototype of all objects in JavaScript.
+			// every object inherits the "allKeys" method
+			Object.prototype.allKeys = function() {
+				const result = []
+				for (let key in this) {
+					result.push(key)
+				}
+				return result
+			}
+
+			console.log(({a:1, b:2, c:3}).allKeys()) // [ 'a', 'b', 'c', 'allKeys' ]
+			============================================================================
+			-> 'allKeys' is printed. (Because we added the "allKeys" method to Object.prototype, making it an enumerable property of all objects)
+
+			-> "for...in" loop iteratees over all enumerable properties of an object, including both its "own properties" (e.g., a, b, c) and "inherited properties" from its prototype chain (e.g., allKeys).
+
+	(Solution)
+
+		ex) define "allKeys" as a function rather than as a method
+			============================================================================
+			function allKeys(obj) {
+				const result = []
+				for (let key in obj) {
+					result.push(key)
+				}
+				return result
+			}
+
+			console.log(allKeys({a:1, b:2, c:3})) // [ 'a', 'b', 'c' ]
+			============================================================================
+
+		ex) using "hasOwnProperty"
+			============================================================================
+			Object.prototype.allKeys = function() {
+				const result = []
+				for(let key in this) {
+					if(this.hasOwnProperty(key)){ // "hasOwnProperty"
+						result.push(key)
+					}
+				}
+				return result
+			}
+			console.log(({a:1, b:2, c:3}).allKeys()) // [ 'a', 'b', 'c' ]
+			============================================================================
+			-> exclude inherited properties like "allKeys", and use "hasOwnProperty" to check if a property belongs directly to the object (not its prototype)
+
+		ex) using "defineProperty"
+			============================================================================
+			Object.defineProperty(Object.prototype, 'allKeys', {
+			    value: function() {
+			        const result = [];
+			        for (let key in this) {
+			            result.push(key);
+			        }
+			        return result;
+			    },
+			    enumerable: false // Make allKeys non-enumerable
+			});
+
+			console.log({a:1, b:2, c:3}.allKeys()); // [ 'a', 'b', 'c' ]
+			============================================================================
+
+		ex) using "Object.keys"
+			============================================================================
+			console.log(Object.keys({a:1, b:2, c:3})) // [ 'a', 'b', 'c']
+			============================================================================
+			-> built-in, safer, and explicitly designed to list own enumerable properties.
+
+	* Avoid adding properties to Object.prototype.
+
+	* Consider writing a function instead of an Object.prototype method.
+
+
