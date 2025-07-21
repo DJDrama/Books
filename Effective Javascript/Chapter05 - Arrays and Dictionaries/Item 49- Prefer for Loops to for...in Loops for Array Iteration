@@ -1,0 +1,76 @@
+Item 49: Prefer for Loops to for...in Loops for Array Iteration
+
+	ex) when using for...in
+		========================================================================
+		const scores = [1, 2, 3, 4, 5]
+		let total = 0
+
+		for(let score in scores){
+		    total += score
+		}
+		console.log(total)						// 001234
+		const mean = total / scores.length
+		console.log(mean)						// 246.8
+		========================================================================
+		-> object property keys are always strings, even the indexed properties of an array.
+
+	(Solution)
+	ex) Use for loop or for...of
+		========================================================================
+		const scores = [1, 2, 3, 4, 5]
+		let total = 0
+
+		for(let i=0; i<scores.length; i++){
+		    total += scores[i]
+		}
+		console.log(total)					// 15
+		let mean = total / scores.length
+		console.log(mean)					// 3
+
+		total = 0
+
+		for(let score of scores){
+		    total += score
+		}
+		console.log(total)					// 15
+		mean = total / scores.length
+		console.log(mean)					// 3
+		========================================================================
+
+	* Consider storing the "length" property of an array in a local variable before a loop to avoid recomputing the property lookup.
+
+		ex) UnOptimzed
+			===============================================================
+			for(let i=0; i<array.length; i++){
+				// do something
+			}
+			===============================================================
+			-> Each iteration performs a "dynamic lookup" for array.length
+
+		ex) Optimzed
+			===============================================================
+			const len = array.length
+			for(let i=0; i<len; i++){
+				// do something
+			}
+			===============================================================
+			-> Lookup happends once, and "len" is a fast local variable.
+
+	* "dynamic property lookup"
+		-> refers to the process in JavaScript where the runtime resolves the value of a property (like array.length) at execution time by accessing an object's property table or prototype chain.
+
+	- Key aspects of Dynamic Property Lookup
+		1) Object-Based
+			-> In JavaScript, objects are key-value stores.
+			-> Accessing a property like "length" involves looking up the key "length" in the object's property table.
+
+		2) Prototype Chain
+			-> If the property is not found, JavaScript traverses the object's prototype chain to find it.
+			-> adding potential overhead.
+
+		3) Dynamic Nature
+			-> Properties can be added, modified, or deleted at runtime
+			-> the engine cannot always assume a property's location or existence is fixed, requiring a lookup each time.
+
+		4) Cost
+			-> Modern JavaScript (V8, SpiderMonkey) optimizes property lookups using techniques like inline caching, but the process is still slower than direct memory access in static languages.
