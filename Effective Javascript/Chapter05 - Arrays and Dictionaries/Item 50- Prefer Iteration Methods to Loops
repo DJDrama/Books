@@ -1,0 +1,68 @@
+Item 50: Prefer Iteration Methods to Loops
+
+	- "forEach" Loop
+		ex)
+			====================================================
+			players.forEach(function(p) {
+				p.score++
+			})
+			====================================================
+			-> more concise and readable.
+			-> elminates the termination condition and any mention of array indices.
+
+	- "Array.prototype.map"
+		ex)
+			====================================================
+			const trimmed = input.map(function(s) {
+				return s.trim()
+			})
+			====================================================
+
+	- "Array.prototype.filter"
+		ex)
+			====================================================
+			listings.filter(function(listing) {
+				return listing.price >= min
+					&& listing.price <= max
+			})
+			====================================================
+
+	- "takeWhile" (Custom Method, Early Exit)
+		ex)
+			====================================================
+			function takeWhile(array, pred) {
+				let i = 0
+				while (i < array.length && predicate(array[i])) {
+					i++
+				}
+				return array.slice(0, 1)
+			}
+
+			// usage
+			const numbers = [1, 2, 3, 4, 5, 6]
+			const result = takeWhile(numbers, num => num < 4)
+			console.log(result) // [1, 2, 3]
+			====================================================
+
+	- "some" (Early Exit)
+		ex)
+			========================================================
+			const todos = [
+				{id: 1, completed: false},
+				{id: 2, completed: true}
+			]
+			const hasCompleted = todos.some(todo => todo.completed)
+			console.log(hasCompleted) // true
+			========================================================
+
+	- "every" (Early Exit)
+		ex)
+			========================================================
+			const todos = [
+				{id: 1, completed: false},
+				{id: 2, completed: true}
+			]
+			const hasCompleted = todos.every(todo => todo.completed)
+			console.log(hasCompleted) // false
+			========================================================
+
