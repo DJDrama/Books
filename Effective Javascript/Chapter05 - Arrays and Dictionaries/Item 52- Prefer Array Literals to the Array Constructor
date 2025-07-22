@@ -1,0 +1,28 @@
+Item 52: Prefer Array Literals to the Array Constructor
+	
+	- Array literal syntax(e.g., [1, 2, 3, 4, 5]) is the preferred and more modern way to create arrays in JavaScript.
+
+		1) Modern and Preferred
+			-> Standard
+			-> Straightforward and idiomatic
+
+		2) Advantages
+			-> Clarity
+			-> Simplicity
+			-> Safety
+
+
+	* "new Array()" Constructor (Older Pattern)
+
+		-> Drawbacks
+			1) Ambiguity with Single Argument
+				+ when "new Array" is called with a single numeric argument, it creates an empty array with that length, not an array containing that number.
+					ex)
+						=================================================
+						var a = new Array(5) // [undefined, undefined, ...]
+						var b = [5] // [5]
+						=================================================
+
+			2) Verbosity
+				+ new Array(1, 2, 3, 4, 5) is less readable than [1, 2, 3, 4, 5]
+			
