@@ -1,0 +1,53 @@
+Item 51: Reuse Generic Array Methods on Array-Like Objects
+
+	- Rest parameters
+		ex)
+			===============================================================
+			function highlight(...widgets) {
+				widgets.forEach(widget => widget.setBackground("Red"))
+			}
+			===============================================================
+
+		ex) More Modern Alternatives
+			===============================================================
+			function highlight(...widgets) {
+				widgets.forEach(widget => widget.setBackground?.("Red"))
+			}
+			===============================================================
+			-> Use optional chaining for "setBackground" to silently skip invalid calls.
+			-> Concise but less explicit about error handling.
+
+		ex) With Type Checking
+			=======================================================================
+			function highlight(...widgets) {
+				widgets.forEach(widget => {
+					if (typeof widget?.setBackground === 'function') {
+						widget.setBackground('yellow')
+					} else {
+						console.warn('Invalid widget or setBackground method not found.')
+					}
+				})
+			}
+			=======================================================================
+
+	- Arraylike objects
+
+		ex) Array.from
+			=======================================================================
+			const arrayLike = { 0: "a", 1: "b", 2: "c", length: 3}
+			const result = Array.from(arrayLike, s => s.toUpperCase())
+
+			// prints (console.log)
+			["A", "B", "C"]
+			=======================================================================
+
+		ex) Spread Operator
+			=======================================================================
+			const arrayLike = { 0: "a", 1: "b", 2: "c", length: 3}			
+			const result = [...arrayLike].map(s => s.toUpperCase())
+
+			// prints (console.log)
+			["A", "B", "C"]
+			=======================================================================
+
+		* "Length" won't be printed, since the "map" function only processes properties corresponding to numeric indices from 0 to length-1(i.e., 0, 1, 2)
