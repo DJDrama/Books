@@ -1,0 +1,47 @@
+Item 59: Avoid Excessive Coercion
+	
+	- guard object example in Modern JS
+		ex)
+			============================================================
+			const arrayLike = {
+				test(x) {
+					return x === "object" &&
+						x !== null &&
+						Number.isInteger(x.length) &&
+						x.length >= 0 &&
+						x.length <= 0xFFFFFFFF
+				}
+
+				[Symbol.toStringTag]: "ArrayLikeObject"
+			}
+
+			// true
+			console.log(arrayLike.test({ 0: "a", 1: "b", length: 2}))
+
+			// false (true Array, not array-like)
+			console.log(arrayLike.test([1, 2, 3]))
+
+			// false (length is not an Integer)
+			console.log(arrayLike.test({ length: "invalid" }))
+
+			// [object ArrayLikeObject]
+			console.log(String(arrayLike))
+			============================================================
+
+	* Consider defensively guarding against unexpected inputs.
+
+	* Avoid mixing coercions with overloading.
+		ex) difficult to predict the results
+			============================================================
+			function processItems(items) {
+				if(items === null) return []
+				if(typeof items === "string")
+					items = items.split(",")
+
+				return items.length
+			}
+
+			console.log(processItems("a, b, c")) // 3
+			console.log(processItems(null)) // []
+			console.log(processItems(42)) // undefined
+			============================================================
