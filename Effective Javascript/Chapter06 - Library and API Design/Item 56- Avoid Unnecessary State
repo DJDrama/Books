@@ -1,0 +1,28 @@
+Item 56: Avoid Unnecessary State
+	
+	- "Stateful" API
+		-> a function can produce different results.
+			
+			ex) Web's Canavas library, which provides user interface elements with methods for drawing shapes and images onto their surface.
+			========================================================
+			const canvas = document.getElementById('myCanvas')
+			const ctx = canvas.getContext("2d")
+
+			ctx.fillStyle = 'blue' // fill color is blue
+			ctx.fillRect(10, 10, 50, 50) // draw a blue rectangle
+			ctx.fillRect(70, 10, 50, 50) // draw a blue rectangle
+			ctx.fillStyle = 'red' // fill color is red
+			ctx.fillRect(130, 10, 50, 50) // draw a red rectangle
+			========================================================
+
+
+	- "Stateless" API
+		-> provides functions or methods whose behavior depends only on their inputs, not on the changing state of the program.
+
+			ex) "foo".toUppercase() will always produce "FOO".
+
+		-> Conciseness
+
+	* Prefer stateless APIs where possible.
+
+	* When providing stateful APIs, document the relevant state that each operation depends on.
