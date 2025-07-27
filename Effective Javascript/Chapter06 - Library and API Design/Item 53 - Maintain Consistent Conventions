@@ -1,0 +1,5 @@
+Item 53 - Maintain Consistent Conventions
+
+	* Use consistent conventions for variable names and function signatures.
+
+	* Don't deviate from conventions your users are likely to encounter in other parts of their development platform.
