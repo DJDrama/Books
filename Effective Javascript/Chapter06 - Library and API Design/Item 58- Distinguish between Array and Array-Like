@@ -1,0 +1,41 @@
+Item 58: Distinguish between Array and Array-Like
+
+	* JavaScript arrays are objects!
+
+	- "duck testing"
+		-> guessing whether an object implements a structural type.
+
+	 	-> Bad practice
+	 		+ objects are not tagged with explicit info to indicate the structural types they implement, no reliable, programmatic way to detect this info.
+
+	- Preferred way to check "array"
+		1) Array.isArray
+			-> which tests whether a value is an array, regardless of prototype inheritance.
+
+			ex)
+				======================================================
+				const arr = [1, 2, 3];
+				const arrayLike = { 0: 1, 1: 2, 2: 3, length: 3 };
+				const nodes = document.querySelectorAll("div");
+
+				console.log(Array.isArray(arr)); // true
+				console.log(Array.isArray(arrayLike)); // false
+				console.log(Array.isArray(nodes)); // false
+				console.log(Array.isArray(arguments)); // false
+				======================================================
+
+		* Avoid "instanceof Array"
+			-> unreliable in modern JavaScript.
+
+			ex) Example of Failure
+				======================================================
+				const iframe = document.createElement("iframe");
+				document.body.appendChild(iframe);
+
+				const iframeArray = iframe.contentWindow.Array;
+				const arr = new iframeArray();
+
+				console.log(arr instanceof Array); // false (different Array constructor)
+				
+				console.log(Array.isArray(arr)); // true
+				======================================================
