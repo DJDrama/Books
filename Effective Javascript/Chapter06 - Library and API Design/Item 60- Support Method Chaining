@@ -1,0 +1,19 @@
+Item 60: Support Method Chaining
+	
+	- "method chaining"
+		-> repeated method calls
+		-> more concise than saving each intermediate result to an intermediate variable.
+
+	- "fluent style"
+		-> method chaining for stateful APIs is sometimes known as "fluent style".
+
+	* Modern frameworks (React, Vuew, and Svelte ...)
+		-> favor "Declarative" programming over "imperative" chaining.
+
+			ex)
+				===================================================
+				function MyComponent(){
+					return
+						<div className="active" style={{color: "blue", display: "none"}} />;
+				}
+				===================================================
