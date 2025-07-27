@@ -1,0 +1,37 @@
+Item 57: Use Structural Typing for Flexible Interfaces
+	
+	* Use structural typing(a.k.a duck typing) for flexible object interfaces.
+
+		ex) duck typing
+			========================================================
+			function printPoint(point) {
+				console.log(`x: ${point.x}, y: ${point.y}`)
+			}
+
+			// works because the structure matches
+			printPoint({ x: 10, y: 20, z: 30 })
+			========================================================
+
+		ex)
+			========================================================
+			function makeSound(animal) {
+				return animal.sound()
+			}
+
+			const duck = { sound: () => "Quack" }
+			const dog = { sound: () => "Woof" }
+			const cat = { meow: () => "Meow" }
+
+			console.log(makeSound(duck)) // "Quack"
+			console.log(makeSound(dog)) // "Woof"
+
+			// Error: animal.sound is not a function
+			console.log(makeSound(cat)) 
+			========================================================
+			-> "makeSound" does not care about the type of "animal".
+			-> only checkes the object has a "sound" method at runtime.
+			* If the object has the expected behavior (a "sound" method), it's treated as valid.
+
+	* Avoid inheritance when structural interfaces are more flexible and lightweight.
+
+	* Use mock objects, that is, alternative implementations of interfaces that provide repeatable behavior, for unit testing.
