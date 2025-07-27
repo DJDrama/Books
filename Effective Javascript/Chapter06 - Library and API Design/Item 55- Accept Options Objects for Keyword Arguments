@@ -1,0 +1,32 @@
+Item 55: Accept Options Objects for Keyword Arguments
+
+	- "argument creep"
+		-> a function starts out simple, but over time, as the library expands in functionality, the signature acquires more and more arguments.
+
+	- "options object"
+		-> a single argument that provides additional argument data through its named properties.
+
+		-> each argument becomes "self-documenting".
+
+		-> any of the arguments can be optional, and a caller can provide any subset of the optional arguments.
+
+		ex)
+			========================================================
+			function Server(options = {}) {
+			 const { port, hostname = "localhost", timeout = 3000,
+			 	loglevel = "info" } = options
+			}
+
+			Server({ port: 3000, hostname: "example.com", 
+				timeout = 5000})
+
+			Server({ port: 3000 }) // Optional Parameters
+			========================================================
+			-> Increases readability. (More self-documenting)
+			-> Optional Parameters: Can omit properties that have defaults without passing "undefined" or "null".
+			-> Flexibility: Adding new parameters is easier without breaking existing code, as you don't need to change the function's signature.
+
+	* Don't use "Options Object" for
+		1) Simple Functions.
+		2) Performance-Critical Code
+			-> Destructuring and object creation have a small overhead, so for extremely performance-sensitive code, prefer positional arguments (rarely an issue in practice.)

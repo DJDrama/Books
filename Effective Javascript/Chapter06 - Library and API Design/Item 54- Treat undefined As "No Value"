@@ -1,0 +1,33 @@
+Item 54: Treat undefined As "No Value"
+
+	- "undefined": Whenver JavaScript has no specific value to provide it just produces "undefined".
+
+		ex)
+			============================================================
+			var x;
+			x // undefined
+
+			var obj = {}
+			obj.x // undefined
+
+			function f() {
+				return;
+			}
+			functino g() {}
+
+			f() // undefined
+			g() // undefined
+
+			function f(x) {
+				return x
+			}
+			f() // undefined
+			============================================================
+
+	- ?? (nullish coalescing operator)
+		-> provides the default value if the left-hand operand is "null" or "undefined". (better than || operator)
+
+			ex)
+				=====================================================
+				const hostname = String(hostname ?? "localhost")
+				=====================================================
