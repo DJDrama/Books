@@ -1,0 +1,7 @@
+Item 64: Use Recursion for Asynchronous Loops
+	
+	* Loops cannot be asynchronous
+
+	* Use recursive functions to perform iterations in separate turns of the event loop.
+
+	* Recursion performed in separate turns of the event loop does not overflow the call stack.
