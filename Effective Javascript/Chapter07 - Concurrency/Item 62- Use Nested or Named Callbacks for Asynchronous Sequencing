@@ -1,0 +1,7 @@
+Item 62: Use Nested or Named Callbacks for Asynchronous Sequencing
+	
+	* Use nested or named callbacks to perform several asynchronous operations in sequence.
+
+	* Try to strike a balance between excessive nesting of callbacks and awkward naming of non-nested callbacks.
+
+	* Avoid sequencing operations that can be performed concurrently.
