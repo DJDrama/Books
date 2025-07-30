@@ -1,0 +1,18 @@
+Item 61: Don't Block the Event Queue on I/O
+	
+	- JavaScript programs are structured around "events"
+		-> inputs that may come in simultaenously from a variey of external sources, such as interactions from a user, incoming network data, or scheduled alarms.
+
+	- "run-to-completion guarantee"
+		-> any user code that is currently running in a shared context, such as a single web page in a browser, or a single running instance of a web server, is allowed to finish executing before the next event hanlder is invoked.
+
+		-> the system maintains an internal queue of events as they occur, and invokes any registered callbacks one at a time.
+
+		(Benefit)
+			+ you know what you have complete control over the application state: you never have to worry that some variable or object property will change out from under you due to concurrently executing code.
+
+		(Drawback)
+			+ any and all code you write effectively holds up the rest of the application from proceeding.
+
+	* Never use any blocking I/O APIs in the middle of an application's event queue.
+		-> synchronous I/O has disastrous consequences, preventing the user from interacting with a page until the I/O operation completes.
