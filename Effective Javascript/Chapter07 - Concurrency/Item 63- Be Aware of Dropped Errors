@@ -1,0 +1,6 @@
+Item 63: Be Aware of Dropped Errors
+
+	* using "try catch", we may ignore errors when using multiple asynchronous operations.
+		-> asynchronous APIs require vigilance to make sure you handle all error conditions explicitly.
+
+	* Make sure to handle all error conditions explicitly to avoid dropped errors.
