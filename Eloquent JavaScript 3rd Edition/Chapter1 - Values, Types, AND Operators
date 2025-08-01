@@ -1,0 +1,87 @@
+(Chapter1 - Values, Types, AND Operators)
+	
+	[Numbers]
+		- JavaScript uses a fixed number of bits, 64 of them, to store a single number value.
+
+		- e : exponent
+			ex)
+				================================
+				2.998e8
+				-> 2.998 * 10^8 = 299,800,000
+				================================
+
+	[Special Numbers]
+		- There are three special values in JavaScript that are considered numbers but don't behave like normal numbers.
+
+			1) Infinity
+			 	+ Infinity - 1 is still Infinity, and so on.
+
+			2) -Infinity
+
+			3) NaN (Not a Number)
+				ex)
+					================================
+					0 / 0 (zero divided by zero)
+
+					Infinity - Infinity
+					================================
+
+	[Strings]
+		- single quote
+			ex)
+				================================
+				'Float on the Ocean'
+				================================
+
+		- double quote
+			ex)
+				================================
+				"Float on the Ocean"
+				================================
+
+		- backticks
+			ex)
+				================================
+				`Float on the Ocean`
+				================================
+
+			-> used for "template literal"
+				ex)
+					================================
+					`half of 100 is ${100/2}`
+					================================
+
+	[Boolean]
+		* there is only one value in JavaScript that is not equal to itself.
+			-> NaN
+				ex)
+					================================
+					NaN == NaN // false
+					NaN === NaN // false
+					================================
+					+ NaN is supposed to denote the result of a nonsensical computation, and as such, it isn't equal to the result of any other nonsensical computations.
+
+	[Empty Values]
+		- two special values
+			1) null
+
+			2) undefined
+
+	[Automatic type conversion]
+		- "type coercion"
+			-> JavaScript converts value to the type it needs, using a set of rules that often aren't what you want or expect.
+
+		- "==="
+			-> tests whether a value is precisely equal to the other.
+			-> use it to prevent unexpected type conversions from tripping you up.
+
+	* "Short Circuit Evaluation"
+		-> accepting the fisrt for conditions.
+			ex)
+				===================================================
+				true || X -> ignores X, because it's true
+
+				false && X -> ignores X, because it's false
+				===================================================
+
+
