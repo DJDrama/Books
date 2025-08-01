@@ -1,0 +1,12 @@
+Item 68: Use Promises for Cleaner Asynchronous Logic
+	
+	- in Modern JS
+		1) "join" -> "Promise.all"
+		2) ".then()" -> "async/await"
+
+	* Promises represent eventual values, that is, concurrent computations that eventually produce a result.
+
+	* Use promises to compose different concurrent operations.
+
+	* Use promise APIs to avoid data races.
+
