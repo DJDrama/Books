@@ -1,0 +1,10 @@
+Item 66: Use a Counter to Perform Concurrent Operations
+	
+	- "setTimeout(..., 0)"
+		-> schedules to run in the next event loop tick, ensuring it behaves asynchronously even when there's no work to do.
+
+		-> "Consistency"
+			+ the function guarantees that "onsuccess" is always called asynchronously, aligning with the behavior when urls is non-empty.
+
+		-> "Avoid Blocking"
+			-> ensures the main thread isn't blocked by synchronous execution, maintaining responsiveness.
