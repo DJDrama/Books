@@ -1,0 +1,21 @@
+Item 65: Don't Blcok the Event Queue on Computation
+	
+	* Avoid expensive algorithms in the main event queue.
+
+	- "Worker" API
+		-> designed for parallelism (CPU-intensive tasks to run in a separate thread from the main thread (UI thread).)
+
+	<-> "Async/Await"
+		-> desgined for asynchronous programming, managing operations that involve waiting (e.g., network requests, file I/O, timers) without block the main thread.
+
+
+	- Web Workers run in a separate thread with a dedicated JavaScript context.
+		-> workers have no direct access to the DOM, window, or document, and communicate with the main thread via "postMessage".
+
+		-> Offload CPU-bound tasks
+
+	- Async/Await runs on the main thread with the same JavaScript context.
+		-> uses the event loop to handle asynchronous tasks
+		-> allowing the main thread to remain responsive during "await" operations.
+
+		-> Efficient for I/O-bound tasks
