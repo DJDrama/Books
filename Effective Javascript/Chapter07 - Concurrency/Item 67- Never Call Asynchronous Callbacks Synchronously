@@ -1,0 +1,9 @@
+Item 67: Never Call Asynchronous Callbacks Synchronously
+
+	* Never call an asynchronous callback synchronously, even if the data is immediately available.
+
+	* Calling an asynchronous callback synchronously disrupts the expected sequence of operations and can lead to unexpected interleaving of code.
+	
+	* Calling an asynchronous callback synchronously can lead to stack overflows or mishandled exceptions.
+
+	* Use an asynchronous API such as setTimeout to schedule an asynchronous callback to run in another turn.
