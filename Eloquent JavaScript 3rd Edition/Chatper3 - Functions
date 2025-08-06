@@ -76,3 +76,59 @@
 
 			-> when called with the same arguments, it always produces the same value (And doesn't do anything else).
 
+	[Exercises]
+		1) Minimum
+			============================================================
+			function min(a, b){
+			    if(a>b) return b
+			    else return a
+			}
+
+			console.log(min(1, 2))
+			console.log(min(2, 4))
+			console.log(min(10, 5))
+			============================================================
+
+		2) Recursion
+			============================================================
+			function isEven(num) {
+			    // Zero is even
+			    // One is odd
+			    // For any other Number N, its evenness is the same as N-2
+			    if(num===0)
+			        return true
+			    if(num===1)
+			        return false
+			    if(num<0) return isEven(num*-1)
+			    return isEven(num-2)
+			}
+
+			console.log(isEven(50))
+			console.log(isEven(75))
+			console.log(isEven(-1))
+			console.log(isEven(-2))
+			============================================================
+
+		3) Bean Counting
+			============================================================
+			function countBs(stringValue, characterToFind = 'B') {
+			    const len = stringValue.length
+			    let count=0
+			    for(let i=0; i<len; i++){
+			        const curr = stringValue[i]
+			        if(curr === characterToFind)
+			            count++
+			    }
+			    return count
+			}
+
+			console.log(countBs("ABBC"))
+			console.log(countBs("ABCDAA"))
+
+			function countChar(stringValue, characterToFind){
+			    return countBs(stringValue, characterToFind)
+			}
+
+			console.log(countChar("ABBC", 'B'))
+			console.log(countChar("ABCDAA", 'A'))
+			============================================================
