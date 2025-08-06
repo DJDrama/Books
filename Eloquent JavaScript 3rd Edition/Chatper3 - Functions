@@ -1,0 +1,78 @@
+(Chatper3 - Functions)
+
+	[Defining A Function]
+		- A function is created with an expression that starts with the keyword "function".
+
+		- Functions have a set of "parameters" and a "body".
+
+	[Bindings and Scopes]
+		- each binding has a "scope"
+			-> the part of the program in which the binding is visible.
+
+		- "global" bindings
+			-> bindings defined outside of any function or block, the scope is the whole program.
+
+		- "local" bindings
+			-> bindings created for function parameters or declared inside a function ca be referenced only in that function.
+
+			* Every time the function is called, new instances of these bindings are created.
+
+			-> "let", and "const" are in fact local to the "block" that they are declared in.
+
+	[Nested Scope]
+		- "lexical scoping"
+			-> The set of bindings visible inside a block is determined by the place of that block in the program text.
+
+			-> Each local scope can also see all the local scopes that contain it, and all scopes can see the global scope. 
+
+	[Arrow Functions]
+		- instead of the "function" keyword, it uses an arrow (=>) made up of an equal sign and a greater-than character.
+
+		- the arrow comes after the list of parameters and is followed by the function's body.
+			ex) "this input produces this result!"
+				============================================================
+				const power = (base, exponent) => {
+					let result = 1
+					for(let count = 0; count < exponent; count++) {
+						return += base
+					}
+					return result
+				}
+				============================================================
+
+	[The Call Stack]
+		- Every time a function is called, the current context is stored on top of the stack.
+
+		- When a function returns, it removes the top context from the stack and uses that context to continue expression.
+			-> storing this stack requires space in the computer's memory.
+
+	[Optional Arguments]
+		ex)
+			============================================================
+			function power(base, exponent = 2) {
+				let result = 1
+				for(let count = 0; count < exponent; count++) {
+					result *= base
+				}
+				return result
+			}
+
+			console.log(power(4)) // 16
+			console.log(power(2, 6)) // 64
+			============================================================
+
+	[Closure]
+		- being able to reference a specific instance of a local binding in an enclosing scope - is called "closure".
+
+		- A function that references bindings from local scopes around it is called a "closure".
+
+		- "captures and modifies a specific variable or instance from otuer scope"
+
+	[Functions and Side Effects]
+		- "pure" function
+			-> specific kind of value-producing function that not only has no side effects but also doesn't rely on side effects from other code.
+
+				ex) does not read global bindings whose value might change.
+
+			-> when called with the same arguments, it always produces the same value (And doesn't do anything else).
+
