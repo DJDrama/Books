@@ -1,0 +1,332 @@
+(Chapter 4 - Data Structures: Objects And Arrays)
+
+	[Data Sets]
+		- array
+			ex)
+				================================================
+				let listOfNumbers = [2, 3, 5, 7, 11];
+				console.log(listOfNumbers[2]); // 5
+				console.log(listOfNumbers[3]); // 7
+				console.log(listOfNumbers[2-1]) // 3
+				================================================
+
+	[Properties]
+		- dot : literal name of the property.
+			ex)
+				==========================================================
+				value.x // fetches the property of "value" named "x"
+				==========================================================
+
+
+		- square brackets: evaluated to get the property name.
+			ex)
+				==========================================================
+				value[x] // evaluate the expression x and uses the result
+				==========================================================
+
+	[Methods]
+		- every string has a "toUpperCase" property.
+			-> returns a copy of the string in which all letters have been converted to uppercase.
+
+			<-> "toLowerCase"
+
+		* Properties that contain functions are generally called "methods".
+			-> "toUpperCase" is a method of a string.
+
+	[Objects]
+		- reading a property that doesn't exist will give you the value "undefined".
+
+		- It is possible to assign a value to a property expression with the = operator.
+			-> will replace the property's value if it already existed or create a new property on the object if it didn't.
+
+		- "delete" operator
+			ex)
+				==========================================================
+				let anObject = { left: 1, right: 2 };
+
+				console.log(anObject.left); // 1
+				delete anObject.left;
+
+				console.log(anObject.left); // undefined
+
+				console.log("left" in anObject) // false (was deleted)
+
+				console.log("right" in anObject) // true
+				==========================================================
+
+		- "assign" operator
+			ex)
+				==========================================================
+				let objectA = { a: 1, b: 2 }
+				Object.assign(objectA, { b: 3, c: 4 })
+
+				console.log(objectA) // {a: 1, b: 3, c: 4}
+				==========================================================
+
+		- Arrays are just a kind of object specialized for storing sequences of things.
+			ex)
+				==========================================================
+				typeof [] // produces "object"
+				==========================================================
+
+	[Mutability]
+		- same "identity"
+			ex) object1 and object2 bindings grasp the "same" object.
+				==========================================================
+				let object1 = { value: 10 };
+				let object2 = object1;
+				let object3 = { value: 10 };
+
+				console.log(object1 == object2); // true
+				console.log(object1 == object3); // false
+
+				object1.value = 15;
+				console.log(object2.value); // 15
+
+				console.log(object3.value); // 10
+				==========================================================
+				+ changing object1 also changes the value of object2. (same identity)
+
+				+ object3 points to a different object.
+
+		* there is no "deep" comparison operation built into JavaScript, which compares objects by contents, but is possible to write it yourself.
+
+	[They LycanThrope's Log]
+		* If a property name in brace notation isn't followed by a value, its value is taken from the binding with the same name.
+			
+			ex)
+				==========================================================
+				let journals = [];
+
+				function addEntry(events, squirrel){
+				    journals.push({events, squirrel});
+				}
+				addEntry("hello", "world");
+				console.log(journals);
+
+				// output
+				[ { events: 'hello', squirrel: 'world' }]
+				==========================================================
+
+	[Array Loops]
+		- common for loop
+			
+			ex)
+				==========================================================
+				for (let i=0; i<journals.length; i++){
+					const entry = journals[i]
+					// do something with entry
+				}
+
+				// Alternative
+				for(let journal of journals) {
+					// do something
+				}
+				==========================================================
+
+	[Further Arrayology]
+		- push & pop
+
+		- shift & unshift
+			
+			ex)
+				==========================================================
+				let todoList = [];
+
+				// add task to the end of the queue
+				function remember(task){
+					todoList.push(task);
+				}
+
+				// get the front item from the queue.
+				function getTask() {
+					return todoList.shift();
+				}
+
+				// adds a task but adds it to the front instead of the back
+				// of the queue.
+				function rememberUrgently(task) {
+					todoList.unshift(task);
+				}
+				==========================================================
+
+		- indexOf & lastIndexOf
+
+		- slice
+			-> start and end(Exclusive) indices and returns an array that has only the elements between theme.
+
+	[Strings and their properties]
+		- we can read properties like length and toUpperCase from string values.
+
+		* BUT, if you try to add a new property, it doesn't stikc.
+			ex)
+				==========================================================
+				let kim = "Kim";
+				kim.age = 88;
+				console.log(kim.age); // undefined.
+				==========================================================
+
+		* Values of type string, number, and Boolean are not objects, and though the language doesn't complain if you try to set new properties on them, it doesn't actually store those properties.
+
+		- "zeroPad" function: "padStart"
+			ex)
+				==========================================================
+				console.log(String(6).padStart(3, "0")) // 006
+				==========================================================
+				+ takes the desired length and padding character as argumens.
+					-> length: 3, padding character: "0"
+
+		- "repeat"
+			ex)
+				==========================================================
+				console.log("LA".repeat(3));
+				// LALALA
+				==========================================================
+
+	[Rest Parameters]
+		- the rest parameter is bound to an array containing all further arguments. (three-dot notation)
+
+			ex)
+				==========================================================
+				let numbers = [1, 2, 3]
+
+				function max(...numbers){
+				    let result = -Infinity
+				    for (let number of numbers) {
+				        if(number > result) result = number
+				    }
+				    return result
+				}
+
+				console.log(max(4, 1, 9, -2)) // 9
+
+				// this "spreads" out the array into the function call,
+				// passing its elements as separate arguments.
+				console.log(max(...numbers)) // 3
+				
+				console.log(max(4, ...numbers, 5)) // 5
+				==========================================================
+
+	[The Math Object]
+		- Math.max, Math.min, Math.sqrt, and etc.
+
+		* Having too many global bindings "pollutes" the namespace.
+
+		- Math object is used as a container to group a bunch of related functionality. (There is only one Math object)
+			-> provides a "namespace" so that all these functions and values do not have to be global bindings.
+
+		- Math.random
+			ex) Float
+				==========================================================
+				function getRandomFloatExclusive(min, max) {
+					return Math.random() * (max - min) + min;
+				} 
+				==========================================================
+
+			ex) Integer
+				==========================================================
+				function getRandomIntExclusive(min, max) {
+					return Math.floor(Math.random * (max - min)) + min;
+				}
+
+				function getRandomIntInclusive(min, max) {
+					return Math.floor(Math.random * (max - min + 1)) + min;
+				}
+				==========================================================
+
+	[Destructuring]
+		ex)
+			==========================================================
+			let { name, age } = { name: "Faraji", age: 23 }
+			console.log(name) // Faraji
+			console.log(age) // 23
+			==========================================================
+
+	[JSON]
+		- "serialize" the data
+			-> converted into a flat description. 
+			-> popular serialization format is called JSON(JavaScript Object Notation)
+
+		- JSON.stringify, JSON.parse
+			ex)
+				==================================================================
+				let obj = {squirrel: false, events: ["weekend"] }
+
+				let string = JSON.stringify(obj)
+
+				console.log(string) // {"squirrel":false,"events":["weekend"]}
+
+				let parsed = JSON.parse(string)
+				console.log(parsed) // { squirrel: false, events: [ 'weekend' ] }
+
+				console.log(parsed.events) // [ 'weekend' ]
+				==================================================================
+
+	[Exercises]
+		1) The Sum of a Range
+			==================================================================
+			function sum(arr) {
+			    let sum=0;
+			    for(num of arr){
+			        sum += num;
+			    }
+			    return sum;
+			}
+			function range(from, to, step=1){
+			    let res = [];
+			    let fromValue = from;
+			    let toValue = to;
+			    if (step < 0 && from > to) {
+			        for (let i = fromValue; i >= toValue; i += step) {
+			            res.push(i);
+			        }
+			    } else {
+			        if (from > to) {
+			            fromValue = to;
+			            toValue = from;
+			        }
+			        for (let i = fromValue; i <= toValue; i += step) {
+			            res.push(i);
+			        }
+			    }
+			    return res;
+			}
+
+			console.log(sum(range(1, 10))); // 55
+			console.log(sum(range(1, 10, 2))) // 25
+			console.log(sum(range(5, 2, -1))) // 14
+			==================================================================
+
+		2) Reversing An Array
+			==================================================================
+			function reverseArray(arr){
+			    let res = [];
+			    for(let i=arr.length-1; i>=0; i--){
+			        res.push(arr[i]);
+			    }
+			    return res;
+			}
+
+			function reverseArrayInPlace(arr){
+			    let left=0
+			    let right = arr.length-1
+			    while(left<right){
+			        let temp = arr[left]
+			        arr[left] = arr[right]
+			        arr[right] = temp
+			        left++
+			        right--
+			    }
+			    return arr
+			}
+
+			let arr = [1, 2, 3, 4, 5]
+			let reversed = reverseArray(arr) // pure function
+			let reversedInPlace = reverseArrayInPlace(arr) // side effect
+			
+			console.log(reversed) // [ 5, 4, 3, 2, 1 ]
+
+			// Has SideEffect -> modifies the origin array
+			console.log(reverseArrayInPlace(arr)) // [ 5, 4, 3, 2, 1 ]
+			==================================================================
+
