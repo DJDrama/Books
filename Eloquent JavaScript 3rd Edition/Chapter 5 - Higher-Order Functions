@@ -1,0 +1,82 @@
+(Chapter 5 - Higher-Order Functions)
+
+	[Abstraction]
+		- hide details and give us the ability to talk about problems at a higher level.
+
+	[Abstracting repetition]
+		- repeat function
+			ex)
+				================================================
+				let labels = [];
+				repeat(5, i => {
+					labels.push(`Unit ${i+1}`);
+				});
+				console.log(labels);
+				// ["Unit 1", "Unit 2", ..., "Unit 5"]
+				================================================
+
+	[Higher-Order Functions]
+		- functions that operate on other functions, either by taking them as arguments or by returning them.
+
+		- allows us to abstract over "actions", not just values.
+
+			ex) functions that change other functions
+				=====================================================================
+				function noisy(f) {
+					return (...args) => {
+						console.log("calling with", args);
+						let result = f(...args);
+						console.log("called with", args, ", returned", result);
+						return result;
+					}
+				}
+				noisy(Math.min)(3, 2, 1);
+				// calling with [3, 2, 1]
+				// called with [3, 2, 1] , returned 1
+				=====================================================================
+
+			ex) functions that provide new types of control flow
+				=====================================================================
+				function unless(test, then) {
+					if(!test) then();
+				}
+
+				repeat(3, n => {
+					unless(n % 2 == 1, () => {
+						console.log(n, "is even");
+					})
+				});
+				// 0 is even
+				// 2 is even
+				=====================================================================
+
+			ex) built-in array method, "forEach"
+				=====================================================================
+				["A", "B"].forEach(l => console.log(l));
+				// A
+				// B
+				=====================================================================
+
+	[Filtering Arrays]
+		- rather than deleting elements from the existing array, builds up a new array with only the elements that pass the test. ("pure" function)
+			-> does not modify the array it is given.
+
+		- "filter" is a standard array method.
+
+	[Transforming with map]
+		- "map" transforms an array by applying a function to all of its elements and building a new array from the returned values.
+
+		- "map" is a standard array method.
+
+	[Summarizing with reduce]
+		- "reduce" (sometimes also called "fold")
+			-> builds a value by repeatedly taking a single element from the array and combining it with the current value.
+
+			-> you'd start with the number zero and, for each element, add that to the sum.
+
+			ex)
+				=====================================================================
+				console.log([1, 2, 3, 4].reduce((a, b) => a + b));
+				// 10
+				=====================================================================
+
