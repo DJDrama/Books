@@ -1,0 +1,70 @@
+(Chapter 8 - Bugs and Errors)
+	
+	[Strict Mode]
+		- "use strict" at the top of a file or a function body.
+
+			ex)
+				========================================================
+				function canYouSpotTheProblem() {
+					"use strict"
+					for (counter = 0; counter < 10; counter++){
+						console.log("Happy happy");
+					}
+				}
+
+				canYouSpotTheProblem();
+				// ReferenceError: counter is not defined
+				========================================================
+				+ need to put "let" in front of your binding! (when using strict mode)
+
+			ex)
+				========================================================
+				function Person(name) { this.name = name; }
+				let ferdinand = Person("Ferdinand"); // forgot new
+
+				// TypeError: Cannot set property 'name' of undefined
+				========================================================
+
+		* React use "strict mode" by default.
+
+	[Debugging]
+		- use "debugger" statement to set a breakpoint.
+
+	[Exceptions]
+		- "unwinding the stack"
+			-> Raising one somewhat resembles a super-charged return from a function: it jumps out of not just the current function but also its callers, all the way down to the first call that started the current execution.
+
+
+	[Selective Caching]
+		- JavaScript doesn't provide direct support for selectively catching exceptions.
+			-> either you catch them all or you don't catch any.
+
+		- custom error
+			ex)
+				========================================================
+				class InputError extends Error {}
+
+				function something() {
+					// ...
+					throw new InputError("Invalid input");
+				}
+
+				try {
+					something()
+				} catch (e) {
+					if (e instanceof InputError) {  // use instanceof
+						console.log("Input Error!");
+					} else {
+						throw e;
+					}
+				}
+				========================================================
+
+	[Assertions]
+		- to find programmer mistakes.
+
+			-> console.assert(2 + 2 === 4, "Addition result is incorrect!"); // No output
+
+			-> console.assert(2 + 2 === 5, "Addition result is incorrect!"); // Outputs an error to the console.
+
+
