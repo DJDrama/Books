@@ -1,0 +1,70 @@
+(Chapter 9 - Regular Expressions)
+
+	[Creating a Regular Expression]
+		- can be constructed with the RegExp constructor or written as a literal value by enclosing a pattern in forward slash (/) characters.
+
+			ex)
+				=======================================
+				let re1 = new RegExp("abc");
+				let re2 = /abc/;
+				=======================================
+
+	[Testing for Matches]
+		- "test"
+			-> return a Boolean telling you whether the string contains a match of the pattern in the expression.
+
+			ex)
+				=======================================
+				console.log(/abc/.test("abcde"));
+				// true
+
+				console.log(/abc/.test("abxde"));
+				// false
+				=======================================
+
+	[Sets of Characters]
+		- putting a set of characters between square brackets makes that part of the expression match any of the characters between the brackets.
+			ex)
+				=======================================
+				console.log(
+					/[0123456789]/.test("in 1992")
+				); 
+				// true
+
+				console.log(/[0-9]/.test("in 1992"));
+				// true
+
+				console.log(/[0-9]/.test("in"));
+				// false
+				=======================================
+
+			ex) shortcuts
+				=======================================
+				\d : Any digit character
+				\w : An alphanumeric character
+				\s : Any whitespace character
+				\D : A character that is not a digit
+				\W : A nonalphanumeric character
+				\S : A nonwhitespace character
+				.  : Any character except for newline
+				=======================================
+
+		- To invert a set of characeters - that is, to express that you want to match any character except the ones in the set - you can write a caret (^) character after the opening bracket.
+
+			ex)
+				=======================================
+				let nonBinary = /[^01]/
+				console.log(
+					notBinary.test("1100100010100110")
+				);
+				// false
+
+				console.log(
+					notBinary.test("1100100010200110")
+				);
+				// true
+				=======================================
+				+ /[^01]/ : matches any single character that is not a 0 or 1.
+
+	[Repeating Parts of a Pattern]
+		
