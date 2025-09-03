@@ -67,4 +67,22 @@
 				+ /[^01]/ : matches any single character that is not a 0 or 1.
 
 	[Repeating Parts of a Pattern]
-		
+		- when you put a plus sign (+) after something in a regular expression, it indicates that the element may be repeated more than once.
+
+			ex)
+				=======================================
+				console.log(/'\d+'/.test("'123'"));
+				// true
+
+				console.log(/'\d+'/.test("''"));
+				// false
+				=======================================
+
+		- The star (*) has a similar meaning but also allows the pattern to match zero times.
+
+			ex)
+				=======================================
+				console.log(/'\d*'/.test("'123'"));
+
+				console.log(/'\d*'/.test("''"));
+				=======================================
