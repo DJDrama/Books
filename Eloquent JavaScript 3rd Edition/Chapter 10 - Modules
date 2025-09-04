@@ -1,0 +1,116 @@
+(Chapter 10 - Modules)
+	
+	[Modules]
+		- Module is a piece of program that specifies which other pieces it relies on and which functionality it provides for other modules to use (its interface).
+
+		- relations between modules are called "dependencies".
+			-> when a module needs a piece from another module, it is said to depend on that module.
+
+	[Packages]
+		- Package is a chunk of code that can be distributed (copied and installed).
+
+		- may contain one or more modules and has information about which other packages it depends on.
+
+		- Working in this way requires infrastructure.
+			-> we need a place to store and find packages and a convenient way to install and upgrade them.
+
+			-> In JS world, this infrastructure is provided by NPM.
+
+		- NPM
+			1) an online service where one can download (and upload) packages and a program (bundled with Node.js) that helps you install and manage them.
+
+			* we can often avoid reinventing a program that 100 people have written before and get a solid, well-tested implementation at the press of a few keys.
+
+	[Evaluating Data as Code]
+		- eval
+			-> execute a string in the "current" scope.
+			-> bad idea because it breaks some of the properties that scopes normally have, such as it being easily predictable which binding a given name refers to.
+
+			ex)
+				============================================================
+				const x = 1;
+				function evalAndReturnX(code) {
+					eval(code);
+					return x;
+				}
+
+				console.log(evalAndReturnX("var x = 2"));
+				// 2
+				console.log(x);
+				// 1
+				============================================================
+
+		- Function
+			-> less scary way of interpreting data as code.
+
+			ex)
+				============================================================
+				let plusOne = Function("n", "return n+1;");
+				console.log(plusOne(4));
+				// 5
+				============================================================
+
+	[CommonJS]
+		- The most widely used approach to bolted-on JavaScript modules is called CommonJS modules.
+			-> Node.js uses it and is the system used by most packages on NPM.
+
+		- "require"
+			-> the main concept in CommonJS modules.
+			-> makes sure the module is loaded and returns its interface.
+
+			ex)
+				============================================================
+				const ordinal = require("ordinal");
+				const {days, months} = require("date-names");
+
+				exports.formatDate = function(date, format) {
+					return format.replace(/YYYY|M(MMM)?|Do?|dddd/g, tag => {
+						if (tag == "YYYY") return date.getFullYear();
+						if (tag == "M") return date.getMonth();
+						if (tag == "MMMM") return months[date.getMonth()];
+						if (tag == "D") return date.getDate();
+						if (tag == "Do") return ordinal(date.getDate());
+						if (tag == "dddd") return days[date.getDay()];
+					});
+				};
+				============================================================
+
+				============================================================
+				const {formatDate} = require("./format-date");
+
+				console.log(formatDate(new Date(2017, 9, 13), "dddd the Do"));
+				// Friday the 13th
+				============================================================
+
+	[ECMAScript Modules]
+		- use "import" keyword
+			ex)
+				============================================================
+				import ordinal from "ordinal";
+				import {days, months} from "date-names";
+
+				export function formatDate(date, format) { /* ... */ }
+				============================================================
+				+ export keyword is used to export things.
+
+		- when you import from another module, you import the "binding", not the value.
+			-> means an exporting module may change the value of the binding at any time, and the modules that import it will see its new value.
+
+		- "default"
+			-> it is treated as the module's main exported value.
+
+			ex)
+				============================================================
+				// expression, function delcaration, or a class declaration.
+				export default ["Winter", "Spring", "Summer", "Autumn"];
+
+				// possible to rename imported bindings using the word "as"
+				import { days as dayNames } from "date-names";
+				console.log(dayNames.length);
+				// 7
+				============================================================
+
+		* ES module imports happen before a module's script starts running.
+			-> "import" declarations may not appear inside functions or blocks, and the names of dependencies must be quoted strings, not arbitrary expressions.
+
+		

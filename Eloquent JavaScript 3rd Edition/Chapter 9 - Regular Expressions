@@ -86,3 +86,75 @@
 
 				console.log(/'\d*'/.test("''"));
 				=======================================
+
+		- Braces {4} (Indicate a pattern should occur a precise number of times)
+			-> exactly four times.
+
+			+ {2, 4}
+				-> at least twice and at most four times.
+
+			ex)
+				====================================================================
+				let dateTime = /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{2};
+				console.log(dateTime.test("1-30-2003 8:45"));
+				// true
+				====================================================================
+
+			+ {5,}
+				-> at least five or more times
+
+	[Grouping SubExpressions]
+		- use parentheses
+			-> to use an operator like * or + on more than one element at a time
+
+			ex)
+				====================================================================
+				let cartoonCrying = /boo+(hoo+)+/i;
+				console.log(cartoonCrying.test("Boohoooohoohoooo"));
+				// true
+				====================================================================
+				(hoo+) : matching one or more sequences like that
+				i : case insensitive (uppercase B)
+
+	[Matches And Groups]
+		- "exec" (execute)
+			-> return "null" if no match was found and return an object with information about the match otherwise.
+
+			ex)
+				====================================================================
+				let match = /\d+/.exec("one two 100");
+				console.log(match);
+				// ["100"]
+
+				console.log(match.index);
+				// 8
+				====================================================================
+
+		- "match" for String values
+			
+			ex)
+				====================================================================
+				console.log("one two 100".match(/\d+/));
+				// ["100"]
+				====================================================================
+
+			* the whole match is always the first element.
+
+			ex)
+				====================================================================
+				let quotedText = /'([^']*)'/;
+				console.log(quotedText.exec("she said 'hello'"));
+				// ["'hello'", "hello"]
+				====================================================================
+
+	[The Date Class]
+
+		- month starts at zero (11 = December)
+
+		- getTime() returns the current millisecond
+
+		- getFullYear, getMonth, getDate, getHours, getMinutes, and getSeconds to extract components.
+
+		- getYear
+			-> gives you the year minus 1900 (98 or 119) - mostly useless.
+
