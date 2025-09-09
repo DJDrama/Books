@@ -1,0 +1,156 @@
+(Chapter 11 - Asynchronous Programming)
+	
+	[Asyncrhonicity]
+		- thread
+			-> another running program whose execution may be interleaved with other programs by the operating system.
+
+			-> multiple threads may run at the same time, on different processors.
+
+		- synchronous : implicit
+			-> we don't need to explicitly do something because we just wait and the operation will end.
+
+		- asynchronous : explicit
+			-> we don't know when the operations will end, so we have to explicitly actively specify how to handle the completion.
+
+	[Callbacks]
+
+		- As an example, the "setTimeout" function, available both in Node.js and in browsers, waits a given number of milliseconds and then calls a function.
+
+			ex)
+				===========================================================================
+				setTimeout(() => console.log("Tick"), 500);
+				===========================================================================
+
+	[Promises]
+
+		- an asynchronous action that may complete at some point and produce a value.
+			-> able to notify anyone who is interested when its value is available.
+
+		- the easiest way to create a promise is by calling "Promise.resolve".
+			-> ensures that the value you give it is wrapped in a promise.
+			
+			-> if it's already a promise, it is simply returned -- otherwise, you get a new promise that immediately finishes with your value as its result.
+
+			ex)
+				===========================================================================
+				let fifteen = Promise.resolve(15);
+				fifteen.tehn(value => console.log(`Got ${value}`)); // Got 15
+				===========================================================================
+
+		- "then"
+			-> returns another promise, which resolves to the value that the hanlder function returns or, if that returns a promise, waits for that promise and then resolves to its result.
+
+
+		- how you'd create a promise-based interface
+
+			ex)
+				===========================================================================
+				function storage(nest, name) {
+					return new Promise(resolve => {
+						nest.readStorage(name, result => resolve(result));
+					})
+				}
+
+				storage(bigOak, "enemies")
+					.then(value => console.log("Got", value));
+				===========================================================================
+
+		* Promises simplify the use of asynchronous functions.
+			-> instead of having to pass around callbacks, promise-based functions look similiar to regular ones: they take input as arguments and return their output.
+
+			-> The only difference is that the output may not be available yet.
+
+	[Failure]
+
+		ex)
+			===========================================================================
+			new Promise((_, reject) => reject(new Error("Fail")))
+				.then(value => console.log("Handler 1"))
+				.catch(reason => {
+					console.log("Caught failure " + reason);
+					return "nothing"
+				})
+				.then(value => console.log("Handler 2", value));
+
+			// Caught failure Error: Fail
+			// Handler 2 nothing
+			===========================================================================
+
+	[Collections of Promises]
+
+		- if any promise is rejected, the result of Promise.all is itself rejected.
+
+			ex)
+				===========================================================================
+				requestType("ping", () => "pong");
+
+				function availableNeighbors(nest) {
+					let requests = nest.neighbors.map(neighbor => {
+						return request(nest, neighbor, "ping")
+							.then(() => true, () => false)
+					});
+
+					return Promise.all(requests).then(result => {
+						return nest.neighbors.filter((_, i) => result[i]);
+					});
+				}
+				===========================================================================
+				+ successful requests produce "true", and rejected ones produce "false".
+				+ "filter" is used to remove those elements from the neighbors array whose corresponding value is false.
+
+	[Network Flooding]
+		- "flooding"
+			-> floods the network with a piece of information until all nodes have it.
+
+	[Async Functions]
+		- async 
+			-> when such a function or method is called, it returns a promise.
+
+			-> as soon as the body returns something, that promise is resolved.
+
+			-> if it throws an exception, the promise is rejected.
+
+		- await
+			-> put in front of an expression to wait for a promise to resolve and only then continue the execution of the function.
+
+			-> it can be "frozen" at any point that has an "await", and can be resumed at a later time.
+
+		* more convenient than directly using promises.
+
+	[Generators]
+		- JavaScript has a feature called "generator" functions.
+			-> similar to async functions but without the promises.
+
+		- "function*" (placing an asterisk after the word function), it becomes a generator.
+			-> when you call a generator, it returns an iterator.
+
+			ex)
+				=======================================
+				function* powers(n) {
+					for (let current = n;; current*=n) {
+						yield current;
+					}
+				}
+
+				for (let power of powers(3)) {
+					if(power > 50) break;
+					console.log(power);
+				}
+				// 3
+				// 9
+				// 27
+				=======================================
+				+ the function is "fozen" at its start.
+				+ every time you call "next" on the iterator, the function runs until it hits a yield expression, which pauses it and causes the yielded value to become the next value produced by the iterator.
+
+				+ when the function returns, the iterator is done.
+
+		- "async" is a special type of generator.
+			-> produces a "promise" when called, which is resolved when it returns and rejected when it throws an exception.
+
+			-> whenever it yields(awaits) a promise, the result of that promise(value or thrown exception) is the result of the "await" expression.
+
+
+
+
+
