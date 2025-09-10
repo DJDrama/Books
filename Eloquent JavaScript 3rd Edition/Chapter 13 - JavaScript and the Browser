@@ -62,7 +62,7 @@
 				+ when an HTML page references other URLs as part of itself web browsers will retrieve them immediately and include them in the page.
 
 	[In the Sandbox]
-		
+		- Isolating a programming environment is called "sandboxing".
 
 
 
