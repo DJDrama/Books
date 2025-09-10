@@ -1,0 +1,68 @@
+(Chapter 13 - JavaScript and the Browser)
+
+	[Networks and the Internet]
+		- HTTP (HyperText Transfer Protocol)
+			-> protocol for retrieving named resources (chunks of information, such as web pages or pictures)
+
+		- TCP(Transmission Control Protocol)
+			1) one computer must be waiting, or listening, for other computers to start talking to it.
+
+			2) each listener has a number (called a port)
+
+			3) Most protocols specify which port should be used by default.
+				ex) SMTP protocol, the machine through which we send it is expected to be listening on port 25.
+
+			4) Another computer can than establish a connection by connecting to the target machine using the correct port number.
+				-> if the target machine can be reached and is listening on that port, the connection is successfully created.
+
+				* The listening computer is called the "server", and the connecting computer is called the "client".
+
+			-> Such a connection acts as a two-way pipe through which bits can flow.
+
+	[The Web]
+		- World Wide Web
+
+		- to become part of the Web, all you need to do is connect a machine to the Internet and have it listen on port 80 with the HTTP protocol so that other computers can ask it for documents.
+
+		- Each document on the Web is named by a URL(Uniform Resource Locator)
+
+			ex) http://eloquentjavascript.net/13_browser.html
+
+				+ http : protocol
+				+ eloquentjavascript.net : server (domain name)
+				+ 13_browser.html : path
+
+		* https : encrypted HTTP
+
+		- Machines connected to the Internet get an IP address
+			-> which is a number that can be used to send messages to that machine.
+
+			-> But hart to remember and awkward to type, so you can instead register a "domain name" for a specific address or set of addresses.
+
+
+	[HTML]
+		- Hyper Text Markup Language
+			-> document format used for web pages.
+
+		- the document starts with <!doctype html>
+			-> tells the browser to interpret the page as modern HTML
+
+		- has a "head" and a "body".
+			-> "head" contains information about the document
+
+			-> "body" contains the document itself.
+
+	[HTML and JavaScript]
+		- <script> tag can be given an "src" attribute to fetch a script file(a text file containing a JavaScript program) from a URL.
+
+			ex)
+				======================================================
+				<script src="code/hello.js"></script>
+				======================================================
+				+ when an HTML page references other URLs as part of itself web browsers will retrieve them immediately and include them in the page.
+
+	[In the Sandbox]
+		
+
+
+
