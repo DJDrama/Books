@@ -1,0 +1,167 @@
+(Chapter 14 - The Document Object Model)
+
+[Document Structure]
+	
+	- DOM (Document Object Model)
+
+	- "document" : the global binding
+		-> gives us access to DOMs.
+
+[Trees]
+	
+	- "document.documentElement" serves as the root.
+
+	- Each DOM node object has a "nodeType" property
+		-> contains a code(number) that identifies the type of node.
+
+	- Elements have node 1, which is also defined as the constant property Node.ELEMENT_NODE.
+
+	- Node.TEXT_NODE has code 3
+
+	- Node.COMMENT_NODE has code 8
+
+[The Standard]
+	
+	* "childNodes" property
+		-> holds an array-like object, with a length property and properties labeled by numbers to access the child nodes.
+
+		-> BUT is an instance of the "NodeList" type, not a real array, so it does not have methods such as "slice" or "map".
+
+
+[Moving Through the Tree]
+	
+	- every node has a "parentNode".
+
+	- "firstChild" & "lastChild"
+		-> point to the first and last child elements or have the value null for nodes without children.
+
+	- "previousSibling" & "nextSibling"
+		-> point to adjacent nodes, which are nodes with the same parent that appear immediately before or after the node itself.
+
+		ex) For a first child, "previousSibling" will be null, and for a lst child, "nextSibling" will be null.
+
+	- "children" (which is like "childNodes", but contains only element (type 1) children, not other types of child nodes.)
+
+	* "childNodes" is not a real array, we cannot loop over it with for/of
+		-> have to run over the index range using a regular "for" loop or use "Array.from".
+
+[Finding Elements]
+	
+	- all nodes have a "getElementsByTagName" method, which collects all elements with the given tag name that are descendants (direct or indirect children) of that node and returns them as an array-like object.
+
+		ex)
+			=========================================================
+			let link = document.body.getElementsByTagName("a")[0];
+			console.log(link.href);
+			=========================================================
+
+	- To find a specific "single" node, you can give it an "id" attribute and use "document.getElementById" instead.
+
+		ex)
+			=========================================================
+			let ostrich = document.getElementById("gertrude");
+			console.log(ostrich.src);
+			=========================================================
+
+	- "getElementsByClassName"
+		-> searches through the contents of an element node and retrieves all elements that have the given string in their "class" attribute.
+
+[Changing the Document]
+	
+	- "appendChild"
+		-> puts it at the end of the list of children
+
+	- "insertBefore"
+		-> inserts the node given as the first argument before the node given as the second argument.
+
+		ex)
+			=========================================================
+			let paragraphs = document.body.getElementsByTagName("p");
+			document.body.insertBefore(paragraphs[2], paragraphs[0]);
+			=========================================================
+			-> will remove 2nd index element from the end of the document and insert it at the front.
+
+	- "replaceChild"
+		-> used to replace a child node with another one.
+
+		-> takes as arguments two nodes: a new node and the node to be replaced.
+			* The replaced node must be a child of the element the method is called on.
+
+	* both "replaceChild" and "insertBefore" expect the new node as their first argument.
+
+[Creating Nodes]
+	
+	- Text nodes are created with the "document.createTextNode" method.
+
+	- To create element nodes, you can use the "document.createElement" method.
+
+[Attributes]
+	
+	- HTML allows you to set any attribute you want on nodes.
+		-> can store extra information in a document.
+
+	- "getAttribute" and "setAttribute" methods.
+
+	* it is recommended to prefix the names of such made-up attributes with "data-" to ensure they do not conflict with any other attributes.
+
+	- commonly used attribute "class"
+		-> keyword in the JavaScript language.
+
+		-> property used to access this attribute is called "className".
+
+[Layout]
+	
+	- "block"
+		-> some, such as paragraphs (<p>) or headings (<h1>), take up the whole width of the document and are rendered on separate lines.
+
+	- "inline elements"
+		-> others, such as links (<a>) or the <strong> element, are rendered on the same line with their surrounding text.
+
+	- The size and position of an element can be accessed from JavaScript.
+		-> "offsetWidth" and "offsetHeight" properties give you the space the element takes up in "pixels".
+
+		-> "clientWidth" and "clientHeight" give you the size of the space "inside" the element, ignoring border width.
+
+	- "getBoundingClientRect"
+		-> find the precise position of an element on the screen.
+		-> returns an object with "top", "bottom", "left", and "right" properties, indicating the pixel positions of the sides of the element relative to the top left of the screen.
+
+		-> If you want them relative to the whole document, you must add the current scroll position, which you can find in the "pageXOffset" and "pageYOffset" bindings.
+
+[Styling]
+	
+	- A style attribute may contain one or more "declarations", which are a property followed by a colon and a value.
+		-> when there is more than one delcaration, they must be separated by semicolons, as in "color: red; border: none".
+
+[Cascading Styles]
+	
+	- CSS = Cascading Style Sheets
+
+	- A "style sheet" is a set of rules for how to style elements in a document.
+		-> can be given inside a <style> tag.
+
+	- "cascading" refers to the fact that multiple such rules are combined to produce the final style for an element.
+
+	- Styles in a "style" attribute applied directly to the node have the highest precedence and always win.
+
+[Query Selectors]
+	
+	- "querySelectorAll" is not live.
+		-> won't change when you change the document.
+
+		-> still not a real array, though, so you still need to call "Array.from" if you want to treat it like one.
+
+		-> will return only the first matching element or null when no element matches.
+
+[Positioning and Animating]
+	
+	- position: absolute
+		-> the element is removed from the normal document flow that is, it no longer takes up space and my overlap with other elements.
+
+	* position, by default has a value of "static", meaning the element sits in its normal place in the document.
+
+	
+
+
+
+
