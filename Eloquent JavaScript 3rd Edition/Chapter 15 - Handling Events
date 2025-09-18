@@ -1,0 +1,231 @@
+(Chapter 15 - Handling Events)
+
+[Event Handlers]
+
+	- "polling"
+		-> program checks the queue for new events and react to what it finds there.
+
+		-> it has to remember to look at the queue, and to do it often, because any time between the key being pressed and the program noticing the event will cause the software to feel unresponsive.
+
+	- "handlers"
+		-> better mechanism is for the system to actively notify our code when an event occurs.
+
+[Events and DOM nodes]
+	
+	- each browser even handler is registered in a context.
+
+	- event listeners are called only when the event happens in the context of the object they are registered on.
+
+		ex) addEventListener
+			==================================================
+			let button = document.querySelector("button");
+			button.addEventListener("click", () => {
+				console.log("Button clicked.");
+			});
+			==================================================
+
+		ex) removeEventListener
+			==================================================
+			let button = document.querySelector("button");
+			function once() {
+				console.log("Done.");
+				button.removeEventListener("click", once);
+			}
+			button.addEventListener("click", once);
+			==================================================
+			* the function given to "removeEventListener" has to be the same function value that was given to "addEventListener".
+
+[Event Objects]
+	
+	- "event object"
+		-> event handler functions are passed an argument.
+
+		-> this object holds additional information about the event.
+
+		ex) we want to know "which" mouse button was pressed, we can look at the event object's button property.
+			==================================================
+			let button = document.querySelector("button");
+			button.addEventListener("mousedown", event => {
+				if (event.button == 0) {
+					console.log("Left button");
+				} else if (event.button == 1) {
+					console.log("Middle button");
+				} else if (event.button == 2) {
+					console.log("Right button");
+				}
+			});
+			==================================================
+
+[Propagation]
+	
+	- "stopPropagation"
+		-> prevent handlers further up from receiving the event.
+
+		-> useful when you have a button inside another clickable element and you don't want clicks on the button to activate the outer element's click behavior.
+
+		-> prevent unwanted Parent Handlers.
+
+	- Most event objects have a "target" property
+		-> refers to the node where they originated.
+
+		-> you can use this property to ensure that you're not accidentally handling something that propagated up from a node you do not want to handle.
+
+		ex) use the "target" property, rather than register individual handlers on all of the buttons.
+			=============================================================
+			<button>A</button>
+			<button>B</button>
+			<button>C</button>
+
+			<script>
+				document.body.addEventListener("click", event => {
+					if (event.target.nodeName == "BUTTON") {
+						console.log("Clicked", event.target.textContent);
+					}
+				});
+			</script>
+			=============================================================
+			+ "event bubbling"
+				-> but checks nodeName is "BUTTON".
+			+ ensures the handler only processes clicks on <button> elements and ignores clicks on other elements.
+
+[Default Actions]
+	
+	- many events have a default action associated with them.
+
+	- For most types of events, the JavaScript event handlers are called "before" the default behavior takes place.
+		-> if the handler doesn't want this normal behavior to happen, typically because it has already taken care of handling the event, it can call the "preventDefault" method on the event object.
+
+		-> can be used to implement your own keyboard shortcuts or context menu.
+
+		ex)
+			==============================================================
+			<a href = "https://developer.mozilla.org/">MDN</a>
+			<script>
+				let link = document.querySelector("a");
+				link.addEventListener("click", event => {
+					console.log("Nope.");
+					event.preventDefault();
+				});
+			</script>
+			==============================================================
+
+	* Try not to do such things unless you have a really good reason to.
+		-> It'll be unpleasant for people who use your page when expected behavior is broken.
+
+[Key Events]
+	
+	- "keydown"
+		-> key on the keyboard is pressed
+		* when the key is pressed and held, the event fires again every time the key "repeats".
+
+	- "keyup"
+		-> when the key is released
+
+[Focus Events]
+	
+	- when an element gains focus, the browser fires a "focus" event on it.
+
+	- when it loses focus, the elements gets a "blur" event.
+
+	* these events do not propagate.
+
+[Load Event]
+	
+	- when a page finishes loading, the "load" event fires on the window and the document body objects.
+		-> often used to schedule initialization actions that require the  whole document to have been built.
+
+	* loading events do not propagate.
+
+	- when a page is closed, or navigated away from, a "beforeunload" event fires.
+		-> to prevent the user from accidentally losing work by closing a document.
+
+	* if you prevent the default behavior on this event and set the "returnValue" property on the event event object to a string, the browser will show the user a dialog asking if they really want to leave the page.
+
+[Events and the Event Loop]
+	
+	- browser event handlers behave like other asynchronous notifications.
+
+	- browser provide something called "web workers".
+
+		ex)
+			==============================================================
+			let squareWorker = new Worker("code/squareworker.js");
+			squareWorker.addEventListener("message", event=>{
+				console.log("The worker responded:", event.data);
+			});
+
+			squareWorker.postMessage(10);
+			squareWorker.postMessage(24);
+			==============================================================
+			+ the "postMessage" function sends a message, which will cause a "message" event to fire in the receiver.
+
+			+ the script that created the worker sends and receives messages through the "Worker" object, whereas the worker talks to the script that created it by sending and listening directly on its global scope.
+
+[Timers]
+	
+	- "setTimeout" and "clearTimeout"
+
+		ex)
+			==============================================================
+			let bombTimer = setTimeout(() => {
+				console.log("Boom!");
+			}, 500);
+
+			if (Math.random() < 0.5) {
+				console.log("Defused.");
+				clearTimeout(bombTimer);
+			}
+			==============================================================
+
+	- "cancelAnimationFrame"
+		-> works in the same way as "clearTimeout"
+			-> calling it on a value returned by "requestAnimationFrame" will cancel that frame.
+
+	- "setInterval" and "clearInterval"
+		-> used to set timers that should "repeat" every X milliseconds.
+
+		ex)
+			==============================================================
+			let ticks = 0;
+			let clock = setInterval(() => {
+				console.log("tick", ticks++);
+				if (ticks == 10) {
+					clearInterval(clock);
+					console.log("stop.");
+				}
+			}, 200);
+			==============================================================
+
+[Debouncing]
+	
+	ex)
+		==============================================================
+		let textarea = document.querySelector("textarea");
+		let timeout;
+		textarea.addEventListener("input", () => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => console.log("Typed!"), 500);
+		});
+		==============================================================
+
+	ex) different pattern
+		==============================================================
+		let scheduled = null;
+		window.addEventListener("mousemove", event => {
+			if(!scheduled) {
+				setTimeout(() => {
+					document.body.textContent = 
+						`Mouse at ${scheduled.pageX}, ${scheduled.pageY}`;
+						scheduled = null;
+				}, 250);
+			}
+			scheduled = event;
+		})
+		==============================================================
+		+ if we want to space responses so that they're separated by at least a certain length of time but want to fire them during a series of events, not just afterward.
+
+
+
+
+
+
