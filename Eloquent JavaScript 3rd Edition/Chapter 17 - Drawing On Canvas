@@ -1,0 +1,131 @@
+(Chapter 17 - Drawing On Canvas)
+	
+	- two alternatives
+		1) SVG(Scalable Vector Graphics)
+			-> you can embed an SVG document directly in an HTML document or include it with an <img> tag
+
+		2) canvas
+			-> a single DOM element that encapsulates a picture.
+			-> provides a programming interface for drawing shapes onto the space taken up by the node.
+
+		* difference
+			-> SVG the original description of the shapes is preserved so that they can be moved or resized at any time.
+
+			-> canvas converts the shapes to pixels as soon as they are drawn and eos not remember what these pixels represent.
+				+ one way to move a shape on a canvas is to clear the canvas and redraw it with the shape in a new position.
+
+[SVG]
+	ex)
+		================================================================
+		<p>Normal HTML here.</p>
+
+		<svg xmlns="http://www.w3.org/2000/svg">
+			<circle r="50" cx="50" cy="50" fill="red" />
+			<rect x="120" y="5" width="90" height="90"
+				stroke="blue" fill="none"/>
+		</svg>
+		================================================================
+		+ "xmlns" attribute
+			-> changes an element (and its children) to a different XML namespace.
+			-> the namespace, identified by a URL, specifies the dialect that we are currently speaking.
+
+		+ <circle> and <rect> tags, which do not exist in HTML, do have a meaning in SVG - they draw shapes using the style and position specified by their attirbutes.
+			-> these tags create DOM elements, just like HTML tags, that scripts can interact with.
+
+			ex) to change <circle> element to be colored cyan instead
+				================================================================
+				let circle = document.querySelector("circle");
+				circle.setAttribute("fill", "cyan");
+				================================================================
+
+[The Canvas Element]
+	- "2d" : for two-dimensional graphics
+
+	- "webgl" : for three-dimensional graphics through the OpenGL(Open Graphics Library) interface.
+
+	ex)
+		================================================================
+		<canvas width="120" height="60"></canvas>
+		<script>
+			let canvas = document.querySelector("canvas");
+			let context = canvas.getContext("2d");
+			context.fillStyle = "red";
+			context.fillRect(10, 10, 100, 50);
+		</script>
+		================================================================
+
+[Lines and Surfaces]
+	
+	ex)
+		================================================================
+		<canvas></canvas>
+		<script>
+			let cx = document.querySelector("canvas").getContext("2d");
+			cx.strokeStyle = "blue";
+			cx.strokeRect(5, 5, 50, 50);
+			cx.lineWidth = 5;
+			cx.strokeRect(135, 5, 50, 50); // (x, y, width, height)
+		</script>
+		================================================================
+		* when no width, or height attribute is specified, a canvas element gets a default width of 300 pixels and height of 150 pixels.
+
+[Paths]
+	
+	ex)
+		================================================================
+		 <canvas></canvas>
+		 <script>
+			let cx = document.querySelector("canvas").getContext("2d"); cx.beginPath();
+			for (let y = 10; y < 100; y += 10) {
+			     cx.moveTo(10, y);
+			     cx.lineTo(90, y); // creates
+	  		}
+		    cx.stroke();
+		 </script>
+		 ================================================================
+
+	ex)
+		================================================================
+		<canvas></canvas>
+		<script>
+			let cx = document.querySelector("canvas").getContext("2d");
+			cx.beginPath();
+			cx.moveTo(50, 10);
+			cx.lineTo(10, 70);
+			cx.lineTo(90, 70);
+			cx.fill();
+		</script>
+		================================================================
+		* path needs to be "closed"(start and end are in the same position) before it can be filled.
+
+	- "closePath" method to explicitly close a path by adding an actual line segment back to the path's start.
+
+		ex)
+			================================================================
+			<canvas></canvas>
+			<script>
+				let cx = document.querySelector("canvas").getContext("2d");
+				cx.beginPath();
+				cx.moveTo(50, 10);
+				cx.lineTo(10, 70);
+				cx.lineTo(90, 70);
+				cx.closePath(); // explicitly ensure path is closed
+				cx.fill();
+			</script>
+			================================================================
+
+[Text]
+	
+	ex)
+		================================================================
+		let cx = document.querySelector("canvas").getContext("2d");
+		cx.font = "28px Georgia";
+		cx.fillStyle = "fuchsia";
+		cx.fillText("I can draw text, too!", 10, 50);
+		================================================================
+
+	- "textAlign" : "end" or "center" positioning
+
+	- "textBaseline" : "top", "middle", or "bottom" (vertical) positioning
+
+
