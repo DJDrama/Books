@@ -1,0 +1,318 @@
+(Chapter 19 - HTTP And Forms)
+	
+[The Protocol]
+	- browser first looks up the address of the server associated with "eloquentjavascript.net" and tries to open a "TCP" connection to it on port 80.
+		-> 80: the default port for HTTP traffic.
+
+	- if the server exists and accepts the connection, the browser might send something like this:
+
+		GET /18_http.html HTTP/1.1
+		Host: eloquentjavascript.net
+		User-Agent: Your browser's name
+
+	- then the server responds, through that same connection.
+
+		HTTP/1.1 200 OK
+		Content-LENGTH: 65585
+		Content-Type: text/html
+		Last-Modified: Mon, 08 Jan 2018 10:29:45 GMT
+
+		<!doctype html>
+		... the rest of the document
+
+	- info sent by the client is called the "request".
+		-> starts with this line
+
+			GET /18_http.html HTTP/1.1
+
+			+ first word GET : "method" fo the request
+				-> GET means that we want to "Get" the specified resource.
+
+				-> Other methods (PUT, DELETE, POST)
+					- PUT: to create or replace it
+					- POST: to send information
+					- DELETE: to delete a resource
+
+			+ part after the method name is the "path" of the "resource" the request applies to.
+
+			+ After the resource path, the first line of the request mentions HTTP/1.1 to indicate the version of the HTTP protocol it is using.
+
+				* Many sites use HTTP version 2, which supports the same concepts as version 1.1 but is a lot more complicated so that it can be faster.
+
+	- Status code
+		-> 2XX : success
+		-> 4XX : something wrong with the request.
+		-> 5XX : error happened on the server and the request is not to blame.
+
+	- headers
+		-> lines in the form "name": "value" that specify extra information about the request or response.
+
+		Content-LENGTH: 65585
+		Content-Type: text/html
+		Last-Modified: Mon, 08 Jan 2018 10:29:45 GMT
+
+		-> size and type of the response document.
+		-> HTML document of 65,585 bytes.
+
+[Browsers and HTTP]
+	
+	- URL encoding
+		-> some characters in query strings must be escaped.
+			ex)
+				the question mark ? -> represented as %3F.
+
+		-> uses a percent sign followed by two hexadecimal(base 16) digits that encode the character code.
+			ex)
+				3F -> 63 -> code of a question mark character.
+
+		-> JavaScript provides the encodeURIComponent and decodeURIComponent functions to encode and decode.
+			ex)
+				====================================================
+				console.log(encodeURIComponent("Yes?"));
+				// YES%3F
+
+				console.log(decodeURIComponent("Yes%3F"));
+				// YES?
+				====================================================
+
+	* GET requests should be used for requests that do not have side effects but simply ask for information.
+
+	* POST requests
+		-> change something on the server (creating a new account or posting a message, and etc) should be expressed with other methods, such as POST, not GET!
+
+[Fetch]
+	- interface through which browser JavaScript can make HTTP requests is called "fetch".
+		-> conveniently uses promises.
+
+		ex)
+			=======================================================
+			fetch("example/data.txt").then(response => {
+				console.log(response.status); // 200
+
+				console.log(response.headers.get("Content-Type"));
+				// text/plain
+			})
+			=======================================================
+
+	- calling "fetch" returns a promise that resolves to a Response object holding info about the server's response, such as its status code and its headers.
+
+	- headers are wrapped in a Map-like object that treats its keys as case insensitive because header names are not supposed to be case sensitive.
+
+		ex) headers.get("Content-type") === headers.get("content-TYPE")
+
+	* fetch resolves successfully even if the server responsded with an error code.
+
+		+ might also be rejected if there is a network error or if the server that the request is addressed to can't be found.
+
+	* first argument to "fetch" is the URL that should be requested.
+		-> URL doesn't start with a protocol name (such as http:)
+		-> treated as "relative".
+			+ meaning that it is interpreted relative to the current document.
+
+	- "fetch" uses the "GET" method to make its request and does not include a request body, by default.
+
+[HTTP Sandboxing]
+
+	- browsers protect us by disallowing scripts to make HTTP requests to other domains (names such as themafia.org and mybank.com)
+		-> can be annoying problem when building systems that want to access several domains for legitimate reasons
+
+		-> Servers can include a header like this in their response to explicitly indicate to the browser that it is okay for the request to come from another domain:
+
+			Acess-Control-Allow-Origin: *
+
+[Appreciating HTTP]	
+	
+	- "remote procedure calls" (RPC)
+		-> communication follows the patterns of normal function calls, except that the function is actually running on another machine.
+
+		-> calling it involves making a request to the server that includes the function's name and arguments.
+
+		-> the response to that request contains the returned value.
+
+		* HTTP is just a vehicle for communication, and you will most likely write an abstraction layer that hides it entirely.
+
+	- the concept of resources and HTTP methods.
+		-> instead of a remote procedure called "addUser", you use a "PUT" request to "/users/larry".
+
+		-> you define a JSON document format(or use an existing format) that represents a user.
+
+		-> makes it easier to use some of the features that HTTP provides, such as support for caching resources.
+
+[Security and Https]
+	
+	- plain HTTP is not good when you, for example, transfer moeny to via your bank's website.
+
+	- HTTPS: secure HTTP protocol, used for URLs starting with "https://", wraps HTTP traffic in a way that makes it harder to read and tamper with.
+
+	- before exchanging the data, the client verifies that the server is who it claims to be
+		-> by asking it to prove that it has a cryptographic certificate issued by a certificate authority that the browser recognizes.
+
+	- Next, all data over the connection is encrypted in a way that should prevent eavesdropping and tampering.
+
+	* HTTPS prevents other people from impersonating the website you are trying to talk to and from snooping on your communication.
+
+	* HTTPS sometimes failed because of forged or stolen certificates and broken software, but it is a "lot" safer than plain HTTP.
+
+[Form Fields]
+	
+	- <input> types
+		-> text : A single-line text field
+		-> password : Same as "text" but hides the text that is typed
+		-> checkbox : An on / off switch
+		-> radio : (Part of) a multiple-choice field
+		-> file : Allows the user to choose a file from their computer
+
+	- <textarea> (Multiline text fields)
+
+	- <select> : used to create a field that allows the user to select from a number of predefined options(<option>).
+
+[Focus]
+
+	- we can control focus from Javascript with the "focus" and "blur" methods.
+		-> "focus" : focuses
+		-> "blur" : remove focus
+
+	- "tabindex"
+		ex)
+			======================================================
+			<input type="text" tabindex=1> <a href=".">(help)</a>
+			<button onclick="console.log('ok')"
+				tabindex=2>OK</button>
+			======================================================
+
+		* most types of HTML elements cannot be focused.
+			-> But you can add a "tabindex" attribute to any element that will make it focusable.
+
+			-> tabindex of -1 makes tabbing skip over an element, even if it is normally focusable.
+
+[Disable Fields]
+	
+	- disabled attribute.
+		-> cannot be focused or changed, and browsers make them look gray and faded.
+
+	* sometimes it can be a good idea to disable the control until an action(like network call) finishes, to prevent multiple clicks and multiple network calls happening simulatenously.
+
+[The Form as a Whole]
+	
+	- "elements" property
+		-> contains an array-like collection of the fields inside it.
+
+	- "name" attribute of a form field
+		-> determines the way its value will be identified when the form is submitted.
+
+		-> also be used as a property name when accessing the form's elements property which acts both as an array-like object and a map.
+
+	ex)
+		======================================================
+		<form action="example/submit.html">
+			Name: <input type="text" name="name"><br>
+			Pw: <input type="password" name="password"><br>
+			<button type="submit">Log in</button>
+		</form>
+
+		<script>
+			let form = document.querySelector("form");
+			console.log(form.elements[1].type);
+			// password
+
+			console.log(form.elements.password.type);
+			// password
+
+			console.log(form.elements.name.form == form);
+			// true
+		</script>
+		======================================================
+
+	- "preventDefault" to prevent "submit" fire.
+
+		ex)
+			======================================================
+			<form action="example/submit.html">
+				Value: <input type="text" name="value">
+				<button type="submit">Save</button>
+			</form>
+
+			<script>
+				let form = document.querySelector("form");
+				form.addEventListener("submit, event => {
+					console.log("Saving value", 
+						form.elements.value.value);
+					event.preventDefault();
+				});
+			</script>
+			======================================================
+
+[Text Fields]
+	- selectionStart & selectionEnd properties of text fields
+		-> give us info about the cursor and selection in the text.
+
+	- replaceSelection function
+		-> replaces the currently selected part of a text field's content with the given word and then moves the cursor after that word so that the user can continue typing.
+
+	- "change" event for a text field does not fire every time something is typed!!
+		-> fires when the field loses focus after its content was changed.
+
+		* to respond immediately to changes in a text field, you should register a handler for the "input" event instead.
+
+[Checkboxes and Radio buttons]
+	
+	- checkbox: a binary toggle
+		-> value can be extracted or changed through its "checked" property, which holds a Boolean value.
+
+	- <label> tag associates a piece of document with an input field.
+		-> Clicking anywhere on the label will activate the field, which focuses it and toggles its value when it is a checkbox or radio button.
+
+[File Fields]
+	
+	ex)
+		======================================================
+		<input type="file">
+		<script>
+			let input = document.querySelector("input");
+			input.addEventListener("change", () => {
+				if(input.files.length>0){
+					let file = input.files[0];
+					console.log("You chose", file.name);
+					if(file.type)
+						console.log("It has type", file.type);
+				}
+			});
+		</script>
+		======================================================
+
+	- The "files" property of a file field element is an array-like object containing the files chosen in the field. (Initially empty)
+
+	* file fields also support a "multiple" attribute.
+		-> can select multiple files.
+
+	- Objects in the "files" object have properties
+		-> name (the filename)
+		-> size (the file's size in bytes, which are chunks of 8 bits)
+		-> type (the media type of the file, such as text/plain or image/jpeg)
+
+[Storing Data Client-Side]
+	
+	- localStorage object
+		-> can be used to store data in a way that survives page reloads.
+
+		ex)
+			======================================================
+			localStorage.setItem("username", "marijn");
+			console.log(localStorage.getItem("username"));
+			// marijn
+
+			localStorage.removeItem("username");
+			======================================================
+
+	* localStorage can be read only by scripts on the same site.
+
+	- browsers do enforce a limit on the size of the data a site can store in localStorage.
+
+	* contents of "sessionStorage" is forgotten at the end of each session, which for most browsers means whenever the browser is closed.
+
+
+
+
+
+
+
