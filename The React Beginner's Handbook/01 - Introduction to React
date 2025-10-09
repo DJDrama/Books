@@ -1,0 +1,279 @@
+[Introduction to React]
+
+(How to install React)
+	- "create-react-app": a command line application, aimed at getting you up to speed with React in no time.
+
+	- "npx" comes with "npm".
+
+	- "npx create-react-app <app-name>"
+		-> npx is going to download the most recent "create-react-app" release, run it, and then remove it from your system.
+
+		* you will never have an outdated version on your system, and every time you run it, you're getting the latest and greatest code available.
+
+		ex) npx create-react-app todolist		
+
+(React Components)
+	- App.js 
+		-> the first React Component you meet.
+
+	- JSX
+		-> a special language we used to build a component's output.
+
+	- A component can have its own "state".
+		-> it encapsulates some variables that other components can't access unless this component exposes this state to the rest of the application.
+
+	- A component can also receive data from other components. ("props")
+
+(Introduction to JSX)
+	
+	- We call JSX everything inside wrapped inside the parentheses returned by the component.
+		ex)
+			========================================================================
+			<div className="App">
+				<header className="App-header">
+					<img src={logo} className="App-logo" alt="logo"/>
+					...
+				</header>
+			</div>
+			========================================================================
+			* It's not really HTML.
+
+	- React will process the JSX and it will transform it into JavaScript that the browser will be able to interpret.
+		-> So we're writing JSX, but in the end there's a translation step that makes it digestible to a JavaScript interpreter.
+
+	* "It's easier to build UI interfaces using JSX".
+
+(Using JSX to compose UI)
+	- A react component is usually created in its own file.
+		-> that's how we can easily reuse it in other components.
+
+		ex)
+			========================================================================
+			function WelcomeMessage() {
+				return <p>Welcome!</p>
+			}
+			========================================================================
+			+ It's a simple function that returns a line of JSX that represents a "p" HTML element.
+
+(The difference between JSX and HTML)
+	<1. className vs class>
+		- In HTML we use the "class" attirubte.
+			1) One of the reasons we use "class" is for "CSS".
+				-> "class" attirubte allows us to style HTML elements easily, and CSS frameworks like Tailwind put this attribute to the center of the CSS user interface design process.
+
+		- Why "className" in JSX?
+			-> We are writing UI code in a JavaScript file, and "class" in the JavaScript programming language is a reserved word.
+			-> We can't use this reserved word as we want.
+			-> It serves a specific purpose and the React creators had too choose a different name for it.
+
+		* Remember this especially when you're copy/pasting some existing HTML.
+
+	<2. HTML is very relaxed>
+		- If you have an error in the syntax, or you close the wrong tag, or you have a mismatch, the browser will try its best to interpret the HTML without breaking.
+
+		- JSX is not forgiving.
+			-> If you forget to close a tag, you will have a clear error message!
+
+	<3. We can embed Javascript in JSX>
+
+(Embedding JavaScript in JSX)
+	- One of the best features of React is that we can easily embed JavaScript into JSX.
+		-> inside the curly brackets { }, we can add any JavaScript statement, but just one statement for every curly bracket block.
+
+			ex)
+				==============================================================
+				{
+					message === 'Hello!' ? 'The message was "Hello!"' : "false"
+				}
+				==============================================================
+
+(Managing state in React)
+	- Every react component can have its own "state".
+
+	- "state" : set of data that is managed by the component.
+
+	* we manage state using the "useState" utility provided by React. (hook)
+
+		ex) You import "useState" from React in this way:
+			==============================================================
+			import React, { useState } from 'react'
+			==============================================================
+
+	- calling "useState()"
+		-> you will get back a new state variable, an a function that we can call to alter its value.
+
+	- "useState()" accepts the initial value of the state item and returns an array containing the state variable, and the function you call to alter the state.
+
+		ex)
+			==============================================================
+			const [count, setCount] = useState(0)
+			==============================================================
+			* We must call its modifier function.
+				-> Calling the modifier is the way we can tell React that the component state has changed.
+
+		ex)
+			==============================================================
+			import { useState } from 'react'
+			import ReactDOM from 'react-dom';
+
+			const Counter = () => {
+				const [count, setCount] = useState(0)
+
+				return (
+					<div>
+						<p>You clikced {count} items</p>
+						<button
+							onClick = {
+								() => setCount(count + 1)
+							}
+						>Click Me</button>
+					</div>
+				);
+			};
+
+			ReactDOM.render(<Counter />, document.getElementById('root'));
+			==============================================================
+
+	- You can add as many "useState()" calls you want, to create as many state variables as you want.
+
+(Component Props in React)
+	- Props can be passed as attributes to the component in the JSX
+		ex)
+			==============================================================
+			<WelcomeMessage myprop={'somevalue'} />
+
+			function WelcomeMessage(props) {
+				return <p>Welcome!</p>;
+			}
+			==============================================================
+
+	- It's common to use object destructuring to get the props by name:
+		ex)
+			==============================================================
+			function WelcomeMessage({ myprop }) {
+				return <p>Welcome!</p>;
+			}
+
+			function WelcomeMessage({ myprop }) {
+				return <p>{myprop}</p>;
+			}
+			// curly brackets are used as part of the object destructuring syntax.
+			==============================================================
+
+	- A component either holds data (has state) or receives data through its props.
+
+	- We can also send functions as props, so a child component can call a function in the parent component.
+
+	* A special prop is called "children".
+		-> contains the value of anything that is passed between the opening and closing tags of the component.
+			ex)
+				==============================================================
+				<WelcomeMessage> Here is some message </WelcomeMessage>
+
+				function WelcomeMessage({ children }) {
+					return <p>{children}</p>;
+				}
+				==============================================================
+				+ inside "WelcomeMessage" we could access the value " Here is some message " by using the "children" prop.
+
+(Data flow in a React application)
+	- In a React application, data typically flows from a parent component to a child component, using props.
+
+	- You can change the state of the parent component from a child component
+		ex)
+			==============================================================
+			const [count, setCount] = useState(0)
+
+			<Counter setCount={setCount} />
+
+			// we can now grab the "setCount" prop and call it to update
+			// the "count" state in the parent component
+			function Counter({ setCount }) {
+				// ...
+
+				setCount(1)
+
+				// ...
+			}
+			==============================================================
+
+(Handling user events in React)
+	- "onClick" attribute in JSX element:
+		ex)
+			==============================================================
+			<button
+				onClick = { (event) => {
+					/* handle the event */
+				}}
+			>
+				Click here
+			</button>
+			==============================================================
+
+		ex) outside of the JSX
+			==============================================================
+			const handleClickEvent = (event) => {
+				/* handle the event */
+			}
+
+			function App() {
+				return <button onClick={handleClickEvent}>
+					Click here</button>
+			}
+			==============================================================
+
+	* supports "onKeyUp", "onFocus", "onChange", "onMouseDown", "onSubmit" and any more.
+
+(Lifecycle events in a React component)
+	- hooks
+		1) useState
+		2) useEffect
+
+	- "useEffect"
+		-> allows components to have access to the lifecycle events of a component.
+
+	* When you call the hook, you pass it a function.
+		-> The function will be run by React when the component is first rendered, and on every subsequent re-render/update.
+
+	- React first updates the DOM, then calls any function passed to "useEffect()".
+
+		ex)
+			==============================================================
+			const { useEffect, useState } = React
+
+			const CounterWithNameAndSideEffect = () => {
+				const [count, setCount] = useState(0);
+
+				useEffect(()=> {
+					console.log(`you cliked ${count} times`);
+				})
+
+				return (
+					<div>
+						<p>You clikced {count} times</p>
+						<button onClick={() => 
+							setCount(count+1)
+						}>Click me!</button>
+					</div>
+				)
+			}
+			==============================================================
+	* useEffect() function is run on every subsequent re-render/update of the component, we can tell React to skip it, for performance purposes.
+		-> by adding a second parameter which is an array that contains a list of state variables to watch for.
+		-> React will only re-run the side effect if one of the items in this array changes.
+
+		ex)
+			==============================================================
+			useEffect(()=> {
+				console.log(`Hi ${name}, you cliked ${count} times!`);
+			}, [name, count]);
+			==============================================================
+
+		ex) run once (at mount time), by passing an empty array
+			==============================================================
+			useEffect(() => {
+				console.log(`Component mounted`);
+			}, []);
+			==============================================================
+
+	* useEffect is great for adding logs, accessing 3rd party APIs and much more.
