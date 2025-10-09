@@ -1,0 +1,96 @@
+(Chapter 20 - Node.js)
+
+[Background]
+	- Node was initially conceived for the purpose of making asynchronous programming easy and convenient.
+
+[The Node Command]
+	- you can run "node" from the command line
+		ex)
+			============================================
+			// hello.js
+			let message = "Hello World";
+			console.log(message)
+
+			// terminal
+			$ node hello.js
+			Hello World
+			============================================
+			+ In Node, the text will go to the process's standard output stream, rather than to a browser's JavaScript console.
+
+	- you can run node without giving it a file, providing you with a prompt at which you can type JavaScript code and immediately see the result.
+		ex)
+			============================================
+			$ node
+			> 1 + 1
+			2
+			> [-1, -2, -3].map(Math.abs)
+			[1, 2, 3]
+			> process.exit(0)
+			$
+			============================================
+
+	* All the standard JavaScript global bindings, such as "Array", "Math", and "JSON", are also present in Node's environment.
+		-> Browser-related functionality, such as "document" or "prompt" is not!!
+
+[Modules]
+	- "require"
+		-> Node has to resolve the given string to an actual file that it can load.
+
+		ex) require("fs") // will give you Node's built-in file system module.
+
+		ex) requre("robot") // might try to load the library found in "node_modules/robot/".
+	
+	* Common way to install such libraries is by using "NPM".
+
+[Installing with NPM]
+	- after running "npm install", NPM will have created a directory called "node_modules".
+		-> inside that directory will be an "ini" directory that contains the library.
+
+	* By default NPM installs packages under the current directory, rather than in a central place.
+
+[Package Files]
+	* if you run "npm install" without naming a package to install, NPM will install the dependencies listed in "package.json".
+
+	* When you install a specific package that is not already listed as a dependency, NPM will add it to package.json.
+
+[Versions]
+	- NPM demands that its packages follow a schema called "semantic versioning"
+		-> encodes some information about which versions are compatible (don't break the old interface) in the version number.
+
+	- A semantic version consists of three numbers, separated by periods, such as 2.3.0.
+		-> Every time new functionality is added, the middle number has to be incremented.
+
+		-> Every time compatibility is broken, so that existing code that uses the package might not work with the new version, the first number has to be incremented.
+
+	* A caret character (^) in front of the version number for a dependency in "package.json" indicates that any version compatible with the given number may be installed.
+		-> "^2.3.0" would mean that any version greater than or equal to 2.3.0 and less than 3.0.0 is allowed.
+
+	- "npm publish" in a directory that has a "package.json" file,
+		-> it will publish a package with the name and version listed in the JSON file to the registry.
+
+[The File System Module]
+	- "readdir" : return the files in a directory as an array of strings.
+
+	- "stat": retrieve information about a file.
+
+	- "rename" : renames a file.
+
+	- "unlink" : remove one.
+
+[Streams]
+	- "Writable streams" : widely used concept in Node.
+
+		ex) "createWriteStream" function from the "fs" module.
+			-> you can use the "write" method on the resulting object to write the file one piece at a time, rather than in one shot as with "writeFile".
+
+	- "Readable streams" have "data" and "end" events.
+		- "data": fired every time data comes in.
+
+		- "end": called whenever the stream is at its end.
+
+		-> "createReadStream": a file can be read as a readable stream by using it from "fs".
+
+[A File Server]
+	
+	* HTTP standard encourages us to make requests "idempotent".
+		-> making the same request multiple times produces the same result as making it once.
