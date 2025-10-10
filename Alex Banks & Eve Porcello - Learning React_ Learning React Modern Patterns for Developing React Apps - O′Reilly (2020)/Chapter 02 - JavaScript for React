@@ -1,0 +1,478 @@
+[Chapter 02 - JavaScript for React]
+
+(Declaring Variables)
+	<The const Keyword>
+		- "constant": a variable that cannot be overwritten.
+
+		- JavaScript introduced constants with ES6.
+
+	<The let Keyword>
+		- "lexical variable scope".
+
+		- using "let" protects the value of the global variable:
+			ex)
+				========================================================
+				var topic = "JavaScript";
+
+				if(topic){
+					let topic = "React";
+					console.log("block", topic); // React
+				}
+				console.log("global", topic); // JavaScript
+				========================================================
+
+	<Template Strings>
+		- With a template, we can create one string and insert the variable values by surrounding them with ${ }:
+			ex)
+				================================================================
+				console.log(lastName + ", " + firstName + " " + middleName);
+
+				// can be changed to below
+				console.log(`${lastName}, ${firstName} ${middleName}`);
+				================================================================
+
+(Creating Functions)
+	<Function Declarations>
+		- A function declaration or function definition starts with the "function" keyword, followed by the name of the function.
+
+	<Function Expressions>
+		- Creating the functions as a variable:
+			ex)
+				========================================================
+				const logCompliment = function() {
+					console.log("You're doing great!");
+				};
+				========================================================
+
+		* Function delcarations are hoisted and function expressions are not.
+			-> You can invoke a function before you write a function declaration.
+			-> You cannot invoke a function created by a function expression.
+
+			ex) Function Declaration
+				========================================================
+				// Invoking the function before it's declared
+				hey();
+
+				// Function delcaration
+				function hey() {
+					alert("hey!");
+				}
+				========================================================
+				+ This works because the function is "hoisted", or moved up, to the top of the file's scope.
+
+			ex) Function Expression
+				========================================================
+				// Invoking the function before it's declared
+				hey();
+
+				// Function expression
+				const hey = function() {
+					alert("hey!");
+				};
+				========================================================
+				+ TypeError: hey is not a function
+
+	<Default Parameters>
+		- Default parameters are included in the ES6 spec.
+
+	<Arrow Functions>
+		- new feature of ES6.
+		- we can create functions without using the "function" keyword.
+		- often do not have to use the "return" keyword.
+
+			ex)
+				===========================================================
+				const lordify = firstName => `${firstName} of Canterbury`;
+
+				console.log(lordify('Dale')); // Dale of Canterbury
+				console.log(lordify('Gail')); // Gail of Canterbury
+				===========================================================
+
+		- More than one argument
+
+			ex)
+				===========================================================
+				const lordify = (firstName, secondName)
+					=> `${firstName} of Canterbury and ${secondName}.`;
+
+				// OR
+				const lordify = (firstName, secondName) => {
+					if(!firstName){
+						throw new Error('No firstName!');
+					}
+
+					if(!secondName) {
+						throw new Error('No secondName!');
+					}
+
+					return `${firstName} of Canterbury and ${secondName}.`;
+				};
+				===========================================================
+
+		(Returning objects)
+			- wrap the object you're returning with parentheses:
+				ex)
+					===========================================================
+					const person = (firstName, lastName) => ({
+						first: firstName,
+						last: lastName
+					});
+					===========================================================
+
+			* These missing parentheses are the source of countless bugs in JavaScript and React apps, so it's important to remember this one!
+
+		(Arrow functions and scope)
+			* Regular functions do not block "this".
+				ex)
+					===================================================================================
+					const tahoe = {
+						mountains: ["Freel", "Rose", "Tallac", ... ],
+						print: function(delay = 1000){
+							setTimeout(function() {
+								console.log(this.mountains.join(", "));
+							}, delay);
+						}
+					};
+
+					tahoe.print(); // Uncaught TypeError: Cannot read property 'join' of undefined
+					===================================================================================
+
+			* We can use the arroa function syntax to protect the scope of "this":
+				ex)
+					===================================================================================
+					const tahoe = {
+						mountains: ["Freel", "Rose", "Tallac", ... ],
+						print: function(delay = 1000){
+							setTimeout(() => {
+								console.log(this.mountains.join(", "));
+							}, delay);
+						}
+					};
+
+					tahoe.print(); // Freel, Rose, Tallac, ...
+					===================================================================================
+					* Arrow functions capture "this" from the lexical scope where they are defined, not where they are called.
+
+				ex) Wrong case
+					===================================================================================
+					const tahoe = {
+						mountains: ["Freel", "Rose", "Tallac", ... ],
+						print: (delay = 1000) => {
+							setTimeout(() => {
+								console.log(this.mountains.join(", "));
+							}, delay);
+						}
+					};
+
+					tahoe.print(); // Uncaught TypeError: Cannot read property 'join' of undefined
+					===================================================================================
+					* print arrow function is defined in the "global scope", not inside another method.
+						-> "this" is not bound to the "taeho" object.
+
+(Compiling JavaScript)
+	- "Babel"
+		-> One of the most popular tools for JavaScript compilation.
+
+(Objects and Arrays)
+	<Destructuring Objects>
+		- allows you to locally scope fields within an object and to declare which values will be used.
+			ex)
+				===================================================================================
+				const sandwich = {
+					bread: "dutch crunch",
+					meat: "tuna",
+					cheese: "swiss",
+					toppings: ["lettuce", "tomato", "mustard"]
+				};
+
+				const { bread, meat } = sandwich;
+				console.log(bread, meat); // dutch cruch tuna
+
+				// when you want to change locally
+				let { bread, meat } = sandwich;
+				bread = "garlic";
+				meat = "turkey";
+
+				console.log(bread, meat); // garlic turkey
+
+				console.log(sandwich.bread, sandwich.meat); // dutch crunch tuna
+				===================================================================================
+
+		- we can dstructure incoming function arguments.
+			ex) destructure the values we need out of regularPerson
+				===================================================================================
+				const lordify = ({ firstname }) => {
+					console.log(`${firstname} of Canterbury`);
+				};
+
+				const regularPerson = {
+					firstname: "Bill",
+					lastname: "Wilson"
+				};
+
+				lordify(regularPerson); // Bill of Canterbury
+				===================================================================================
+
+		- we can slo destructure nested object
+			ex)
+				===================================================================================
+				const regularPerson = {
+					firstname: "Bill",
+					lastname: "Wilson",
+					spouse: {
+						firstname: "Phil",
+						lastname: "Wilson"
+					}
+				};
+
+				const lordify = ({ spouse: { firstname }}) => {
+					console.log(`${firstname} of Canterbury`);
+				};
+
+				lordify(regularPerson); // Phil of Canterbury
+				===================================================================================
+
+	<Destucturing Arrays>
+		- we can also destructure arrays.
+			ex)
+				===================================================================================
+				const [firstAnimal] = ["Horse", "Mouse", "Cat"];
+				console.log(firstAnimal); // Horse
+
+				const [, , thirdAnimal] = ["Horse", "Mouse", "Cat"];
+				console.log(thirdAnimal); // Cat
+				===================================================================================	
+
+	<Object Literal Enhancement>
+		- opposite of destructuring.
+			-> process of restructuring or putting the object back together.
+
+			ex)
+				===================================================================================
+				const name = "Tallac";
+				const elevation = 9738;
+
+				const funHike = { name, elevation };
+
+				console.log(funHike); // { name: "Tallac", elevation: 9738 }
+				===================================================================================
+				+ name and elevation are now keys of the funHike object.
+
+			ex) creating object methods
+				===================================================================================
+				const name = "Tallac";
+				const elevation = 9738;
+				const print = function() {
+					console.log(`Mt. ${this.name} is ${this.elevation} feet tall`);
+				};
+
+				const funHike = { name, elevation, print };
+				funHike.print(); // Mt. Tallac is 9738 feet tall
+				===================================================================================
+
+			ex) No need to use the "function" keyword anymore
+				===================================================================================
+				// Old
+				const skier = {
+					name: name,
+					sound: sound,
+					powderYell: function() {
+						var yell = this.sound.toUpperCase();
+						console.log(`${yell} ${yell} ${yell}!!!`);
+					}
+					speed: function(mph) {
+						this.speed = mph;
+						console.log("speed:", mph);
+					}
+				};
+
+				// New
+				const skier = {
+					name: name,
+					sound: sound,
+					powderYell() {
+						var yell = this.sound.toUpperCase();
+						console.log(`${yell} ${yell} ${yell}!!!`);
+					}
+					speed(mph) {
+						this.speed = mph;
+						console.log("speed:", mph);
+					}
+				};
+				===================================================================================
+				* Object literal enhancement allows us to pull global variables into objects and reduces typing by making the function keyword unnecessary.
+
+	<The Spread Operator>
+		- three dots(...) that perform several different tasks.
+			1) the spread operator allows us to combine the contents of arrays.
+				
+				ex) combine two arrays into one:
+					===================================================================================
+					const peaks = ["Tallac", "Ralston", "Rose"];
+					const canyons = ["Ward", "Blackwood"];
+
+					const tahoe = [...peaks, ...canyons];
+
+					console.log(tahoe.join(", ")); // Tallac, Ralston, Rose, Ward, Blackwood
+					===================================================================================
+
+			2) creating a copy of the array
+
+				ex)
+					===================================================================================
+					const peaks = ["Tallac", "Ralston", "Rose"];
+					// const [last] = peaks.reverse(); will mutate the original "peaks" array!!
+					const [last] = [...pkeaks].reverse();
+
+					console.log(last); // Rose
+					console.log(peaks.join(", ")); // Tallac, Ralston, Rose
+					===================================================================================
+
+			3) get the remaining items in the array:
+				
+				ex)
+					===================================================================================
+					const lakes = ["Donner", "Marlette", "Fallen Leaf", "Cascade"];
+
+					const [first, ...others] = lakes;
+
+					console.log(others.join(", ")); // Marlette, Fallen Leaf, Cascade
+					===================================================================================
+
+			4) Collect function arguments as an array. (When used in a function, these are called "rest parameters")
+
+				ex)
+					===================================================================================
+					function directions(...args) { // args is a rest parameter.
+						let [start, ...remaining] = args;
+						let [finish, ...stops] = remaining.reverse();
+
+						console.log(`drive through ${args.length} towns`);
+						console.log(`start in ${start}`);
+
+						console.log(`the destination is ${finish}`);
+						console.log(`stopping ${stops.length} times in between`);
+					}
+
+					directions("Truckee", "Tahoe City", "Sunnyside", "Homewood", "Tahoma");
+					===================================================================================
+
+			5) can also be used for objects
+
+				ex)
+					===================================================================================
+					const morning = {
+						breakfast: 'oatmeal',
+						lunch: 'peanut butter and jelly'
+					};
+
+					const dinner = "mac and cheese";
+
+					const backpackingMeals = {
+						...morning,
+						dinner
+					};
+
+					console.log(backpackingMeals);
+					// {
+					//	 breakfast: 'oatmeal',
+					// 	 lunch: 'peanut butter and jelly',
+					// 	 dinner: 'mac and cheese'
+					// }
+					===================================================================================
+
+
+(Asynchronous JavaScript)
+	<Async / Await>
+		* When using async and await, you need to surround your promise call in a try...catch block to handle any errors that may occur due to an unresolved promise.
+			
+			ex)
+				===================================================================================
+				const getFakePerson = async () => {
+					try {
+						let res = await fetch("...");
+						let { results } = res.json();
+						console.log(results);
+					} catch (error) {
+						console.error(error);
+					}
+				};
+
+				getFakePerson();
+				===================================================================================
+
+(Classes)
+	* Today, React is beginning to move away from classes, instead using functions to construct components.
+
+	- JavaScript uses something called "prototypical inheritance".
+		-> wielded to create structures that feel object-oriented.
+
+			ex) create a Vacation constructor that needs to be invoked with a "new" operator.
+				===================================================================================
+				function Vacation(destination, length) {
+					this.destination = destination;
+					this.length = length;
+				}
+
+				Vacation.prototype.print = function() {
+					console.log(this.destination + " | " + this.length + " days");
+				};
+
+				const maui = new Vacation("Maui", 7);
+
+				maui.print(); // Maui | 7 days
+				===================================================================================
+
+			ex) Classes provide a syntactic sugar on top of prototype syntax:
+				===================================================================================
+				class Vacation {
+					constructor(destination, length) {
+						this.destination = destination;
+						this.length = length;
+					}
+
+					print() {
+						console.log(this.destination + " | " + this.length + " days");
+					}
+				}
+
+				const trip = new Vacation("Santiago, Chile", 7);
+
+				trip.print() // Santiago, Chile | 7 days
+				===================================================================================
+				* Class name is typically CAPITALIZED.
+
+			ex) Inheritance
+				===================================================================================
+				class Expedition extends Vacation {
+					constructor(destination, length, gear) {
+						this.destination = destination;
+						this.length = length;
+						this.gear = gear;
+					}
+
+					print() {
+						super.print();
+						console.log(`Bring your ${this.gear.join(" and your ")}`);
+					}
+				}
+
+				const trip = new Expedition("Mt. Whitney", 3, [
+					"sunglasses",
+					"prayer flags",
+					"camera"
+				]);
+
+				trip.print();
+				// Mt. Whiteney | 3 days
+				// Bring your sunglasses and your prayer flags and your camera
+				===================================================================================
+
+(ES6 Modules)
+	- "export" can be used to export any JavaScript type that will be consumed in another module.
+
+	- "export default" can be used in place of export when you wish to export only one type.
+
+	* both export and export default can be used on any JavaScript type: primitives, objects, arrays, and functions.
+
+	- "import" to consume modules in JavaScript files.
