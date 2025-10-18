@@ -1,0 +1,78 @@
+[Chapter 04 - How React Works]
+
+(Page Setup)
+	- React: library for creating views.
+	- ReactDOM: library used to actually render the UI in the browser.
+
+(React Elements)
+	* AJAX(Asynchronous JavaScript and XML) brought us the single-page application, or SPA(Single Page Application).
+
+	- In SPA, the browser initially loads one HTML document.
+
+	- the "DOM API" is a collection of objects that JavaScript can use to interact with the browser to modify the DOM.
+		ex) document.createElement or document.appendChild.
+
+	* DOM elements and React elements may look the same, but they're actually different.
+		-> A React element is a description of what the actual DOM element should look like.
+
+		-> React elements are the instructions for how the browser DOM should be created.
+
+		ex) create a React element to represent an h1 using React.createElement:
+			===============================================================
+			React.createElement("h1", { id: "recipe-0" }, "Baked Salmon");
+			===============================================================
+			+ first argument: type of element we want to create.
+			+ second argument: represents the element's properties.
+			+ third argument: represents the element's children: any nodes that are inserted between the opening and closing tag (in this case, just some text).
+
+			-> <h1 id="recipe-0">Baked Salmon</h1>
+
+		-> React element is just a JavaScript literal that tells React how to construct the DOM element.
+
+(ReactDOM)
+	- ReactDOM contains the tools necessary to render React elements in the browser.
+
+	- ReactDOM is where we'll find the "render" method.
+
+		ex)
+			===============================================================
+			const dish = React.createElement("h1", null, "Baked Salmon");
+
+			ReactDOM.render(dish, document.getElementById("root"));
+			===============================================================
+
+			->
+				<body>
+					<div id="root">
+						<h1>Baked Salmon</h1>
+					</div>
+				</body>
+
+	[Children]
+		- React renders child elements using "props.children".
+		- "element tree"
+			-> the tree has one root element from which many branches grow.
+
+		* Any element that has an HTML class attribute is using "className" for that property instead of "class".
+			-> "class" is a reserved word in JavaScript, we have to use "className" to define the "class" attirubte of an HTML element.
+
+		* Major advantage of using React is its ability to separate data from UI elements.
+			ex)
+				==============================================================
+				const items = [
+					"2 lb salmon",
+					"5 sprigs fresh rosemary",
+					"2 tablespoons olive oil",
+					"2 small lemons",
+					"1 teaspoon kosher salt",
+					"4 cloves of chopped garlic"
+				];
+
+				React.createElement(
+					"ul",
+					{ className: "ingredients" },
+					items.map((item, i) => React.createElement("li, {key: i}, item"))
+				);
+				==============================================================
+				* {key: i}
+					-> the "key" property is used by React to help it update the DOM efficiently.
