@@ -1,0 +1,278 @@
+[Chapter 03 - Functional Programming with JavaScript]
+
+(What It Means to Be Functional)
+	- JavaScript functions are first-class citizens.
+		-> functions can do the same things that variables can do.
+
+	- functions can represent data in your application.
+		-> you can declare functions with the "var", "let" or "const" keywords.
+			ex)
+				========================================================
+				var log = function(message) {
+					console.log(message);
+				};
+
+				log("In JavaScript, functions are variables.");
+				========================================================
+
+			ex)	Arrow function
+				========================================================
+				const log = message => {
+					console.log(message);
+				};
+				========================================================
+
+			ex) Adding functions to objects
+				========================================================
+				const obj = {
+					message: "They can be added to objects like variables.",
+					log(message) {
+						console.log(message);
+					}
+				};
+
+				obj.log(obj.message);
+				========================================================
+
+			ex) Add functions to arrays
+				========================================================
+				const messages = [
+					"They can be inserted into arrays",
+					message => console.log(message),
+					"like variables",
+					message => console.log(message)
+				];
+
+				messages[1](messages[0]); // They can be inserted into arrays
+				messages[3](messages[2]); // like variables
+				========================================================
+
+			ex) Returned from other functions, just like variables
+				========================================================
+				const createScream = function(logger) {
+					return function(message) {
+						logger(message.toUpperCase() + "!!!!");
+					};
+				};
+
+				const scream = createScream(message => console.log(message));
+
+				scream("functions can be returned from other functions");
+				scream("createScream returns a function")
+				scream("scream invokes that returned function")
+				========================================================
+
+(Imperative Versus Declarative)
+	- Functional programming is part of a larger programming paradigm: "declarative-programming"
+
+	- "Declarative Programming"
+		-> style of programming where applications are structured in a way that prioritizes describing "what" should happen oever defining "how" it should happen.
+
+		ex) Imperative Programming
+			========================================================
+			const string = "Restaurants in Hanalei";
+			const urlFriendly = "";
+
+			for (var i=0; i< string.length; i++) {
+				if(string[i] === " ") {
+					urlFriendly += "-";
+				} else {
+					urlFriendly += string[i];
+				}
+			}
+
+			// Restaurants-in-Hanalei
+			console.log(urlFriendly);
+			========================================================
+			* Imperative Programs require lots of comments in order to understand what's going on.
+
+		ex) Declarative Programming
+			========================================================
+			const string = "Restaurants in Hanalei";
+			const urlFriendly = string.replace(/ /g, "-");
+
+			console.log(urlFriendly);
+			========================================================
+			* the syntax itself describes what should happen, and the details of how things happen are abstracted away.
+
+	- Delcarative Programs are easy to reason about because the code itself describes what is happening.
+
+	- More readable, and thus, easier to reason about.
+
+(Functional Concepts)
+	[Immutability]
+		- In functional programming, the data is immutable, never changes.
+
+		* In JavaScript, function arguments are references to the actual data.
+
+		ex) Arguments are references
+			========================================================
+			let color_lawn = {
+				title: "lawn",
+				color: "#00FF00",
+				rating: 0
+			};
+
+			function rateColor(color, rating) {
+				color.rating = rating;
+				return color;
+			}
+
+			console.log(rateColor(color_lawn, 5).rating); // 5
+			console.log(color_lawn.rating); // 5
+			========================================================
+
+		ex) Without changing the original
+			========================================================
+			const rateColor = function(color, rating) {
+				return Object.assign({}, color, { rating: rating });
+			};
+
+			console.log(rateColor(color_lawn, 5));
+			console.log(color_lawn.rating);
+			========================================================
+			* "Object.assign": is the copy machine.
+				-> takes a blank object, copies the color to that object, and overwrites the rating on the copy.
+
+		ex) Using an arrow function along with the object spread operator.
+			========================================================
+			const rateColor = (color, rating) => ({
+				...color,
+				rating
+			});
+			========================================================
+			* treats "color" as an immutable object, does so with less syntax.
+
+		ex) Array.push is not an immutable function.
+			========================================================
+			let list = [
+				{title: "Rad Red"},
+				{title: "Lawn"},
+				{title: "Party Pink"}
+			];
+
+			const addColor = function(title, colors) {
+				colors.push({title: title});
+				return colors;
+			}
+
+			console.log(addColor("Glam Green", list).length); // 4
+			console.log(list.length); // 4
+			========================================================
+
+		ex) Array.concat (instead of Array.push)
+			========================================================
+			let list = [
+				{title: "Rad Red"},
+				{title: "Lawn"},
+				{title: "Party Pink"}
+			];
+			const addColor = (title, array) => array.concat({title});
+
+			console.log(addColor("Glam Green", list).length); // 4
+			console.log(list.length); // 3
+			========================================================
+
+		ex) Using the spread operator
+			========================================================
+			const addColor = (title, list) => [...list, {title}];
+			========================================================
+
+	[Pure Functions]
+		- "Pure Function"
+			-> returns a value that's computed based on its arguments.
+			-> takes at least one argument and always returns a value or another function.
+
+			* It does not cause side effects, set global variables, or change anything about application state.
+
+			* It treats arguments as immutable data.
+
+			ex) Impure Function
+				========================================================
+				const frederick = {
+					name: "Frederick Douglass",
+					canRead: false,
+					canWrite: false
+				};
+
+				function selfEducate() {
+					frederick.canRead = true;
+					frederick.canWrite = true;
+					return frederick;
+				}
+
+				selfEducate();
+				console.log(frederick);
+
+				// { name: "Frederick Douglass",
+				// canRead: true, canWrite: true}
+				========================================================
+				+ "selfEducate" function is not a pure function.
+				+ It does not take any arguments.
+				+ It does not return a value or a function.
+				+ It changes a variable outside of its scope: Frederick.
+				* When "selfEducate" function is invoked, something about the "world" has changed. (Causing side effects)
+
+			ex) Pure Function
+				========================================================
+				const frederick = {
+					name: "Frederick Douglass",
+					canRead: false,
+					canWrite: false
+				};
+
+				const selfEducate = person => ({
+					...person,
+					canRead: true,
+					canWrite: true
+				});
+
+				console.log(selfEducate(frederick));
+				console.log(frederick);
+				========================================================
+
+		* Three rules when writing functions.
+			1) The function should take in at least one argument.
+			2) The function should return a value or another function.
+			3) The function should not change or mutate any of its argument.
+
+		* Pure functions are naturally "testable".
+			-> They do not change anything about their environment or "world", and therefore do not require a complicated test setup or teardown.
+
+			-> You can control the arguments, and thus you can estimate the outcome in pure functions.
+
+	[Higher-Order Functions]
+		- functions that can manipulate other functions.
+		- They can take functions in as arguments or return functions or both.
+			ex) Array.map, Array.filter, Array.reduce, and etc.
+				-> They all take functions as arguments.
+
+	[Composition]
+		- In JavaScript, functions can be chained together using dot notation to act on the return value of the previous function.
+			ex) Strings have "replace" method.
+				=======================================================
+				const template = "hh:mm:ss tt";
+				const clockTime = template
+					.replace("hh", "03")
+					.replace("mm", "33")
+					.replace("ss", "33")
+					.replace("tt", "PM")
+
+				console.log(clockTime);
+				// 03:33:33: PM
+				=======================================================
+				+ hard to comprehend and therefore tough to maintain or scale.
+				* What happens when we need to send a value through 20 different functions?
+
+			ex) compose functions
+				=======================================================
+				const both = compose(
+					civilianHours,
+					appendAMPM
+				);
+
+				both(new Date());
+
+				const compose = (...fns) => arg =>
+					fns.reduce((composed, f) => f(composed), arg);
+				=======================================================
