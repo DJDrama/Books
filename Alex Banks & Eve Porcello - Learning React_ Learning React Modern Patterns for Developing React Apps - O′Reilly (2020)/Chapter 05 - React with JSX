@@ -1,0 +1,116 @@
+(Chapter 05 - React with JSX)
+
+[React Element as JSX]
+	- { } (curly braces)
+		-> JavaScript expression.
+
+	- Component properties will take two types: either a string or a JavaScript expression.
+		-> JavaScript expression can include
+			+ arrays
+			+ objects
+			+ functions
+
+			* in order to include them, you MUST surround them in curly braces.
+
+[React Fragment]
+	
+	ex)
+		======================================================
+		function Cat({ name }) {
+			return <h1>The cat's name is {name}</h1>;
+		}
+		ReactDOM.render(
+			<Cat name="jungle" />,
+			document.getElementById("root")
+		);
+
+		// If we add a p tag to the Cat component...
+		function Cat({ name }) {
+			return (
+				<h1>The cat's name is {name}</h1>
+				<p>He's good.</p>
+			)
+		} // Error! 
+		// React won't render two or more adjacent or sibling
+		// elements as a component.
+		// We used to have to wrap these in an enclosing tag
+		// like a div.
+
+		// Using React framgnet
+		// mimic the behavior of a wrapper without
+		// actually creating a new tag.
+		function Cat({ name }) {
+			return (
+				<React.Fragment>
+					<h1>The cat's name is {name}</h1>
+					<p>He's good.</p>
+				</React.Framgnet>
+			)
+		}
+
+		// Another way of using fragment(shorthand)
+		function Cat({ name }) {
+			return (
+				<>
+					<h1>The cat's name is {name}</h1>
+					<p>He's good.</p>
+				</>
+			)
+		}
+		======================================================
+
+[Intro to webpack]
+	- How do we want to deal with JSX and ESNext transformation?
+	- How can we optimizie our images and CSS?
+
+	- Webpack is billed as a moudle bundler.
+		-> A module bundler takes all of our different files(JS, LESS, CSS, JSX, ESNext, and so on) and turns them into a single file.
+
+	* Benefits of bundling
+		1) Modularity
+			-> allows you to break down your source code into parts, or modules, that are easier to work with, especially in a team environment.
+
+		2) Network Performance
+			-> gained by only needing to load one dependency in the browser: the bundle.
+				ex) Each script tag makes an HTTP request, and there's a latency penalty for each HTTP request. Bundling all the dependencies into a single file allows you to load everything with one HTTP request, thereby avoiding additional latency.
+
+		(Also can Handle)
+		1) Code splitting
+			-> Splits up code into different chunks that can be loaded when you need them.
+
+			-> Sometimes called "rollups" or "layers": the aim is to break up code as needed for different pages or devices.
+
+		2) Minification
+			-> Removes whitespace, line breaks, length variable names, and unnecessary code to reduce the file size.
+
+		3) Feature Flagging
+			-> Sends code to one or more-but not all-environments when testing out features.
+
+		4) Hot Module Replacement (HMR)
+			-> Watches for changes in source code, changes only the updated modules immediately.
+
+	* Beefits by incorporating the webpack module bundler:
+		1) Modularity
+
+		2) Composition
+			-> build small, simple, reusable React components that we can compose efficiently into applications.
+
+		3) Speed
+			-> minifying the code in the bundle will improve load time as well.
+
+		4) Consistency
+			-> Babel supports a wide range of ESNext syntax, we don't have to worry about whether the browser supports our code. It allows developers to consistently use cutting-edge JavaScript syntax.
+
+[Creating the Project]
+	
+	* "create-react-app"
+		-> tool called "Create React App" that can be used to autogenerate a React project with all of this preconfigured.
+
+	<1. Create the project>
+		> npx create-react-app my-app
+
+		* It installs Babel, ESLint, webpack, and more so that you don't have to configure them manually.
+
+	<2. Run>
+		> npm start
+
