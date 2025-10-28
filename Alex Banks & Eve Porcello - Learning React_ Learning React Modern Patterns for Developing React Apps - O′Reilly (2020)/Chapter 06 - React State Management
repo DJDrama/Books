@@ -1,0 +1,324 @@
+(Chapter 06 - React State Management)
+
+[The useState Hook]
+	- "Hooks"
+		-> contain reusable code logic that is separate from the component tree.
+
+		-> they allow us to hook up functionality to our components.
+
+		ex) "useState" hook
+			+ When data within the hook changes, they have the power to render the component they're hooked into with new data.
+
+			=======================================================
+			import React, {useState} from 'react';
+			import {FaStar} from 'react-icons/fa';
+
+			const Star = ({selected = false, onSelect = f => f}) => (
+			    <FaStar color={selected ? 'red' : 'grey'} onClick={onSelect}/>
+			);
+
+			const createArray = length => [...Array(length)];
+
+			export default function StarRating({totalStars = 5}) {
+			    const [selectedStars, setSelectedStars] = useState(0);
+			    return (
+			        <>
+			            {createArray(totalStars).map((n, i) => (
+			                <Star key={i}
+			                      selected={selectedStars > i}
+			                      onSelect={() => setSelectedStars(i + 1)}
+			                />
+			            ))}
+			            <p>
+			                {selectedStars} of {totalStars} stars
+			            </p>
+			        </>
+			    )
+			}
+			=======================================================
+
+[Refactoring for Advanced Reusability]
+	- All React elements have style properties.
+
+		ex) Adding Style
+			=======================================================
+			import React, {useState} from 'react';
+			import {FaStar} from 'react-icons/fa';
+
+			const Star = ({selected = false, onSelect = f => f}) => (
+			    <FaStar color={selected ? 'red' : 'grey'} onClick={onSelect}/>
+			);
+
+			const createArray = length => [...Array(length)];
+
+			export default function StarRating({style = {}, totalStars = 5}) {
+			    const [selectedStars, setSelectedStars] = useState(0);
+			    return (
+			        <div style={{padding: "5px", ...style}}>
+			            {createArray(totalStars).map((n, i) => (
+			                <Star key={i}
+			                      selected={selectedStars > i}
+			                      onSelect={() => setSelectedStars(i + 1)}
+			                />
+			            ))}
+			            <p>
+			                {selectedStars} of {totalStars} stars
+			            </p>
+			        </div>
+			    )
+			}
+
+			// Caller
+			<StarRating
+                style={{backgroundColor: "lightblue"}}
+            />
+			=======================================================
+
+		ex) Adding Props (...props)
+			=======================================================
+			import React, {useState} from 'react';
+			import {FaStar} from 'react-icons/fa';
+
+			const Star = ({selected = false, onSelect = f => f}) => (
+			    <FaStar color={selected ? 'red' : 'grey'} onClick={onSelect}/>
+			);
+
+			const createArray = length => [...Array(length)];
+
+			export default function StarRating({style = {}, totalStars = 5, ...props}) {
+			    const [selectedStars, setSelectedStars] = useState(0);
+			    return (
+			        <div style={{padding: "5px", ...style}} {...props}>
+			            {createArray(totalStars).map((n, i) => (
+			                <Star key={i}
+			                      selected={selectedStars > i}
+			                      onSelect={() => setSelectedStars(i + 1)}
+			                />
+			            ))}
+			            <p>
+			                {selectedStars} of {totalStars} stars
+			            </p>
+			        </div>
+			    )
+			}
+			// Caller
+			<StarRating
+                style={{backgroundColor: "lightblue"}}
+                onDoubleClick={e => alert("double clicked!")}
+            />
+			=======================================================
+
+[State in Component Trees]
+	* It's not a great idea to use state in every single component.
+
+	- "pure component"
+		-> a function component that does not contain state and will render the same user interface given the same props.
+		
+		ex)
+			======================================================
+			import React from 'react';
+			import {FaStar} from 'react-icons/fa';
+
+			const Star = ({selected = false, onSelect = f => f}) => (
+			    <FaStar color={selected ? 'red' : 'grey'} onClick={onSelect}/>
+			);
+
+			const createArray = length => [...Array(length)];
+
+			export default function StarRating({totalStars = 5, selectedStars = 0}) {
+			    return (
+			        <>
+			            {createArray(totalStars).map((n, i) => (
+			                <Star key={i}
+			                      selected={selectedStars > i}
+			                />
+			            ))}
+			            <p>
+			                {selectedStars} of {totalStars} stars
+			            </p>
+			        </>
+			    )
+			}
+			======================================================
+
+[Building Forms]
+	(Using Refs)
+		- useRef hook -> creates a "ref".
+			ex)
+				==================================================
+				import React, {useRef} from "react";
+
+				export default function AddColorForm({onNewColor = f => f}) {
+				    const txtTitle = useRef();
+				    const hexColor = useRef();
+				    const submit = e => {
+				        // preventing "POST" request to the current URL
+				        // with the values of the form elements stored in the body.
+				        e.preventDefault();
+				        const title = txtTitle.current.value;
+				        const color = hexColor.current.value;
+				        onNewColor(title, color);
+
+				        // Imperative Codes.
+				        txtTitle.current.value = "";
+				        hexColor.current.value = "";
+				    }
+				    return (
+				        <form onSubmit={submit}>
+				            <input type="text" ref={txtTitle} placeholder="Color Title..." required/>
+				            <input ref={hexColor} type="color" required/>
+				            <button>Add</button>
+				        </form>
+				    );
+				}
+				==================================================
+
+	(Controlled Components)
+		- In a "controlled component", the from values are managed by React and not the DOM.
+			-> They do not require "refs".
+			-> They do not require us to write imperative codes.
+
+			ex)
+				==================================================
+				import React, {useState} from "react";
+
+				export default function AddColorForm({onNewColor = f => f}) {
+				    const [title, setTitle] = useState("");
+				    const [color, setColor] = useState("#000000");
+				    const submit = e => {
+				        // preventing "POST" request to the current URL
+				        // with the values of the form elements stored in the body.
+				        e.preventDefault();
+				        onNewColor(title, color);
+				        setTitle("");
+				        setColor("");
+				    }
+				    return (
+				        <form onSubmit={submit}>
+				            <input type="text"
+				                   onChange={event => setTitle(event.target.value)}
+				                   placeholder="Color Title..."
+				                   value={title}
+				                   required/>
+				            <input type="color"
+				                   onChange={event => setColor(event.target.value)}
+				                   value={color}
+				                   required/>
+				            <button>Add</button>
+				        </form>
+				    );
+				}
+				==================================================
+
+		- It's called a "controlled component"
+			-> React controls the state of the form.
+
+	(Creating Custom Hooks)
+		- create our own "useInput" hook where we can abstract away the redundancy involved with creating controlled form inputs:
+			ex)
+				==================================================
+				import {useState} from "react";
+
+				export const useInput = initialValue => {
+				    const [value, setValue] = useState(initialValue);
+				    return [
+				        {value, onChange: e => setValue(e.target.value)},
+				        () => setValue(initialValue)
+				    ];
+				};
+
+				// AddColorForm.js
+				import React from "react";
+				import {useInput} from "./CustomUseInput";
+
+				export default function AddColorForm({onNewColor = f => f}) {
+				    const [titleProps, resetTitle] = useInput("");
+				    const [colorProps, resetColor] = useInput("#000000");
+				    const submit = e => {
+				        // preventing "POST" request to the current URL
+				        // with the values of the form elements stored in the body.
+				        e.preventDefault();
+				        onNewColor(titleProps.value, colorProps.value);
+				        resetTitle();
+				        resetColor();
+				    }
+				    return (
+				        <form onSubmit={submit}>
+				            <input
+				                {...titleProps}
+				                type="text"
+				                placeholder="Color Title..."
+				                required/>
+				            <input
+				                {...colorProps}
+				                type="color"
+				                required/>
+				            <button>Add</button>
+				        </form>
+				    );
+				}
+				==================================================
+
+	(Adding Color to State)
+		ex)
+			==================================================
+			// import logo from './logo.svg';
+			import React, {useState} from "react";
+			import colorData from "./data/color-data.json";
+			import ColorList from "./components/ColorList.js";
+			import {v4} from 'uuid';
+
+			import './App.css';
+			import AddColorForm from "./components/AddColorForm";
+
+			function App() {
+			    const [colors, setColors] = useState(colorData);
+			    return (
+			        <>
+			            <AddColorForm
+			                onNewColor={(title, color) => {
+			                    const newColors = [
+			                        ...colors,
+			                        {
+			                            id: v4(),
+			                            rating: 0,
+			                            title,
+			                            color
+			                        }
+			                    ];
+			                    setColors(newColors);
+			                }}
+			            />
+			            <ColorList colors={colors}
+			                       onRateColor={(id, rating) => {
+			                           const newColors = colors.map(color => color.id === id ? {...color, rating} : color);
+			                           setColors(newColors);
+			                       }}
+			                       onRemoveColor={id => {
+			                           const newColors = colors.filter(color => color.id !== id);
+			                           setColors(newColors);
+			                       }
+
+			                       }
+			            />
+			        </>
+			    );
+			}
+
+			export default App;
+
+			==================================================
+
+[React Context]
+	- "context provider"
+		-> a React component you can wrap around your entire component tree or specific sections of your component tree.
+
+	- "context consumer"
+		-> the React component that retrieves the data from context.
+
+	* Using context allows to us store state data in a single location, but it doesn't require us to pass that data through a bunch of components that don't need it.
+
+	(Placing Colors in Context)
+		- "createContext" : to create a new context object.
+			-> contains two components: a context "Provider" and a "Consumer".
+		
