@@ -1,0 +1,285 @@
+(Chapter 07 - Enhancing Components with Hooks)
+
+[Introducing useEffect]
+	- "useEffect"
+		-> the function will be called after the render, as a side effect.
+
+		-> wait for the render, then provide the values to an alert or a console.log.
+			ex)
+				===============================================
+				useEffect(() => {
+					console.log("...");
+				});
+
+				useEffect(() => {
+					localStorage.setItem("...", value);
+				});
+
+				useEffect(() => {
+					txtInputRef.current.focus();
+				});
+				===============================================
+
+		* useEffect has access to the latest values from the render: props, state, refs, etc.
+
+	- "effects"
+		-> things we want the component to do other than return UI are called "effects"
+
+	(The Dependency Array)
+		- UseEffect is designed to work in conjunction with other stateful Hooks like "useState" and "useReducer".
+
+			ex)
+				===============================================
+				useEffect(() => {
+					console.log(`typing "${val}"`);
+				}); // called every time after rendering
+
+				useEffect(() => {
+					console.log(`typing "${val}"`);
+				}, [val]); // dependency array
+
+				useEffect(() => {
+					console.log("...");
+				}, [val, phrase]); // either val or phrase has changed.
+				===============================================
+
+			ex) only once after the initial render
+				===============================================
+				useEffect(() => {
+					console.log("only once after initial render");
+				}, []);
+				===============================================
+
+			ex) "return" in the effect
+				===============================================
+				useEffect(() => {
+					welcomeChime.play();
+					return () => goodbyeChime.play();
+				}. []);
+				===============================================
+				+ "return" => the function will be invoked when the component is removed from the tree.
+
+				+ "empty dependency array" => only invoked once on first render.
+
+				* can use "useEffect" for setup and teardown.
+
+	(Deep Checking Dependencies)
+		- In JavaScript, arrays, objects, and functions are the same only when they're the exact same instance.
+			
+			ex) new words instance on every render
+				===============================================
+				const words = ["sick", "powder", "day"];
+				useEffect(() => {
+					console.log("fresh render");
+				}, [words]);
+				===============================================
+				+ a new array is declared with each render, JavaScript assumes that words has changed, invoking the "fresh render" effect every time.
+
+			ex) Solution
+				===============================================
+				// declare outside of the scope
+				const words = ["sick", "powder", "day"];
+
+				function App() {
+					// ...
+					
+					useEffect(() => {
+						console.log("fresh render");	
+					}, [words]);
+
+					// ...
+				}
+				===============================================
+				+ words will be the same instance as the last render.
+
+		* "useMemo"
+			-> invokes a function to calculate a memoized value.
+			-> allows us to compare the cached value against itself to see if it has actually changed.
+
+			ex)
+				====================================================
+				import React, { useEffect, useMemo } from "react";
+
+				const words = useMemo(() => {
+					const words = children.split(" ");
+					return words;
+				}, []);
+
+				useEffect(() => {
+					console.log("fresh render");
+				}, [words]);
+				====================================================
+				+ useMemo invokes the function sent to it and sets words to the return value of that function.
+				* we didn't include the dependency array with useMemo, the words are calculated with every render.
+
+			ex)
+				====================================================
+				function WordCount({ children = "" }) {
+					const words = useMemo(() => children.split(" "), [children]);
+
+					useEffect(() => {
+						console.log("fresh render");
+					}, [words]);
+
+					return (...);
+				}
+				====================================================
+				+ the words array depends on the children property.
+					-> if children changes, we should calculate a new value for words that reflects that change.
+				+ useMemo will calculate a new value for words when the component initially renders and if the children property changes.
+
+		- "useCallback"
+			-> memoizes functions instead of values.
+
+			ex)
+				====================================================
+				const fn = useCallback(() => {
+					console.log("Hello World!");
+				}, []);
+
+				useEffect(() => {
+					console.log("fresh render");
+					fn();
+				}, [fn]);
+				====================================================
+				+ "useCallback" memoizes the function value for fn.
+				+ also expects a dependency array as the second argument.
+
+	(When to useLayoutEffect)
+		* render always comes before useEffect.
+
+		* useLayoutEffect is called at a specific moment in the render cycle.
+			1. Render
+			2. useLayoutEffect is called.
+			3. Browser paint: The time when the component's elements are actually added to the DOM.
+			4. useEffect is called.			
+
+			ex)
+				====================================================
+				function useWindowSize {
+					const [width, setWidth] = useState(0);
+					const [height, setHeight] = useState(0);
+
+					const resize = () => {
+						setWidth(window.innerWidth);
+						setHeight(window.innerHeight);
+					};
+
+					useLayoutEffect(() => {
+						window.addEventListener("resize", resize);
+						resize();
+						return () => window.removeEventListener("resize", resize);
+					}, []);
+
+					return [width, height];
+				};
+				====================================================
+				* width and height of the window is information that your component may need before the browser paints.
+				+ useLayoutEffect is used to calculate the window's width and height before the paint.
+
+			ex) tracking the position of the mouse
+				====================================================
+				function useMousePosition {
+					const [x, setX] = useState(0);
+					const [y, setY] = useState(0);
+
+					const setPosition = ({ x, y }) => {
+						setX(x);
+						setY(y);
+					}
+
+					useLayoutEffect(() => {
+						window.addEventListener("mousemove", setPosition);
+						return () => window.removeEventListener("mousemove", setPosition);
+					}, []);
+
+					return [x, y];
+				}
+				====================================================
+				+ calculate positions accurately before the paint.
+
+	(Rules to Follow with Hooks)
+		- Hooks only run in the scope of a component.
+			-> Hooks should only be called from React components.
+			-> can also be added to custom Hooks, which are eventually added to components.
+
+		- It's a good idea to break functionality out into multiple Hooks.
+
+		* Hooks should only be called at the top level
+			-> They cannot be placed into conditional statements, loops, or nested functions.
+
+	(Improving Code with useReducer)
+		- "reducer"
+			-> takes in the current state and returns a new state.
+
+			ex)
+				==================================================
+				function Checkbox() {
+					const [checked, toggle] = useReducer(checked => !checked, false);
+
+					return (
+						<>
+							<input type="checkbox"
+									value={checked}
+									onChange={toggle} />
+							{checked? "checked": "not checked"}
+						</>
+					);
+				}
+				==================================================
+
+			ex)
+				==================================================
+				function Numbers() {
+					const [number, setNumber] = useReducer((number, newNumber) => number + newNumber, 0);
+
+					return <h1 onClick={() => setNumber(30)}>
+						{number}</h1>;
+				}
+				==================================================
+
+	(useReducer to Handle Complex State)
+		* "stale closure bug"
+			- "setState" is async and can be stale.
+			- multiple "setState" calls can lose previous data.
+
+		ex)
+			==================================================
+			function User() {
+				const [user, setUser] = useReducer((user, newDetails) => ({...user, ...newDetails}), firstUser);
+
+				...
+			}
+			==================================================
+
+	(shouldComponentUpdate and PureComponent)
+		- "shouldComponentUpdate"
+			-> described which props or state would need to chnage for the component to renderer.
+
+		* React team decided to create an alternate way of creating a component as a class.
+			ex) A class component
+				====================================================
+				class Cat extends React.Component {
+					render() {
+						return (
+							{name} is a good cat!
+						)
+					}
+				}
+				====================================================
+
+			ex) A PureComponent
+				====================================================
+				class Cat extends React.PureComponent {
+					render() {
+						return (
+							{name} is a good cat!
+						)
+					}
+				}
+				====================================================
+				+ same as React.memo, but PureComponent is only for class components; React.memo is only for function components.
+
+
+
+
