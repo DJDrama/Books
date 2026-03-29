@@ -1,0 +1,29 @@
+[1.2 Purpose of Database Systems]
+	
+	- Disadvantages of file-processing system
+		1) Data redundancy and inconsistency
+			+ different programmers create files and application programs over a long period
+				-> various files have different structures.
+				-> programs may be writeen in several programming languages.
+
+			+ same info may be duplicated in several places (files).
+
+			+ redundancy may lead to "data inconsistency".
+				-> various copies of the same data may no longer agree.
+					ex) a changed student address may be reflected in the Music deprt records but not elsewhere in the system.
+
+		2) Difficulty in accessing data.
+
+		3) Data isolation
+			-> files are scattered, they may be in different formats
+
+		4) Integrity problems
+			* data values stored in the db must satisfy certain types of "consistency constraints".
+
+		5) Atomicity problems
+			ex) funds transfer must be "atomic"
+				-> difficult to ensure atomicity in a conventional file-processing system.
+
+		6) Concurrent-access anomalies
+
+		7) Security problems
