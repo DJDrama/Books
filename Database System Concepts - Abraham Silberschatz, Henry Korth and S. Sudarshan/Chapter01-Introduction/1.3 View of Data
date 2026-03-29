@@ -58,3 +58,24 @@
 					-> provides many views for the same database.
 
 		- Databases use a type of data structure called an index to support efficient retrieval of records; these too form part of the physical level.
+
+	(1.3.4 Instances and Schemas)
+		- "instance" of the db
+			-> collection of info stored in teh db at a particular moment.
+
+		- database "schema"
+			-> overall design of the db is called the database "schema".
+
+		- Database systems have several schemas, partitioned according to the levels of abstraction.
+			1) "physical schema"
+				-> describes the database design at the physical level.
+
+			2) "logical schema"
+				-> describes the database design at the logical level.
+
+			3) "subschemas"
+				-> A db may have several schemas the view level, that describe different views of the database.
+
+		* "logical schema" is the most important in terms of its effect on application programs.
+			-> since programmers construct apps by using the logical shcema.
+
