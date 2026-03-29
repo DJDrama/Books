@@ -1,0 +1,38 @@
+- DBMS: Database Management System
+	+ database: collection of data, contains information relevant to an enterprise.
+		-> goal: to provide a way to store and retrieve db info that is both convenient and efficient.
+
+- DB systems are designed to manage large bodies of information.
+
+- Management of data
+	1) defining structures for storage of information
+	2) providing mechanisms for the manipulation of information
+	3) ensure the safety of the information stored, despite system crashes or attempts at unauthorized access.
+
+[1.1 Database-System Applications]
+	- The central aspect of the application
+		-> the data themselves.
+
+		* valuable corporations are valuable not because of their physical assets, but rather because of the information they own.
+
+	- Database systems are used to manage collections of dat athat
+		1) highly valuable
+
+		2) relatively large
+
+		3) accessed by multiple users and applications, often at the same time.
+
+	* Key to the management of complexity is the concept of "abstraction".
+		-> use a complex device or system without having to know the details of how that device or system is constructed.
+
+	- Two modes in which databases are used.
+		1) online transaction processing
+			-> each user retrieving relatively small amounts of data and performing small updates.
+
+		2) data analytics
+			-> processing of data to draw conclusions, and infer rules or decision procedures. (to drive business decisions)
+
+	- data mining
+		-> knowledge-discovery techniques invented by artificial intelligence researchers and statistical analysts with efficient implementation techniques that enable them to be used on extremely large databases.
+
+	
