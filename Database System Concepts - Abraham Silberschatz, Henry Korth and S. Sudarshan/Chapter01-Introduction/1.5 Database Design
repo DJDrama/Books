@@ -1,0 +1,37 @@
+[1.5 Database Design]
+	- high level data model provides the db designer with a 
+		-> conceptual framework in which to specify the data requirements of the database users.
+		-> how the database will be structured to fulfill these requirements.
+
+	- initial phase of db design
+		-> characterize fully the data needs of the prospective db users.
+
+	* db designer needs to interact extensively with domain experts and users to carry out this task.
+		-> outcome of this phase is a "specification of user requirements".
+
+		-> next, the designer chooses a data model, and by applying the concepts of the chosen data model, translates these requirements into a conceptual schema of the database. (Conceptual-design)
+
+	- Conceptual design process involves decisions on
+		1) "what" attributes we want to capture in the db
+			-> business decision
+
+		2) "how" to group these attributes to form the various tables.
+			-> computer-science problem.
+
+			(two ways to tackle the problem)
+				(1) use the entity-relationship model
+
+				(2) employ a set of algorithms (known as "normalization")
+					-> takes as input the set of all attributes and generates a set of tables.
+
+	- A fully developed conceptual schema indicates the functional requirements of the enterprise.
+		-> "specification of functional requirements"
+			+ users describe the kinds of operations that will be performed on the data.
+				ex) modifying or updating data, searching for and retrieving specific data, and deleting data.
+
+	- design phases
+		1) "logical-design phase"
+			-> designer maps the high-level conceptual schema onto the implementation data model of the db system that will be used.
+
+		2) "physical-design phase"
+			-> physical features of the db are specified.
