@@ -1,0 +1,73 @@
+[1.4 Database Languages]
+	- DDL (data-definition language)
+		-> specify the database schema
+		-> specify additional properties of the data.
+
+	- DML (data-manipulation language)
+		-> express database queries and updates
+
+	(1.4.1 Data-Definition Language)
+		- data storage and definition
+			-> specify the storage structure and access methods used by the db system by a set of statements in a special type of DDL
+
+			-> specifies implementation details of the db schemas, hidden from the users.
+
+		- db systems implement only those integrity constraints that can be tested with minimal overhead.
+
+			1) Domain Constraints
+				- integer types, character types, date/time types
+
+				- most elementary form of integrity constraint.
+					-> tested easily by the system whenever a new data item is entered into the db.
+
+			2) Referential Integrity
+				- ensure that a value that appears in one relation for a given set of attributes also appears in a certain set of attributes in another relation (referential integrity)
+					-> when a referential-integrity constraint is violated, the normal procedure is to reject the action that caused the violation.
+
+			3) Authorization
+				- differentiate among the users as far as the type of access they are permitted on various data values in the db.
+					ex)
+						+ read authorization (no modification)
+						+ insert authorization (insert, but no modification of existing data)
+						+ update authorization (only modification, no deletion)
+						+ delete authorization (allows deletion of data)
+
+					-> assign the user all, none, or a combination of these types of authorization.
+
+		* output of the DDL is placed in the "data dictionary".
+			-> contains "metadata" (data about data)
+
+			-> special type of table that can be accessed and updated only by the db system itself.
+
+		* db system consults the data dictionary before reading or modifying actual data.
+
+	(1.4.2 The SQL Data-Definition Language)
+		- SQL provides a rich DDL that allows one to define tables with data types and integrity constraints.
+
+	(1.4.3 Data-Manipulation Language)
+		- language that enables users to access or manipuate data as organized by the appropriate data model.
+
+			1) Retrieval of info stored in the db.
+			2) Insertion of new info into the db.
+			3) Deletion of info from the db.
+			4) Modification of info stored in the db.
+
+		- two types of data-manipulation language
+
+			1) Procedural DMLs
+				-> require a user to specify "what" data are needed and "how" to get those data.
+					ex)
+						"Go to the Customers table, scan each row one by one, check if the city equals 'Seoul' and return those rows."
+
+			2) Declarative DMLs (nonprocedural DMLs)
+				-> require a user to specify "what" data are needed "without" specifying how to get those data
+
+		- "query" is a statement requesting the retrieval of information.
+			-> "query language": DML that involves info retrieval
+
+	(1.4.4 The SQL Data-Manipulation Language)
+		* SQL query language is nonprocedural.
+
+	(1.4.5 Database Access from Application Programs)
+		- To access the db, DML statements need to be sent from the host to the db where they will be executed.
+			-> commonly done by using an application-program interface (set of procedures) that can be used to send DML and DDL statements to the db and retrieve the results.
