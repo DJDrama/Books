@@ -1,0 +1,27 @@
+[1.7 Database and Application Architecture]
+	- "shared-memory" server architectures
+		-> multiple CPU's and exploit parallel processing
+		-> all the CPU's access a common shared memory.
+
+	- "parallel databases"
+		-> desgined to run on a cluster consisting of multiple machines.
+
+	- "distributed databases"
+		-> allow data storage and query processing across multiple geographically separated machines.
+
+	- "two-tier architecture"
+		-> app resides at the client machine, and invokes database system functionality at the server machine through query language statements.
+
+	- "three-tier architecture"
+		-> modern database apps use
+		-> client machine acts as a front end and does not contain any direct db calls.
+
+		-> web browser and mobile apps are the most commonly used app clients
+
+		-> frontend communicates with an app server.
+
+		-> app server communicates with a database system to access data.
+
+		* business logic of the app is embedded in the application server, instead of being distributed across multiple clients.
+
+		-> better security as well as better performance than two-tier apps.
