@@ -1,0 +1,42 @@
+[1.8 Database Users and Administrators]
+	(1.8.1) Database Users and User interfaces
+		- four different types of db-system users
+			1) Naive users
+				-> interact with the system by using predefined user interfaces, such as web or mobile apps.
+
+				-> forms interface
+					+ where the user can fill the fields of the form.
+
+				-> may also view read reports generated from the db.
+
+			2) Application programmers
+				-> write app programs.
+
+				-> can choose many tools to develop user interfaces.
+
+			3) Sophisticated users
+				-> interact with the system without writing programs.
+
+				-> form their requests using a db query language or by using tools such as data analysis software.
+
+				* Analysts who submit queries to explore data in the db fall in this category.
+
+	(1.8.2 Db Administrator)
+		- "DBA" Databse Administrator
+			-> has central control over the system
+
+			1) Schema definition
+
+			2) Storage structure and access-method definition
+
+			3) Schema and physical-organization modification
+				-> alter the physical organization to improve performance
+
+			4) Granting of authorization for data access
+
+			5) Routine maintenance
+				-> backing up the db onto remote servers
+
+				-> ensuring enough free disk space is available
+
+				-> monitoring jobs running on the db and ensuring performance is not degraded by tasks submitted by some users.
