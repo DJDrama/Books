@@ -1,0 +1,61 @@
+[1.9 History of Database Systems]
+	- 1950s and early 1960s
+		-> magnetic tapes were developed for data storage.
+
+		-> tapes could be read only sequentially, and data sizes were much larger than main memory;
+			+ data-processing programs were forced to process data in a particular order by reading and merging data from tapes and card decks.
+
+	- Late 1960s and early 1970s
+		-> hard disks allowed direct access to data.
+
+		-> any location on disk could be accessed in just tens of milliseconds.
+			+ data were freed from the tyranny of sequentiality.
+
+		-> network and hierarchical data modesl were developed
+			+ data structures such as lists and trees to be stored on disk.
+
+	- Late 1970s and 1980s
+		-> Initial commercial relational database systems, such as IBM DB2, Oracle, Ingres, and DEC Rdb.
+
+		-> relational databases ahd become competitive with network and hierarchical db systems even in the area of performance.
+
+		* low level tasks are carried out automatically by the db system.
+
+		* 1980s much research on parallel and distributed databases, as well as initial work on object-oriented databases.
+
+	- 1990s
+		-> SQL language was designed primarily for decision support applications, query-intensive.
+
+		-> explosive growth of the World Wide Web.
+			+ Databases were deployed much more extensively than ever before.
+
+		-> high transaction-processing rates, as well as very high reliability and 24 X 7 availability(24 hours a day, 7 days a week = no downtime for scheduled maintenance activities)
+
+	- 2000s
+		-> XML emerged as data-exchange standard.
+		-> JSON more compact data-exchange format well suited for storing objects from JavaScript or other programming languages grew important.
+
+		-> such data were stored in relational database systems as support for the XML and JSON formats was added to the major commercial systems.
+
+		-> Open-source db systems, such as PostgreSQL and MySQL saw increased use.
+
+		-> Auto-admin features were added to db systems to allow automatic reconfiguration to adapt to changing workloads.
+
+		* Social network platforms grew at a rapid pace, creating a need to manage data about connections between people and their posted data.
+			+ led to the development of graph databases.
+
+		-> use of data analytics and data mining in enterprises became ubiquitous.
+
+		-> "NoSql" model of "eventual consistency" allowed for distributed copies of data to be inconsistent as long they would eventually converge in the absence of further updates.
+
+	- 2010s
+		-> "cloud" services that host data for various clients in multiple, widely distributed server farms.
+
+		-> "software as a service"(SAAS)
+			+ the vendor not only stores the data but also runs the application software.
+
+			* security breaches, data ownership problem in cases where a government requests access to data.
+
+		
+
+
