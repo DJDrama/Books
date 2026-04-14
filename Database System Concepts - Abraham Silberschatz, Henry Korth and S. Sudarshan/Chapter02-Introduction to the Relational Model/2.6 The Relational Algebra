@@ -1,0 +1,64 @@
+[2.6 The Relational Algebra]
+    - consists of a set of operations that take one or two relations as input and produce a new relation as their result.
+
+    - "unary" operations: select, project, and rename operations
+        -> because they operate on one relation.
+
+    - "binary" operations: union, Cartesian product, and set difference
+        -> operate on pairs of relations.
+
+    (2.6.1 The Select Operation)
+        - selects tuples that satisfy a given predicate.
+        - use lowercase Greek letter sigma (σ)
+            ex) σ dept_name =“Physics” (instructor)
+                + select dept_name which equals "Physics"
+
+    (2.6.2 The Project Operation)
+        - unary operation that returns its argument relation, with certain attributes left out.
+            -> any duplicate rows are eliminated.
+        - use uppercase Greek letter pi (Π)
+            ex) Π ID, name, salary (instructor)
+                + select (DISTINCT) ID, name, salary from instructor
+
+    (2.6.3 Composition of Relational Operations)
+        - relational-algebra operations can be composed together into a "relational-algebra expression".
+            ex) Π name (σ dept_name =“Physics” (instructor))
+                + select name from instructor where dept_name equals "Physics"
+
+    (2.6.4 The Cartesian-Product Operation)
+        - denoted by a cross (x), allows us to combine information from any two relations.
+            ex) r1 x r2 (Cartesian product of relations r1 and r2)
+
+    (2.6.5 The Join Operation)
+        - combine a selection and a Cartesian product into a single operation.
+            ex) r ⋈θ s = σθ(r × s)
+
+    (2.6.6 Set Operations)
+        - "union": ∪
+            1) must ensure that the input relations to the union operation have the same number of attributes;
+                -> the number of attributes of a relation is referred to as its "arity".
+
+            2) when the attirubtes have associated types, the types of the ith attributes of both input relations must be the same, for each i.
+
+        - "intersection": ∩
+            -> allows us to find tuples that are in both the input relations.
+
+        - "set-difference" operation: -
+            ex) r - s (relation containing those tuples in r but not in s)
+
+    (2.6.7 The Assignment Operation)
+        - denoted by ← (works like assignment in a programming language)
+            ex) courses_fall_2017 ← Π course_id (σ semester =“Fall” ∧ year=2017 (section))
+                (assigning the result of right operation into left variable)
+
+    (2.6.8 The Rename Operation)
+        - results of the relational-algebra expressions do not have a name that we can use to refer to them.
+            -> useful in some cases to give them names; the "rename" operator.
+
+        - denoted by the lowercase Greek letter rho (ρ)
+            ex) ρx (E) : result of expression E under the name x
+
+    (2.6.9 Equivalent Queries)
+        - query with two different operations may be equivalent (same results)
+            -> but have different performances.
+            -> Query optimizers in db systems find an efficient way of cmoputing the result, rather than following the exact sequence of steps specified in the query.
