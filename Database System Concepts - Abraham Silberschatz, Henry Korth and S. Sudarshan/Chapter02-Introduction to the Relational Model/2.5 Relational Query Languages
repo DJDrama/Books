@@ -1,0 +1,21 @@
+[2.5 Relational Query Languages]
+    - language in which a user requests information from the db.
+    - on a level higher than that of a standard programming language.
+
+    1) Imperative query language
+        - user instructs the system to perform a specific sequence of operations on the db to compute the desired result
+
+    2) Functional query language
+        - computation is expressed as the evaluation of functions that may operate on data in the db or on the results of other functions.
+            * functions are side-effect free, do not update the program state.
+
+        ex) relational algebra = functional query language
+            -> forms the theoretical basis of the SQL query language.
+
+    3) Declarative query language
+        - user describes the desired info without giving a specific sequence of steps or function calls for obtaining that information.
+            -> described using some form of mathematical logic.
+
+        ex) tuple relational calculus and comain relational calculus
+
+    - Query languages used in practice, such as the SQL query language, including elements of the imperative, functional, and declarative approaches.
