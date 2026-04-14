@@ -1,0 +1,9 @@
+[2.4 Schema Diagrams]
+	- A database schema, along with primary key and foreign-key constraints, can be depicted by "schema diagrams".
+	    -> Each relation appears as a box, with the relation name at the top, and the attributes listed inside the box.
+
+	- Primary-key attributes: underlined.
+
+	- Foreign-key constraints: arrows from the foreign-key attributes of the referencing relation to the primary key of the referenced relation.
+
+    * entity-relationship diagram have similarities, but notations are quite different.

@@ -1,0 +1,23 @@
+[2.1 Structure of Relational Databases]
+	- relational database consists of a collection of "tables"
+		-> unique name
+
+	- row in a table represents a "relationship" among set of values.
+
+	- tuple : sequence of values
+		-> relationship between n values is represented by an n-tuple of values.
+
+	* "relationship" is used to refer to a table
+
+	* "tuple" is used to refer to a row
+
+	* "attribute" refers to a column of a table
+
+	- "relation instance" -> refer to a specific instance of a relation, that is, containing a specific set of rows.
+
+	- "domain": set of permitted values for each attribute of a relation
+		-> "atomic" if elements of the domain are considered to be indivisible units.
+
+	- "null value"
+		-> unknown value or does not exist
+
