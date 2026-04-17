@@ -1,0 +1,13 @@
+[3.6 Null Values]
+    - "and"
+        -> result of true and unknown: unknown
+        -> result of false and unknown: false
+        -> result of unknown and unknown: unknown
+
+    - "or"
+        -> result of true or unknown: true
+        -> result of false or unknown: unknown
+        -> result of unknown or unknown: unknown
+
+    - "not"
+        -> result of not unknown: unknown
