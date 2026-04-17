@@ -1,0 +1,24 @@
+[3.1 Overview of the SQL Query Language]
+    - SQL(Structured Query Language)
+    - the standard relational database language.
+
+    1) Data-Definition Language (DDL)
+        - provides commands for defining relation schemas, deleting relations, and modifying relation schemas.
+
+    2) Data-Manipulation Language (DML)
+        - provides the ability to query info from the db and to insert tuples into, delete uples from, and modify tuples in the database.
+
+    3) Integrity
+        - SQL DDL includes commands for specifying integrity constraints that the data stored in the db must satisfy.
+
+    4) View Definition
+        - SQL DDL includes commands for defining views.
+
+    5) Transaction control
+        - SQL includes commands for specifying the beinning and end points of transactions.
+
+    6) Embbeded SQL & dynamic SQL
+        - define how SQL statements can be embedded within general-purpose programming languages, such as C, C++, and Java.
+
+    7) Authorization
+        - SQL DDL includes commands for specifying access rights to relations and views.
