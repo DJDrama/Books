@@ -1,0 +1,14 @@
+[3.3 Basic Structure of SQL Queries]
+    - SQL query consists of three clauses: select, from, and where
+
+    (3.3.1 Queries on a Single Relation)
+        - select distinct: elimination of duplicates
+        - select all: allow duplicates
+            -> but "select" duplicate retention is the default
+        - "and", "or", and "not" in the "where" clause possible
+
+    (3.3.2 Queries on Multiple Relations)
+        - SQL Query can be understood as follows:
+            1) Generate a Cartesian product of the relations listed in the "from" clause.
+            2) Apply the predicates specified in the "where" clause on the result of Step 1.
+            3) Output the attirubtes (or results of expressions) specified in the "select" clause.
