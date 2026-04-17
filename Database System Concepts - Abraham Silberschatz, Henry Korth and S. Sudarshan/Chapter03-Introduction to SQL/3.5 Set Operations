@@ -1,0 +1,26 @@
+[3.5 Set Operations]
+    - union (∪)
+    - intersect (∩)
+    - except (−)
+
+    (3.5.1 The Union Operation)
+        - union operation
+            -> automatically eliminates duplicates!
+
+        - "union all"
+            -> retain all duplicates
+
+    (3.5.2 The intersect Operation)
+        - intersect operation
+            -> automatically eliminates duplicates!
+
+        - "intersect all"
+            -> retains all duplicates
+
+    (3.5.3 The Except Operation)
+        - except operation
+            -> outputs all tuples from its first input that do not occur in the second input
+            -> automatically eliminates duplicates!
+
+        - "except all"
+            -> retains all duplicates
