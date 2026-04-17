@@ -1,0 +1,24 @@
+[3.2 SQL Data Definition]
+    - SQL DDL allows specifictaion of not only a set of relations, but also information about each relation, including:
+        1) schema of each relation.
+        2) types of values associated with each attribute
+        3) integrity constraints
+        4) set of indices to be maintained for each relation
+        5) security and authorization information for each relation.
+        6) physical storage structure of each relation on disk.
+
+    (3.2.1 Basic Types)
+        - char: fixed-length character string with user-specified length n. (character)
+        - varchar: variable-length character string with user-specified maximum length n. (character varying)
+        - int
+        - smallint
+        - numeric(p, d): fixed-point number, p digits and d of the p digits are to the right of the decimal point.
+            ex) numeric(3, 1) -> allows 44.5, 10.0
+        - real, double precision
+        - float
+
+    (3.2.2 Basic Schema Definition)
+        - primary key
+            -> nonnull, unique
+        - foreign key references
+        - not null
