@@ -1,0 +1,55 @@
+[3.4 Additional Basic Operations]
+    (3.4.1 The Rename Operation)
+        - "as" clause
+            ex) select something as teacher
+            ex) select T.name from instructor as T
+
+            -> useful in renaming relations
+            -> reasons
+                1. one reason to rename a relation: shortened version which is more convenient to use elsewhere in the query
+                2. where we wish to compare tuples in the same relation.
+
+        - "correlation name" in the SQL standard
+            -> commonly referred to as a "table alias", or a "correlation variable", or a "tuple variable"
+
+    (3.4.2 String Operations)
+        - SQL permits a variety of functions on character strings
+            -> concatenating using "∥"
+            -> extracting substrings
+            -> find the length of strings
+            -> converting strings to uppercase(upper(s))
+            -> converting strings to lowercase(lower(s))
+            -> removing spaces at the end of the string(trim(s))
+
+        - Pattern matching can be performed on strings using "like" operator.
+            -> Percent(%): The % character matches any substring
+            -> Underscore(_): The _ character matches any character
+
+            ex) Intro%
+                -> any string beginning with "Intro"
+
+            ex) %Comp%
+                -> any string containing "Comp" as a substring
+                    ex) Computer Science, Computational Biology
+
+            ex) ___
+                -> matches any string of exactly three characters
+
+            ex) ___%
+                -> matches any string of at least three characters
+
+    (3.4.3 Attribute Specification in the Select Clause)
+        - "*" symbol: all attributes
+
+    (3.4.4 Ordering the Display of Tuples)
+        - "Order by"
+            -> lists items in ascending order.
+
+            <-> "desc" for descending
+
+    (3.4.5 Where-Clause Predicates)
+        - "between" comparison
+            ex) select * from instructor where salary
+                between 90 and 100;
+
+        <-> "not between"
