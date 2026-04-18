@@ -1,0 +1,35 @@
+[3.7 Aggregate Functions]
+    - functions that take a collection of values as input and return a single value.
+        ex) avg(Average)
+            min(Minimum)
+            max(Maximum)
+            sum(Total)
+            count(Count)
+
+    (3.7.1 Basic Aggregation)
+        - use "distinct" for counting distinct items
+            ex) SELECT COUNT(DISTICNT ID)
+                FROM teaches
+                WHERE semester = 'Spring' AND year = 2018;
+
+        * cannot use distinct with COUNT(*).
+
+    (3.7.2 Aggregation with Grouping)
+        - "GROUP BY"
+            -> to form groups
+
+        * only attributes that appear in the "SELECT" statement without being aggregated are those that are present in the "GROUP BY" clause.
+
+        * In other words, any attribute that is not present in the "GROUP BY" clause may appear in the "SELECT" clause only as an argument to an aggregate function.
+
+    (3.7.3 The Having Clause)
+        ex) SELECT course_id, semester, year, sec_id, AVG(tot_cred)
+            FROM student, takes
+            WHERE student.ID = takes.ID AND year = 2017
+            GROUP BY course_id, semester, year, sec_id
+            HAVING COUNT(ID) >= 2;
+
+    (3.7.4 Aggregation with Null and Boolean Values)
+        * All aggregate functions except COUNT(*) ignore null values in their input collection.
+
+        * The COUNT of an empty collection is defined to be 0.
