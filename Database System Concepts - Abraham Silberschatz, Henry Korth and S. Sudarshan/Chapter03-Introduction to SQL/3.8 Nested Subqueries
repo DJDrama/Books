@@ -1,0 +1,101 @@
+[3.8 Nested Subqueries]
+    - subquery: select-from-where expression nested within another query.
+
+    - common use: perform tests for 
+        1) set membership
+        2) make set comparisons
+        3) determine set cardinality by nesting subqueries in the "where" clause.
+
+    (3.8.1 Set Membership)
+        - "in"
+        - "not in"
+            ex)
+                SELECT DISTINCT name
+                FROM instructor
+                WHERE name NOT IN ('Mozart', 'Einstein');
+
+            * "DISTINCT" used for removing duplicates.
+
+    (3.8.2 Set Comparison)
+        - "some" (greater than at least one)
+            ex)
+                SELECT name
+                FROM instructor
+                WHERE salary > SOME (SELECT salary
+                                     FROM instructor
+                                     WHERE dept_name = 'Bio');
+
+            -> the subquery generates the set of all salary values for all instructors in the Bio department.
+
+        - "all" (greater than all)
+            ex)
+                SELECT name
+                FROM instructor
+                WHERE salary > ALL (SELECT salary
+                                    FROM instructor
+                                    WHERE dpet_name = 'Bio');
+
+        * BUT these are rare in modern SQL practice!!!
+            -> "> SOME (subquery)" just use "> (SELECT MIN(...) FROM)"
+
+            -> "> ALL (subquery)" just use "> (SELECT MAX(...) FROM"
+
+            -> "= SOME" just use "IN"
+
+            -> "<> ALL" just use "NOT IN"
+
+    (3.8.3 Test for Empty Relations)
+        - "exist"
+            -> "correlation name" from an outer query can be used in a subquery in the "WHERE" clause.
+
+        - "correlated subquery"
+            -> A subquery that uses a correlation name from an outer query
+
+        - "not exists"
+
+    (3.8.4 Test for the Absence of Duplicate Tuples)
+        - "unique"
+            -> returns the value "true" if the argument subquery contains no duplicate tuples.
+
+            * Almost no major db implements it. Mostly not used!!!
+
+    (3.8.5 Subqueries in the From Clause)
+        - SQL allows a subquery expression to be used in the "from" clause.
+            ex)
+                SELECT *
+                FROM (SELECT ...)
+                WHERE ...;
+
+        * some SQL implementations, MYSQL and POSTGRESQL, require that each subquery relation in the "FROM" clause must be given a name.
+
+        - "LATERAL"
+            -> subquery can reference columns from tables that appear earlier in the FROM clause.
+
+            ex)
+                SELECT name, salary, avg_salary
+                FROM instructor II, 
+                LATERAL (SELECT avg(salary)
+                         FROM instructor I2
+                         WHERE I2.dept_name = I1.dept_name);
+
+            * without the "LATERAL" clause, the subquery cannot access the correlation variable II from the outer query.
+
+    (3.8.6 The With Clause)
+        - "with"
+            -> provides a way of defining a temporary relation whose definition is available only to the query in which the "WITH" clause occurs.
+
+    (3.8.7 Scalar Subqueries)
+        - SQL allows subqueries to occur wherever an expression returning a value is permitted, provided the subquery returns only one tuple containing a single attribute;
+
+            ex)
+                SELECT dept_name,
+                    (SELECT COUNT(*)
+                     FROM instructor
+                     WHERE department.dept_name = instructor.dept_name)
+                     AS num_instructors
+                FROM department;
+
+            * if the result has more than one tuple when the subquery is executed, the run-time error occurs.
+
+    (3.8.8 Scalar Without a From Clause)
+        - "DUAL" -> only used for ORACLE DB
