@@ -1,0 +1,53 @@
+[3.9 Modification of the Database]
+	(3.9.1 Deletion)
+		- we can delete only "whole" tuples
+			ex)
+				DELETE FROM relation
+				WHERE Predicate;
+
+			* WHERE clause can be omitted.
+
+		- we MUST use one "DELETE" command for each relation.
+
+		- can contain a nested "SELECT" that references the relation from which tuples are to be deleted.
+			ex)
+				DELETE FROM instructor
+				WHERE salary < (SELECT AVG(salary)
+								FROM instructor);
+
+	(3.9.2 Insertion)
+		- simplest "INSERT" statement
+			-> request to insert one tuple
+				ex)
+					INSERT INTO course
+					VALUES ('CS-437', 'DB Systems', 'Comp. Sci', 4);
+
+	(3.9.3 Updates)
+		ex)
+			UPDATE instructor
+			SET salary = salary * 1.05;
+
+			UPDATE instructor
+			SET salary = salary * 1.05
+			WHERE salary < 70000;
+
+		- general form of the case statement
+			ex)
+				CASE
+					WHEN pred1 then result1
+					WHEN pred2 then result2
+					...
+					WHEN predn then resultn
+					ELSE result0
+				end
+
+				UPDATE instructor
+				SET salary = CASE
+								WHEN salary <= 10000 THEN salary*1.05
+								ELSE salary*1.03
+							 END
+
+		- Many systems support a "COALESCE" function
+			-> concise way of replacing "nulls" by other values.
+
+			ex) COALESCE(SUM(credits), 0) instead of CASE expression.
