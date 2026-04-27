@@ -1,0 +1,54 @@
+[4.2 Views]
+	- "with"
+		-> allows us to assign a name to a subquery for use as often as desired, but in one particular query only.
+
+		* we present a way to extend this concept beyond a single query by defining a "view".
+
+	(4.2.1 View Definition)
+		- "create view" command
+			-> give the view a name and state the query that computes the view.
+				ex)
+					create view v as <query expression>;
+
+					create view faculty as
+						SELECT ID, name, dept_name
+						FROM instructor;
+
+		- the db system stores the query expression associated with the view relation.
+
+		- whenever the view relation is accessed, its tuples are created by computing the query result.
+
+		* differ from the "with" statement
+			-> views, once created, remain available until explicitly dropped.
+
+			-> "with" is local to the query in which it is defined.
+
+	(4.2.2 Using Views in SQL Queries)
+		- view may become out of date if the relations used to define it are modified.
+			-> to avoid this, views are usually implemented as follows:
+				1) when we define a view, the db system stores the definition of the view itself, rather than the result of evaluation of the query expression that defines the view.
+
+				2) wherever a view relation appears in a query, it's replaced by the stored query expression.
+
+				* whenever we evaluate the query, the view relation is recomputed.
+
+	(4.2.3 Materialized Views)
+		- "materialized views"
+			-> if the actual relations used in the view definition change, the view is kept up-to-date.
+
+		- "materialized view maintenance" (view maintanence)
+			-> process of keeping the materialized view up-to-date
+
+		* some may perform "lazily", some may perform "periodically"
+
+	(4.2.4 Update of a View)
+		- SQL view is "updatable" when
+			1) the "From" clause has only one db relation
+
+			2) "select" clause contains only attribute names of the relation and does not have any expressions, aggregates, or "distinct" specification.
+
+			3) any attribute not listed in the "select" clause can be set to null; it does not have a "not null" constraint and is not part of a primary key.
+
+			4) the query does not have a "group by" or "having" clause.
+			
+
