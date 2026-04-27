@@ -1,0 +1,32 @@
+[4.3 Transactions]
+	- consists of a sequence of query and/or update statements.
+
+		1) Commit work
+			-> commits the current transaction;
+			
+			-> makes the updates performed by the transactino become permanent in the database.
+
+			-> after the transactino is committed, a new transaction is automatically started.
+
+		2) Rollback work
+			-> causes the current transaction to be rolled back
+
+			-> undeos all the updates performed by the SQL statements in the transaction
+
+			-> the db state is restored to what it was before the first statement of the transactino was executed.
+
+	* once a transactino has executed "commit work", its effects can no longer be undone by "rollback work".
+
+	- "atomic"
+		-> db provides an abstraction of a transaction of being "atomic" (indivisible)
+
+	* many db support the command "set autocommit off"
+		-> manual mode
+
+	* "being atomic ... end"
+		-> all the statements between the keywords then form a single transaction, which is committed by default if execution reaches the "end" statement.
+
+	* MYSQL and PostgreSQL supports "begin" statement
+		-> which starts a transaction containing all subsequent SQL statements, but do not support the "end" statement; instead, the transactino must be ended by either a "commit work" or a "rollback work" command.
+
+	* be sure to issue a "commit" command after adding or modifying data, or else when you disconnect, all your db modifications will be rolled back.
